@@ -222,7 +222,7 @@ apps/
 - **环境变量**: 自动加载和类型转换
 - **配置验证**: 配置项验证
 
-### 5. Logger 模块 (@hest/logger)
+### 5. Logger 模块 (@hestjs/logger)
 
 日志模块：
 
@@ -425,7 +425,7 @@ export class AppService {
 #### Validation 包开发 ✅
 
 - [x] 验证装饰器实现
-  - [x] `@IsString`, `@IsNumber`, `@IsEmail` 等基础验证 
+  - [x] `@IsString`, `@IsNumber`, `@IsEmail` 等基础验证
   - [x] `@IsOptional`, `@IsArray` 等复合验证
   - [x] `@Custom()` 自定义验证装饰器支持 (完全 TypeBox API)
 - [x] 验证管道集成
@@ -453,7 +453,8 @@ export class AppService {
 
 **Phase 3 功能详细清单:**
 
-*基础验证装饰器:*
+_基础验证装饰器:_
+
 - @IsString(options) - 字符串验证，支持长度、模式匹配
 - @IsNumber(options) - 数字验证，支持范围、倍数验证
 - @IsEmail() - 邮箱验证，使用正则表达式
@@ -461,18 +462,21 @@ export class AppService {
 - @IsOptional() - 可选字段标记
 - @IsArray(options) - 数组验证
 
-*自定义验证功能:*
-- @Custom(schema, options) - 完全的 TypeBox API 支持
-- SchemaFactory.* - 便捷构建器方法
-- CommonValidators.* - 常用验证器 (UUID, 中国手机号等)
+_自定义验证功能:_
 
-*验证系统特性:*
+- @Custom(schema, options) - 完全的 TypeBox API 支持
+- SchemaFactory.\* - 便捷构建器方法
+- CommonValidators.\* - 常用验证器 (UUID, 中国手机号等)
+
+_验证系统特性:_
+
 - ValidationInterceptor - 自动拦截和验证请求体
 - 详细错误报告 - 包含字段路径、值、约束信息
 - 类型转换 - 基于 TypeBox 的自动类型转换
 - 嵌套验证 - 支持复杂对象结构验证
 
-*测试覆盖:*
+_测试覆盖:_
+
 - 基础验证测试 (有效/无效数据)
 - 自定义验证测试 (复杂 TypeBox schema)
 - 错误处理测试 (验证失败场景)
