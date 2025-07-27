@@ -1,0 +1,44 @@
+
+# Visual Studio Code settings
+.vscode/
+
+# node_modules
+node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build output
+dist/
+build/
+out/
+lib/
+coverage/
+
+# Temporary files
+temp/
+tmp/
+.tmp/
+.next/
+
+# Environment variables
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# dist
+.cache/
+.dll/
+.serverless/
+.nuxt/
+.dist/
+
+
+# turbo
+.turbo/
+
