@@ -44,13 +44,19 @@ export class HestLogger implements Logger {
     const context = Object.keys(this._context).length > 0 ? this._context : undefined;
     
     if (typeof obj === 'string') {
-      // logger.info('message')
-      return [context || {}, obj];
+      // logger.info('message') 或 logger.info('message', { data })
+      if (message && typeof message === 'object') {
+        // logger.info('message', { data }) - 消息在前，数据在后
+        return [{ ...context, ...(message as Record<string, any>) }, obj];
+      } else {
+        // logger.info('message') - 只有消息
+        return [context || {}, obj];
+      }
     } else if (obj && typeof obj === 'object') {
-      // logger.info({ key: 'value' }, 'message')
+      // logger.info({ key: 'value' }, 'message') - 数据在前，消息在后
       return [{ ...context, ...obj }, message];
     } else {
-      // logger.info()
+      // logger.info() - 没有参数
       return [context || {}, message];
     }
   }

@@ -11,9 +11,7 @@
 [![license](https://img.shields.io/npm/l/@hest/logger?style=flat-square)](https://github.com/aqz236/hest-logger/blob/main/LICENSE)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
 
-
 </div>
-
 
 ## ✨ Features
 
@@ -26,6 +24,10 @@
 - 🔄 **Multiple Transports** - Console, file, rotating files, and custom transports
 - 🛡️ **Security First** - Built-in redaction for sensitive information
 - 📦 **Framework Integration** - Seamlessly integrates with HestJS framework
+
+
+![](assets/20250727_225757_image.png)
+
 
 ## 📦 Installation
 
@@ -175,6 +177,7 @@ const logger = createLogger('MyApp', {
 ## 🎨 Output Examples
 
 ### Development Output
+
 ```
 [2025-07-27 14:08:19.149] INFO (MyService): User login successful
 [2025-07-27 14:08:19.150] ERROR (Auth): Invalid credentials provided
@@ -183,6 +186,7 @@ const logger = createLogger('MyApp', {
 ```
 
 ### Production Output
+
 ```json
 {"level":30,"time":1643299699149,"name":"MyService","msg":"User login successful","requestId":"req_123456"}
 {"level":50,"time":1643299699150,"name":"Auth","msg":"Invalid credentials provided","err":{"type":"AuthError","message":"Invalid username or password"}}
@@ -191,6 +195,7 @@ const logger = createLogger('MyApp', {
 ## 🔧 Transports
 
 ### Console Transport
+
 ```typescript
 import { createConsoleTransport } from '@hest/logger';
 
@@ -201,6 +206,7 @@ const transport = createConsoleTransport({
 ```
 
 ### File Transport
+
 ```typescript
 import { createFileTransport } from '@hest/logger';
 
@@ -211,6 +217,7 @@ const transport = createFileTransport({
 ```
 
 ### Rotating Files
+
 ```typescript
 import { createRotatingFileTransport } from '@hest/logger';
 
@@ -225,6 +232,7 @@ const transport = createRotatingFileTransport({
 ## 🛡️ Security Features
 
 ### Automatic Redaction
+
 ```typescript
 const logger = createLogger('SecureApp', {
   redact: ['password', 'token', 'authorization', 'cookie']
@@ -238,6 +246,7 @@ logger.info('User data', {
 ```
 
 ### Safe Serialization
+
 All serializers include error handling to prevent logging failures from crashing your application.
 
 ## 🧪 Testing
@@ -250,7 +259,6 @@ const testLogger = createLogger('Test', {
   level: LogLevel.WARN // Only log warnings and errors in tests
 });
 ```
-
 
 ## 📊 Star History
 
