@@ -1,4 +1,5 @@
-import { HestFactory, logger } from '@hestjs/core';
+import { HestFactory } from '@hestjs/core';
+import { logger } from '@hestjs/logger';
 import { ValidationInterceptor } from '@hestjs/validation';
 import { cors } from 'hono/cors';
 import { logger as log } from 'hono/logger';

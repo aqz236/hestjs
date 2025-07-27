@@ -10,9 +10,9 @@
   ],
   "scripts": {
     "dev": "bun run --hot src/index.ts",
-    "build": "bun build src/index.ts --outdir=dist --target=bun --format=esm --splitting",
-    "build:external": "bun build src/index.ts --outdir=dist --target=bun --format=esm --external reflect-metadata",
-    "build:binary": "bun build src/index.ts --compile --outfile=dist/hest-demo",
+    "build": "bun build src/index.ts --outdir=dist --target=bun --format=esm --splitting --external pino --external pino-pretty --external sonic-boom --external thread-stream",
+    "build:external": "bun build src/index.ts --outdir=dist --target=bun --format=esm --external reflect-metadata --external pino --external pino-pretty --external sonic-boom --external thread-stream",
+    "build:binary": "bun build src/index.ts --compile --outfile=dist/hest-demo --external pino-pretty",
     "start": "bun run dist/index.js | pino-pretty",
     "start:binary": "./dist/hest-demo | pino-pretty",
     "start:prod": "NODE_ENV=production bun run dist/index.js | pino-pretty",
