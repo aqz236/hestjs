@@ -1,5 +1,13 @@
 {
   "name": "@hestjs/demo",
+  "version": "0.1.0",
+  "description": "HestJS Demo Application - A demonstration of HestJS framework capabilities",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "dev": "bun run --hot src/index.ts",
     "build": "bun build src/index.ts --outdir=dist --target=bun --format=esm --splitting",
@@ -7,8 +15,20 @@
     "build:binary": "bun build src/index.ts --compile --outfile=dist/hest-demo",
     "start": "bun run dist/index.js | pino-pretty",
     "start:binary": "./dist/hest-demo | pino-pretty",
-    "start:prod": "NODE_ENV=production bun run dist/index.js | pino-pretty"
+    "start:prod": "NODE_ENV=production bun run dist/index.js | pino-pretty",
+    "clean": "rm -rf dist",
+    "check-types": "tsc --noEmit"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aqz236/hestjs-demo.git"
+  },
+  "homepage": "https://github.com/aqz236/hestjs-demo#readme",
+  "bugs": {
+    "url": "https://github.com/aqz236/hestjs-demo/issues"
+  },
+  "author": "aqz236",
+  "license": "MIT",
   "dependencies": {
     "@hestjs/core": "^0.1.0",
     "@hestjs/eslint-config": "^0.1.1",
@@ -21,5 +41,21 @@
     "@types/bun": "latest",
     "jiti": "^2.5.1",
     "typescript": "5.8.3"
-  }
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "keywords": [
+    "hestjs",
+    "demo",
+    "framework",
+    "typescript",
+    "bun",
+    "hono",
+    "validation"
+  ]
 }
