@@ -29,7 +29,6 @@ export function createLogger(
 
   const finalConfig = mergeConfig(envConfig, envVarConfig, userConfig);
 
-
   // 设置默认序列化器和格式化器
   if (!finalConfig.serializers) {
     finalConfig.serializers = getDefaultSerializers();
@@ -50,7 +49,7 @@ export function createLogger(
       colorize: true,
       ignore: "pid,hostname",
       translateTime: "yy-mm-dd HH:MM:ss.l",
-      messageFormat: "{name}: {msg}",
+      messageFormat: "{msg}",
       customLevels: {
         fatal: 60,
         error: 50,
@@ -73,11 +72,8 @@ export function createLogger(
       name: finalConfig.name || name || "HestJS",
       level: finalConfig.level || "debug",
     };
-    
-    
-    pinoLogger = pino(pinoConfig, stream);
-    
 
+    pinoLogger = pino(pinoConfig, stream);
   } else {
     // 生产环境直接输出 JSON 到 stdout
     pinoLogger = pino({
