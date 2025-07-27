@@ -9,15 +9,16 @@
     "README.md"
   ],
   "scripts": {
-    "dev": "bun run --hot src/index.ts",
     "build": "bun build src/index.ts --outdir=dist --target=bun --format=esm --splitting --external pino --external pino-pretty --external sonic-boom --external thread-stream",
-    "build:external": "bun build src/index.ts --outdir=dist --target=bun --format=esm --external reflect-metadata --external pino --external pino-pretty --external sonic-boom --external thread-stream",
     "build:binary": "bun build src/index.ts --compile --outfile=dist/hest-demo --external pino-pretty",
+    "build:external": "bun build src/index.ts --outdir=dist --target=bun --format=esm --external reflect-metadata --external pino --external pino-pretty --external sonic-boom --external thread-stream",
+    "check-types": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "dev": "bun run --hot src/index.ts",
     "start": "bun run dist/index.js | pino-pretty",
     "start:binary": "./dist/hest-demo | pino-pretty",
     "start:prod": "NODE_ENV=production bun run dist/index.js | pino-pretty",
-    "clean": "rm -rf dist",
-    "check-types": "tsc --noEmit"
+    "test:e2e": "bun run scripts/test-phase3.ts"
   },
   "repository": {
     "type": "git",
