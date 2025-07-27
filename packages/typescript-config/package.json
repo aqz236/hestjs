@@ -1,0 +1,18 @@
+{
+  "name": "@hestjs/typescript-config",
+  "version": "0.1.0",
+  "description": "TypeScript configuration for Hest Framework",
+  "files": [
+    "base.json",
+    "react.json",
+    "vue.json",
+    "node.json"
+  ],
+  "keywords": [
+    "hest",
+    "typescript",
+    "config"
+  ],
+  "author": "Hest Team",
+  "license": "MIT"
+}
