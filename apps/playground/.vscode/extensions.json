@@ -1,0 +1,80 @@
+{
+  "recommendations": [
+    // Cline
+    "saoudrizwan.claude-dev",
+
+    // Code Runner
+    "formulahendry.code-runner",
+
+    // Color Highlight
+    "naumovs.color-highlight",
+
+    // Draw Folder Structure
+    "jmkrivocapich.drawfolderstructure",
+
+    // ESLint
+    "dbaeumer.vscode-eslint",
+
+    // Git Graph
+    "mhutchie.git-graph",
+
+    // GitHub Copilot
+    "GitHub.copilot",
+
+    // GitHub Copilot Chat
+    "GitHub.copilot-chat",
+
+    // Github Actions
+    "github.vscode-github-actions",
+
+    // i18n Ally
+    "lokalise.i18n-ally",
+
+    // Iconify IntelliSense
+    "antfu.iconify",
+
+    // Indenticator
+    "SirTori.indenticator",
+
+    // Jest
+    "Orta.vscode-jest",
+
+    // Lingma - Alibaba
+    "Alibaba-Cloud.tongyi-lingma",
+
+    // Monorepo Workspace
+    "folke.vscode-monorepo-workspace",
+
+    // Prettier
+    "esbenp.prettier-vscode",
+
+    // Pretty TypeScript Errors
+    "YoavBls.pretty-ts-errors",
+
+    // Prisma
+    "Prisma.prisma",
+
+    // ,Todo Tree
+    "Gruntfuggly.todo-tree",
+
+    // Git Tags
+    "howardzuo.vscode-git-tags",
+
+
+    // JSON Comments
+    "wxzhang.json-comments",
+
+    // Markdown 相关
+    "kortina.vscode-markdown-notes",
+    "bierner.markdown-mermaid",
+    "DavidAnson.vscode-markdownlint",
+    "yzhang.markdown-all-in-one",
+    "zaaack.markdown-editor",
+
+    // 半透明背景
+    "illixion.vscode-vibrancy-continued",
+
+    // tailwindcss
+    "bradlc.vscode-tailwindcss",
+  ]
+}
