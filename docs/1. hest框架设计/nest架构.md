@@ -370,21 +370,45 @@ export class AppService {
 - ✅ 参数注入（@Body、@Param、@Query）工作正常
 - ✅ 示例应用运行成功，验证了核心功能
 
-### Phase 2: 中间件和异常处理 (Week 2-3)
+### Phase 2: 中间件和异常处理 (Week 2-3) ✅ **已完成**
 
-#### 异常处理系统
-- [ ] 基础异常类设计
-- [ ] HTTP 异常类实现
-- [ ] 全局异常过滤器
-- [ ] 自定义异常过滤器支持
+#### 异常处理系统 ✅
+- [x] 基础异常类设计 (BaseException)
+- [x] HTTP 异常类实现 (HttpException, NotFoundException, BadRequestException 等)
+- [x] 全局异常过滤器 (DefaultExceptionFilter)
+- [x] 自定义异常过滤器支持 (ExceptionFilter 接口)
+- [x] 异常过滤器应用机制 (app.useGlobalFilters)
 
-#### 中间件系统
-- [ ] 中间件装饰器 `@Middleware`
-- [ ] 中间件执行链
-- [ ] 内置中间件实现
-  - [ ] CORS 中间件
-  - [ ] 日志中间件
-  - [ ] 压缩中间件
+#### 拦截器系统 ✅
+- [x] 拦截器接口定义 (NestInterceptor)
+- [x] 执行上下文实现 (ExecutionContext, CallHandler)
+- [x] 全局拦截器支持 (app.useGlobalInterceptors)
+- [x] 内置拦截器实现
+  - [x] 响应拦截器 (ResponseInterceptor)
+  - [x] 日志拦截器 (LoggingInterceptor)
+
+#### 中间件系统 ✅
+- [x] 中间件装饰器 `@Middleware`
+- [x] 中间件接口定义 (MiddlewareConsumer)
+- [x] 内置中间件实现
+  - [x] CORS 中间件
+  - [x] 日志中间件
+  - [x] 压缩中间件（基础实现）
+
+#### API 增强 ✅
+- [x] 类似 NestJS 的全局配置 API
+  - [x] `app.useGlobalInterceptors(new ResponseInterceptor())`
+  - [x] `app.useGlobalFilters(new HttpExceptionFilter())`
+- [x] 完整的异常处理链
+- [x] 拦截器执行链
+
+**Phase 2 总结:**
+- ✅ 异常处理系统完全实现，支持自定义异常类和过滤器
+- ✅ 拦截器系统完整实现，支持请求/响应拦截和转换
+- ✅ 中间件系统基础实现，支持装饰器和函数式中间件
+- ✅ API 设计完全兼容 NestJS 风格
+- ✅ 全局配置机制工作正常
+- ✅ 示例应用验证所有功能正常工作
 
 ### Phase 3: 验证和守卫系统 (Week 3-4)
 
