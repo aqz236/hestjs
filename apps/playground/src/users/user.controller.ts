@@ -1,6 +1,6 @@
-import { Controller, Get, Post, Put } from '@hestjs/core';
+import { Controller, Get, Post, Put, Context } from '@hestjs/core';
+import type { HestContext } from '@hestjs/core';
 import { CommandBus, QueryBus } from '@hestjs/cqrs';
-import type { Context } from 'hono';
 import { CreateUserCommand, UpdateUserCommand } from './commands';
 import { CreateUserData, UpdateUserData } from './entities';
 import { GetAllUsersQuery, GetUserQuery } from './queries';
@@ -13,7 +13,7 @@ export class UserController {
   ) {}
 
   @Post('/')
-  async createUser(c: Context) {
+  async createUser(@Context() c: HestContext) {
     const userData = await c.req.json<CreateUserData>();
 
     // 基本验证（可以添加更复杂的验证逻辑）
@@ -29,13 +29,13 @@ export class UserController {
   }
 
   @Get('/')
-  async getAllUsers(c: Context) {
+  async getAllUsers(@Context() c: HestContext) {
     const result = await this.queryBus.execute(new GetAllUsersQuery());
     return c.json({ success: true, data: result.users });
   }
 
   @Get('/:id')
-  async getUserById(c: Context) {
+  async getUserById(@Context() c: HestContext) {
     const id = c.req.param('id');
     const result = await this.queryBus.execute(new GetUserQuery(id));
 
@@ -47,7 +47,7 @@ export class UserController {
   }
 
   @Put('/:id')
-  async updateUser(c: Context) {
+  async updateUser(@Context() c: HestContext) {
     const id = c.req.param('id');
     const userData = await c.req.json<UpdateUserData>();
 

@@ -32,7 +32,7 @@
   "dependencies": {
     "@hestjs/core": "^0.1.2",
     "@hestjs/validation": "^0.1.5",
-    "@hestjs/cqrs": "^0.1.0",
+    "@hestjs/cqrs": "workspace:*",
     "hono": "^4.8.9",
     "reflect-metadata": "^0.2.2"
   },

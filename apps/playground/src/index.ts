@@ -22,13 +22,23 @@ async function bootstrap() {
     // 全局异常过滤器
     app.useGlobalFilters(new HttpExceptionFilter());
 
-    Bun.serve({
+    const server = Bun.serve({
       port: 3002,
       fetch: app.hono().fetch,
       reusePort: true, // 启用端口复用
     });
+
+    logger.info(`🎉 Server is running on http://localhost:${server.port}`);
   } catch (error) {
-    logger.error('❌ Failed to start application:', String(error));
+    logger.error(
+      '❌ Failed to start application:',
+      error instanceof Error ? error.message : String(error),
+    );
+    if (error instanceof Error) {
+      logger.error('Stack trace:', error.stack);
+      // eslint-disable-next-line no-console
+      console.error(error);
+    }
     process.exit(1);
   }
 }
