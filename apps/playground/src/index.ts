@@ -1,5 +1,4 @@
-import { HestFactory } from '@hestjs/core';
-import { logger } from '@hestjs/logger';
+import { HestFactory, logger } from '@hestjs/core';
 import { ValidationInterceptor } from '@hestjs/validation';
 import { cors } from 'hono/cors';
 import { logger as log } from 'hono/logger';
@@ -30,15 +29,8 @@ async function bootstrap() {
 
     logger.info(`🎉 Server is running on http://localhost:${server.port}`);
   } catch (error) {
-    logger.error(
-      '❌ Failed to start application:',
-      error instanceof Error ? error.message : String(error),
-    );
-    if (error instanceof Error) {
-      logger.error('Stack trace:', error.stack);
-      // eslint-disable-next-line no-console
-      console.error(error);
-    }
+    // 使用新的简化语法直接传递错误对象
+    logger.error('❌ Failed to start application:', error instanceof Error ? error : new Error(String(error)));
     process.exit(1);
   }
 }
