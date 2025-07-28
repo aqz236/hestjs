@@ -19,17 +19,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/aqz236/hest.git"
+    "url": "https://github.com/aqz236/hestjs-cqrs.git"
   },
-  "homepage": "https://github.com/aqz236/hest#readme",
+  "homepage": "https://github.com/aqz236/hestjs-cqrs#readme",
   "bugs": {
-    "url": "https://github.com/aqz236/hest/issues"
+    "url": "https://github.com/aqz236/hestjs-cqrs/issues"
   },
   "author": "aqz236",
   "license": "MIT",
   "dependencies": {
-    "@hestjs/core": "workspace:*",
-    "@hestjs/logger": "workspace:*",
+    "@hestjs/core": "0.1.5",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "tsyringe": "^4.10.0"

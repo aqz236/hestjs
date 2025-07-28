@@ -1,0 +1,22 @@
+{
+  "name": "cqrs-demo",
+  "version": "1.0.0",
+  "description": "HestJS CQRS Demo",
+  "main": "dist/index.js",
+  "type": "commonjs",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@hestjs/core": "0.1.5",
+    "@hestjs/cqrs": "workspace:*",
+    "hono": "^4.8.9"
+  },
+  "devDependencies": {
+    "@types/node": "^24.1.0",
+    "typescript": "5.8.3"
+  }
+}
