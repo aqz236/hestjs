@@ -50,61 +50,83 @@ export class CustomValidationDto {
       lat: Type.Number({ minimum: -90, maximum: 90 }),
       lng: Type.Number({ minimum: -180, maximum: 180 }),
     }),
-    {
-      message: '必须是有效的地理坐标',
-      optional: true,
-    },
+    { optional: true, message: '坐标必须在有效范围内' },
   )
   location?: {
     lat: number;
     lng: number;
   };
 
-  // 使用数组验证
-  @Custom(
-    Type.Array(
-      Type.String({
-        pattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$',
-      }),
-      { minItems: 0, maxItems: 3 },
-    ),
-    {
-      message: '最多可以有3个邮箱地址',
-      optional: true,
-    },
-  )
+  // 数组验证
+  @Custom(Type.Array(Type.String({ format: 'email' })), {
+    optional: true,
+    message: '邮箱列表必须是有效的邮箱地址数组',
+  })
   emails?: string[];
 }
 
 /**
- * 搜索查询 DTO
+ * 搜索查询 DTO - 展示复杂对象验证
  */
 export class SearchQueryDto {
-  @IsString({ message: '搜索关键词必须是字符串' })
   @IsOptional()
+  @IsString({ message: '搜索关键词必须是字符串' })
   q?: string;
 
-  // 使用 SchemaFactory 的分页验证
+  // 使用 SchemaFactory 构建复杂的分页对象
   @Custom(
     Type.Object({
-      page: Type.Optional(Type.Number({ minimum: 1, default: 1 })),
-      limit: Type.Optional(
-        Type.Number({ minimum: 1, maximum: 100, default: 10 }),
-      ),
+      page: Type.Number({ minimum: 1 }),
+      limit: Type.Number({ minimum: 1, maximum: 100 }),
       sort: Type.Optional(Type.String()),
       order: Type.Optional(
         Type.Union([Type.Literal('asc'), Type.Literal('desc')]),
       ),
     }),
     {
-      message: '分页参数格式错误',
       optional: true,
+      message: '分页参数格式错误',
     },
   )
   pagination?: {
-    page?: number;
-    limit?: number;
+    page: number;
+    limit: number;
     sort?: string;
     order?: 'asc' | 'desc';
   };
+
+  // 使用联合类型进行复杂验证
+  @Custom(
+    Type.Union([
+      Type.Array(Type.String()),
+      Type.String(),
+      Type.Null(),
+      Type.Undefined(),
+    ]),
+    {
+      optional: true,
+      message: '标签可以是字符串、字符串数组或空值',
+    },
+  )
+  tags?: string | string[] | null;
+
+  // 使用数值范围验证
+  @Custom(Type.Number({ minimum: 0, maximum: 100 }), {
+    optional: true,
+    message: '评分必须在 0-100 之间',
+  })
+  score?: number;
+
+  // 使用日期字符串验证
+  @Custom(Type.String({ format: 'date' }), {
+    optional: true,
+    message: '开始日期格式必须是 YYYY-MM-DD',
+  })
+  startDate?: string;
+
+  @Custom(Type.String({ format: 'date' }), {
+    optional: true,
+    message: '结束日期格式必须是 YYYY-MM-DD',
+  })
+  endDate?: string;
 }
