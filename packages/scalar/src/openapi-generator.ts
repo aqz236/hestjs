@@ -48,19 +48,19 @@ export class OpenAPIGenerator {
    * 从控制器类生成 OpenAPI 路径
    */
   addController(controller: any, basePath: string = ''): void {
-    console.log(`Processing controller: ${controller.name}, basePath: ${basePath}`);
+    // console.log(`Processing controller: ${controller.name}, basePath: ${basePath}`);
     const controllerTags = Reflect.getMetadata('openapi:tags', controller) || [];
-    console.log(`Controller tags:`, controllerTags);
+    // console.log(`Controller tags:`, controllerTags);
     
     // 获取HestJS的路由元数据（存储在控制器类上）
     const HEST_ROUTE_KEY = Symbol.for('hest:route');
     const routes = Reflect.getMetadata(HEST_ROUTE_KEY, controller) || [];
-    console.log(`Found routes:`, routes);
+    // console.log(`Found routes:`, routes);
 
     for (const route of routes) {
       const { method, path, methodName } = route;
       const fullPath = this.joinPaths(basePath, path);
-      console.log(`Adding route: ${method.toUpperCase()} ${fullPath} (method: ${methodName})`);
+      // console.log(`Adding route: ${method.toUpperCase()} ${fullPath} (method: ${methodName})`);
       
       // 确保路径存在
       if (!this.paths[fullPath]) {

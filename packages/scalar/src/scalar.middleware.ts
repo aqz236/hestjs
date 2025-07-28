@@ -156,7 +156,7 @@ export function setupScalarWithControllers(
     const HEST_CONTROLLER_KEY = Symbol.for('hest:controller');
     const controllerMetadata = Reflect.getMetadata(HEST_CONTROLLER_KEY, controller);
     const controllerPath = controllerMetadata?.path || '';
-    console.log(`Controller ${controller.name} path:`, controllerPath);
+    // console.log(`Controller ${controller.name} path:`, controllerPath);
     generator.addController(controller, controllerPath);
   }
 
@@ -164,7 +164,7 @@ export function setupScalarWithControllers(
   const openApiDoc = generator.generateDocument();
 
   // 调试：打印生成的文档
-  console.log('Generated OpenAPI Document:', JSON.stringify(openApiDoc, null, 2));
+  // console.log('Generated OpenAPI Document:', JSON.stringify(openApiDoc, null, 2));
 
   // 首先设置 OpenAPI JSON 端点
   const openApiPath = '/openapi.json';
