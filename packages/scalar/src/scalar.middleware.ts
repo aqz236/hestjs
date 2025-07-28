@@ -5,6 +5,7 @@ import type {
   ScalarConfig,
   ScalarMiddlewareConfig,
 } from "./scalar-config.interface";
+import { OpenAPIGenerator, type OpenAPIGeneratorConfig } from './openapi-generator';
 
 /**
  * HestJS 默认主题样式
@@ -152,6 +153,62 @@ export function setupScalar(app: Hono, config: ScalarConfig): void {
   // 如果启用了 Markdown 导出
   if (enableMarkdown && spec) {
     const markdownMiddleware = createMarkdownMiddleware(spec);
+    app.get(markdownPath, markdownMiddleware);
+  }
+}
+
+/**
+ * 从控制器生成 OpenAPI 并设置 Scalar
+ */
+export function setupScalarWithControllers(
+  app: Hono,
+  controllers: any[],
+  generatorConfig: OpenAPIGeneratorConfig,
+  scalarConfig: Omit<ScalarConfig, 'spec'> = {}
+): void {
+  const generator = new OpenAPIGenerator(generatorConfig);
+
+  // 从控制器生成路径
+  for (const controller of controllers) {
+    // 获取控制器的基础路径（从 @Controller 装饰器）
+    const HEST_CONTROLLER_KEY = Symbol.for('hest:controller');
+    const controllerMetadata = Reflect.getMetadata(HEST_CONTROLLER_KEY, controller);
+    const controllerPath = controllerMetadata?.path || '';
+    console.log(`Controller ${controller.name} path:`, controllerPath);
+    generator.addController(controller, controllerPath);
+  }
+
+  // 生成 OpenAPI 文档
+  const openApiDoc = generator.generateDocument();
+
+  // 调试：打印生成的文档
+  console.log('Generated OpenAPI Document:', JSON.stringify(openApiDoc, null, 2));
+
+  // 首先设置 OpenAPI JSON 端点
+  const openApiPath = '/openapi.json';
+  app.get(openApiPath, (c) => {
+    return c.json(openApiDoc);
+  });
+
+  // 然后设置 Scalar，指向 OpenAPI JSON 端点
+  const {
+    path = '/docs',
+    enableMarkdown = false,
+    markdownPath = '/llms.txt',
+    ...middlewareConfig
+  } = scalarConfig;
+
+  // 设置 Scalar 中间件，使用 URL 而不是直接传递对象
+  const scalarMiddleware = createScalarMiddleware({
+    ...middlewareConfig,
+    url: openApiPath, // 使用 URL 而不是 content
+  });
+
+  app.get(path, scalarMiddleware);
+
+  // 如果启用了 Markdown 导出
+  if (enableMarkdown) {
+    const markdownMiddleware = createMarkdownMiddleware(openApiDoc);
     app.get(markdownPath, markdownMiddleware);
   }
 }
