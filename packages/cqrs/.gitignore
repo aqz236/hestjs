@@ -14,3 +14,7 @@ npm-debug.log
 
 # dist
 dist
+
+# example files
+examples/node_modules
+examples/dist
