@@ -82,28 +82,40 @@ export interface Logger {
   child(bindings: Record<string, any>): Logger;
   
   /** Fatal 级别日志 */
-  fatal(message: string, ...args: any[]): void;
+  fatal(message: string, error: Error, ...args: any[]): void;
+  fatal(error: Error, message?: string, ...args: any[]): void;
   fatal(obj: object, message?: string, ...args: any[]): void;
+  fatal(message: string, ...args: any[]): void;
   
   /** Error 级别日志 */
-  error(message: string, ...args: any[]): void;
+  error(message: string, error: Error, ...args: any[]): void;
+  error(error: Error, message?: string, ...args: any[]): void;
   error(obj: object, message?: string, ...args: any[]): void;
+  error(message: string, ...args: any[]): void;
   
   /** Warn 级别日志 */
-  warn(message: string, ...args: any[]): void;
+  warn(message: string, error: Error, ...args: any[]): void;
+  warn(error: Error, message?: string, ...args: any[]): void;
   warn(obj: object, message?: string, ...args: any[]): void;
+  warn(message: string, ...args: any[]): void;
   
   /** Info 级别日志 */
-  info(message: string, ...args: any[]): void;
+  info(message: string, error: Error, ...args: any[]): void;
+  info(error: Error, message?: string, ...args: any[]): void;
   info(obj: object, message?: string, ...args: any[]): void;
+  info(message: string, ...args: any[]): void;
   
   /** Debug 级别日志 */
-  debug(message: string, ...args: any[]): void;
+  debug(message: string, error: Error, ...args: any[]): void;
+  debug(error: Error, message?: string, ...args: any[]): void;
   debug(obj: object, message?: string, ...args: any[]): void;
+  debug(message: string, ...args: any[]): void;
   
   /** Trace 级别日志 */
-  trace(message: string, ...args: any[]): void;
+  trace(message: string, error: Error, ...args: any[]): void;
+  trace(error: Error, message?: string, ...args: any[]): void;
   trace(obj: object, message?: string, ...args: any[]): void;
+  trace(message: string, ...args: any[]): void;
   
   /** 刷新日志 */
   flush(): void;
