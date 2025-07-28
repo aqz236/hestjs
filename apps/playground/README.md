@@ -1,306 +1,234 @@
-# HestJS Demo Application 🚀
+# @hestjs/cqrs
 
-一个基于 **HestJS** 框架的现代化 TypeScript 演示应用，展示了类似 NestJS 的开发体验，但具有更轻量和更高性能的特点。
+HestJS CQRS - Command Query Responsibility Segregation module for HestJS
 
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
-[![Bun](https://img.shields.io/badge/Bun-latest-orange.svg)](https://bun.sh/)
-[![Hono](https://img.shields.io/badge/Hono-4.x-green.svg)](https://hono.dev/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-
-## 🏗️ 项目结构
-
-```
-src/
-├── main.ts                    # 应用入口点
-├── app.module.ts              # 根模块
-├── app.controller.ts          # 应用控制器
-├── app.service.ts             # 应用服务
-├── config/                    # 配置文件
-│   └── app.config.ts          # 应用配置
-├── common/                    # 公共组件
-│   ├── filters/               # 全局过滤器
-│   │   └── http-exception.filter.ts
-│   └── interceptors/          # 全局拦截器
-│       └── response.interceptor.ts
-└── modules/                   # 功能模块
-    ├── users/                 # 用户模块
-    │   ├── dto/               # 数据传输对象
-    │   │   └── user.dto.ts
-    │   ├── entities/          # 实体定义
-    │   │   └── user.entity.ts
-    │   ├── users.controller.ts
-    │   ├── users.service.ts
-    │   └── users.module.ts
-    └── custom-validation/     # 自定义验证模块
-        ├── dto/
-        │   └── custom-validation.dto.ts
-        ├── custom-validation.controller.ts
-        ├── custom-validation.service.ts
-        └── custom-validation.module.ts
-```
-
-## 🚀 快速开始
-
-### 安装依赖
+## 安装
 
 ```bash
-bun install
+npm install @hestjs/cqrs
 ```
 
-### 开发环境
+## 基本用法
 
-```bash
-# 开发模式（热重载）
-bun run dev
-
-# 或者在 monorepo 根目录
-turbo run dev --filter=@hestjs/demo
-```
-
-### 构建和部署
-
-```bash
-# 构建
-bun run build
-
-# 生产环境运行
-bun run start:prod
-
-# 创建独立可执行文件
-bun run build:binary
-./dist/hest-demo
-```
-
-## 📡 API 文档
-
-### 基础端点
-
-- `GET /api` - 应用信息
-- `GET /api/health` - 健康检查
-
-### 用户管理 (`/users`)
-
-- `GET /users` - 获取所有用户
-- `GET /users/:id` - 获取特定用户
-- `POST /users` - 创建新用户
-- `POST /users/:id` - 更新用户信息
-
-#### 请求示例：
-
-```bash
-# 创建用户
-curl -X POST http://localhost:3002/users \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "John Doe",
-    "email": "john@example.com",
-    "age": 30,
-    "password": "password123"
-  }'
-```
-
-### 自定义验证 (`/api/custom`)
-
-- `GET /api/custom` - 验证功能说明
-- `POST /api/custom/validate` - 测试自定义验证
-- `POST /api/custom/search` - 测试搜索参数验证
-- `GET /api/custom/examples` - 获取验证示例
-
-#### 请求示例：
-
-```bash
-# 自定义验证
-curl -X POST http://localhost:3002/api/custom/validate \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "john_doe123",
-    "role": "user",
-    "userId": "123e4567-e89b-12d3-a456-426614174000",
-    "phoneNumber": "13812345678",
-    "location": { "lat": 39.9042, "lng": 116.4074 },
-    "emails": ["john@example.com", "john.doe@company.com"]
-  }'
-```
-
-## 🛠️ 核心功能
-
-### 1. 模块化架构
-
-- **清晰的模块分离**：每个功能模块都有自己的控制器、服务、DTO 和实体
-- **依赖注入**：使用 `@Injectable()` 和 `@Module()` 装饰器
-- **模块导入/导出**：支持模块间的依赖关系
-
-### 2. 强类型验证
-
-- **TypeBox 集成**：使用 TypeBox 进行运行时类型验证
-- **自定义验证器**：支持复杂的业务逻辑验证
-- **联合类型支持**：支持 TypeScript 的高级类型特性
-
-### 3. 中间件和拦截器
-
-- **全局异常过滤器**：统一的错误处理
-- **响应拦截器**：统一的响应格式
-- **CORS 支持**：跨域资源共享配置
-- **请求日志**：自动记录请求和响应
-
-### 4. 配置管理
-
-- **环境变量支持**：通过 `.env` 文件配置
-- **类型安全配置**：使用 TypeScript 确保配置的类型安全
-
-## 🔧 验证功能展示
-
-### 基础验证
+### 1. 初始化CQRS模块
 
 ```typescript
-export class CreateUserDto {
-  @IsString({ minLength: 2, maxLength: 50 })
-  name!: string;
+import { CqrsModule } from "@hestjs/cqrs";
 
-  @IsEmail()
-  email!: string;
+// 基本初始化
+CqrsModule.forRoot();
 
-  @IsNumber()
-  @Min(0)
-  @Max(120)
-  age!: number;
+// 或者使用选项
+CqrsModule.forRoot({
+  // 自定义配置
+});
+```
+
+### 2. 创建Command
+
+```typescript
+import { Command } from "@hestjs/cqrs";
+
+export class CreateUserCommand extends Command<string> {
+  constructor(
+    public readonly name: string,
+    public readonly email: string
+  ) {
+    super();
+  }
 }
 ```
 
-### 高级验证
+### 3. 创建Command Handler
 
 ```typescript
-export class CustomValidationDto {
-  // 正则表达式验证
-  @Custom(
-    Type.String({ minLength: 3, maxLength: 20, pattern: '^[a-zA-Z0-9_]+$' }),
-    { message: '用户名必须是3-20位字母、数字或下划线' },
-  )
-  username!: string;
+import { CommandHandler, ICommandHandler } from "@hestjs/cqrs";
+import { CreateUserCommand } from "./create-user.command";
 
-  // 联合类型验证
-  @Custom(
-    Type.Union([
-      Type.Literal('admin'),
-      Type.Literal('user'),
-      Type.Literal('guest'),
-    ]),
-    { message: '角色必须是 admin、user 或 guest' },
-  )
-  role!: 'admin' | 'user' | 'guest';
-
-  // UUID 验证
-  @CommonValidators.UUID()
-  userId!: string;
-
-  // 中国手机号验证
-  @Custom(SchemaFactory.chinesePhoneNumber(), { optional: true })
-  phoneNumber?: string;
-
-  // 嵌套对象验证
-  @Custom(
-    Type.Object({
-      lat: Type.Number({ minimum: -90, maximum: 90 }),
-      lng: Type.Number({ minimum: -180, maximum: 180 }),
-    }),
-    { optional: true },
-  )
-  location?: { lat: number; lng: number };
+@CommandHandler(CreateUserCommand)
+export class CreateUserHandler
+  implements ICommandHandler<CreateUserCommand, string>
+{
+  async execute(command: CreateUserCommand): Promise<string> {
+    // 处理命令逻辑
+    console.log(`Creating user: ${command.name} (${command.email})`);
+    return "user-id-123";
+  }
 }
 ```
 
-## 🎯 架构特点
+### 4. 创建Query
 
-### 1. NestJS 风格的目录结构
+```typescript
+import { Query, IQueryResult } from "@hestjs/cqrs";
 
-- 模块化组织：每个功能模块独立管理
-- 清晰的职责分离：控制器、服务、DTO、实体分离
-- 可扩展性：易于添加新功能模块
+export class GetUserQuery extends Query<GetUserResult> {
+  constructor(public readonly userId: string) {
+    super();
+  }
+}
 
-### 2. 现代 TypeScript 开发
-
-- 严格的类型检查
-- 装饰器模式
-- 依赖注入
-- 接口优先设计
-
-### 3. 高性能运行时
-
-- Bun 运行时支持
-- Hono 高性能 Web 框架
-- 端口复用优化
-- 生产环境优化
-
-## 📦 部署
-
-### Docker 部署
-
-```dockerfile
-FROM oven/bun:1 as base
-WORKDIR /app
-
-# 复制依赖文件
-COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile
-
-# 复制源代码
-COPY . .
-
-# 构建应用
-RUN bun run build
-
-# 运行应用
-CMD ["bun", "run", "start:prod"]
-EXPOSE 3002
+export class GetUserResult implements IQueryResult {
+  constructor(
+    public readonly id: string,
+    public readonly name: string,
+    public readonly email: string
+  ) {}
+}
 ```
 
-### 二进制部署
+### 5. 创建Query Handler
 
-```bash
-# 构建独立可执行文件
-bun run build:binary
+```typescript
+import { QueryHandler, IQueryHandler } from "@hestjs/cqrs";
+import { GetUserQuery, GetUserResult } from "./get-user.query";
 
-# 部署单个文件
-./dist/hest-demo
+@QueryHandler(GetUserQuery)
+export class GetUserHandler
+  implements IQueryHandler<GetUserQuery, GetUserResult>
+{
+  async execute(query: GetUserQuery): Promise<GetUserResult> {
+    // 查询逻辑
+    return new GetUserResult(query.userId, "John Doe", "john@example.com");
+  }
+}
 ```
 
-## 🧪 测试
+### 6. 创建Event
 
-```bash
-# 运行测试
-bun test
+```typescript
+import { Event } from "@hestjs/cqrs";
 
-# 覆盖率测试
-bun test --coverage
+export class UserCreatedEvent extends Event {
+  constructor(
+    public readonly userId: string,
+    public readonly name: string,
+    public readonly email: string
+  ) {
+    super(userId);
+  }
+}
 ```
 
-## 📝 开发指南
+### 7. 创建Event Handler
 
-### 添加新模块
+```typescript
+import { EventsHandler, IEventHandler } from "@hestjs/cqrs";
+import { UserCreatedEvent } from "./user-created.event";
 
-1. 在 `src/modules/` 下创建新目录
-2. 创建 `*.module.ts`、`*.controller.ts`、`*.service.ts`
-3. 在 `app.module.ts` 中导入新模块
-
-### 添加验证规则
-
-1. 在模块的 `dto/` 目录下创建 DTO 类
-2. 使用 `@Custom()` 装饰器定义验证规则
-3. 在控制器中使用 `@Body()` 装饰器应用验证
-
-### 环境配置
-
-```bash
-# .env 文件
-PORT=3002
-NODE_ENV=development
-CORS_ORIGIN=*
+@EventsHandler(UserCreatedEvent)
+export class UserCreatedHandler implements IEventHandler<UserCreatedEvent> {
+  async handle(event: UserCreatedEvent): Promise<void> {
+    // 处理事件逻辑
+    console.log(`User created: ${event.name} (${event.email})`);
+  }
+}
 ```
 
-## 🤝 贡献
+### 8. 在控制器中使用
 
-欢迎提交 Issue 和 Pull Request！
+```typescript
+import { Controller, Post } from "@hestjs/core";
+import { CommandBus, QueryBus, EventBus } from "@hestjs/cqrs";
+import { CreateUserCommand } from "./commands/create-user.command";
+import { GetUserQuery } from "./queries/get-user.query";
+import { UserCreatedEvent } from "./events/user-created.event";
 
-## 📄 许可证
+@Controller("/users")
+export class UserController {
+  constructor(
+    private readonly commandBus: CommandBus,
+    private readonly queryBus: QueryBus,
+    private readonly eventBus: EventBus
+  ) {}
 
-MIT License
+  @Post()
+  async createUser(data: { name: string; email: string }) {
+    const command = new CreateUserCommand(data.name, data.email);
+    const userId = await this.commandBus.execute(command);
+
+    // 发布事件
+    const event = new UserCreatedEvent(userId, data.name, data.email);
+    await this.eventBus.publish(event);
+
+    return { userId };
+  }
+
+  @Get("/:id")
+  async getUser(id: string) {
+    const query = new GetUserQuery(id);
+    return await this.queryBus.execute(query);
+  }
+}
+```
+
+### 9. 注册处理器
+
+```typescript
+import { CqrsModule } from "@hestjs/cqrs";
+import { CreateUserHandler } from "./handlers/create-user.handler";
+import { GetUserHandler } from "./handlers/get-user.handler";
+import { UserCreatedHandler } from "./handlers/user-created.handler";
+
+// 初始化CQRS模块
+CqrsModule.forRoot();
+
+// 获取CQRS模块实例
+const cqrsModule = CqrsModule.getInstance();
+
+// 注册处理器
+cqrsModule.registerHandler(CreateUserHandler);
+cqrsModule.registerHandler(GetUserHandler);
+cqrsModule.registerHandler(UserCreatedHandler);
+
+// 启动应用时调用
+await cqrsModule.onApplicationBootstrap();
+```
+
+### 10. Saga (长期运行的流程)
+
+```typescript
+import { Saga, ICommand } from "@hestjs/cqrs";
+import { UserCreatedEvent } from "./events/user-created.event";
+import { SendWelcomeEmailCommand } from "./commands/send-welcome-email.command";
+
+@Saga()
+export class UserSaga {
+  // 当用户创建事件发生时，发送欢迎邮件
+  async onUserCreatedEvent(event: UserCreatedEvent): Promise<ICommand[]> {
+    return [new SendWelcomeEmailCommand(event.userId, event.email)];
+  }
+}
+```
+
+## API 参考
+
+### 装饰器
+
+- `@CommandHandler(command)` - 标记命令处理器
+- `@QueryHandler(query)` - 标记查询处理器
+- `@EventsHandler(...events)` - 标记事件处理器
+- `@Saga()` - 标记Saga
+
+### 基类
+
+- `Command<T>` - 命令基类，T为返回类型
+- `Query<T>` - 查询基类，T为结果类型
+- `Event` - 事件基类
+
+### 总线
+
+- `CommandBus` - 命令总线
+- `QueryBus` - 查询总线
+- `EventBus` - 事件总线
+
+### 接口
+
+- `ICommandHandler<TCommand, TResult>` - 命令处理器接口
+- `IQueryHandler<TQuery, TResult>` - 查询处理器接口
+- `IEventHandler<TEvent>` - 事件处理器接口
+- `ISaga<TEvent>` - Saga接口
+
+## 许可证
+
+MIT
