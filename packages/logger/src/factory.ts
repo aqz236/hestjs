@@ -47,7 +47,7 @@ export function createLogger(
     const stream = pretty({
       levelFirst: false,
       colorize: true,
-      ignore: "pid,hostname",
+      ignore: "pid,hostname,error", // 忽略重复的error字段，只显示err
       translateTime: "yy-mm-dd HH:MM:ss.l",
       messageFormat: "{msg}",
       customLevels: {
@@ -71,8 +71,8 @@ export function createLogger(
     const pinoConfig = {
       name: finalConfig.name || name || "HestJS",
       level: finalConfig.level || "debug",
-      serializers: finalConfig.serializers,
-      formatters: finalConfig.formatters,
+      serializers: finalConfig.serializers || {},
+      formatters: finalConfig.formatters || {},
     };
 
     pinoLogger = pino(pinoConfig, stream);
@@ -81,13 +81,17 @@ export function createLogger(
     pinoLogger = pino({
       name: finalConfig.name || "HestJS",
       level: finalConfig.level || "info",
-      serializers: finalConfig.serializers,
-      formatters: finalConfig.formatters,
+      serializers: finalConfig.serializers || {},
+      formatters: finalConfig.formatters || {},
     });
   }
 
+  // 如果有 name，创建一个 child logger 来包含 name
+  const loggerName = name || finalConfig.name || "HestJS";
+  const loggerWithName = pinoLogger.child({ name: loggerName });
+
   // 返回 HestLogger 实例
-  return new HestLogger(pinoLogger);
+  return new HestLogger(loggerWithName);
 }
 
 /**

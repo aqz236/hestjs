@@ -89,11 +89,10 @@ export const querySerializer = (query: any) => {
  */
 export function getDefaultSerializers() {
   return {
-    // 只使用 pino 标准的请求和响应序列化器
+    // 使用 pino 标准的序列化器
     req: stdSerializers.req,
     res: stdSerializers.res,
-    // 使用我们自定义的错误序列化器
-    err: errorSerializer,
+    // 不使用任何错误序列化器，让pino使用默认处理
     // 自定义序列化器
     user: userSerializer,
     query: querySerializer,
