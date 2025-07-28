@@ -1,5 +1,5 @@
 import type { CallHandler, ExecutionContext, Interceptor } from '@hestjs/core';
-import { createLogger } from '@hestjs/logger';
+import { createLogger } from '@hestjs/core';
 
 const logger = createLogger('ResponseInterceptor');
 
