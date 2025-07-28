@@ -1,6 +1,6 @@
 {
   "name": "@hestjs/core",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "HestJS Core Framework - A TypeScript framework built on Hono with dependency injection and decorators",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
