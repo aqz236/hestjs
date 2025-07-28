@@ -1,6 +1,6 @@
 {
   "name": "@hestjs/demo",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "HestJS Demo Application - A demonstration of HestJS framework capabilities",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
