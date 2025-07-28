@@ -8,7 +8,10 @@ async function testErrorScenarios() {
   try {
     throw new Error('Database connection failed');
   } catch (error) {
-    logger.error('❌ Failed to connect to database:', error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      '❌ Failed to connect to database:',
+      error instanceof Error ? error : new Error(String(error)),
+    );
   }
 
   // 场景 2: API 调用失败
@@ -18,10 +21,14 @@ async function testErrorScenarios() {
     (apiError as any).endpoint = '/api/users';
     throw apiError;
   } catch (error) {
-    logger.error('❌ API call failed:', error instanceof Error ? error : new Error(String(error)), {
-      requestId: 'req-12345',
-      userId: 'user-67890'
-    });
+    logger.error(
+      '❌ API call failed:',
+      error instanceof Error ? error : new Error(String(error)),
+      {
+        requestId: 'req-12345',
+        userId: 'user-67890',
+      },
+    );
   }
 
   // 场景 3: 验证错误
@@ -31,7 +38,10 @@ async function testErrorScenarios() {
     (validationError as any).code = 'VALIDATION_ERROR';
     throw validationError;
   } catch (error) {
-    logger.error('❌ Validation failed:', error instanceof Error ? error : new Error(String(error)));
+    logger.error(
+      '❌ Validation failed:',
+      error instanceof Error ? error : new Error(String(error)),
+    );
   }
 
   // 场景 4: 使用简化的语法
