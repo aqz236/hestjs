@@ -1,4 +1,4 @@
-# HestJS 框架介绍
+# HestJS 介绍
 
 HestJS 是一个基于 **Hono + Bun + TSyringe** 的现代化 TypeScript 库，提供类似 NestJS 的开发体验，但具有更轻量和更高性能的特点。
 
