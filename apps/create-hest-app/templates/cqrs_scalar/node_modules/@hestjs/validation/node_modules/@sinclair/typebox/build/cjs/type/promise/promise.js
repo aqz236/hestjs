@@ -1,0 +1,15 @@
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Promise = Promise;
+const type_1 = require("../clone/type");
+const index_1 = require("../symbols/index");
+/** `[JavaScript]` Creates a Promise type */
+function Promise(item, options = {}) {
+    return {
+        ...options,
+        [index_1.Kind]: 'Promise',
+        type: 'Promise',
+        item: (0, type_1.CloneType)(item),
+    };
+}

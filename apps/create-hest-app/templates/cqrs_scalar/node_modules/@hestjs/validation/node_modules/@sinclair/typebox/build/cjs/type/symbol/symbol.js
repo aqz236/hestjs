@@ -1,0 +1,9 @@
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.Symbol = Symbol;
+const index_1 = require("../symbols/index");
+/** `[JavaScript]` Creates a Symbol type */
+function Symbol(options) {
+    return { ...options, [index_1.Kind]: 'Symbol', type: 'symbol' };
+}

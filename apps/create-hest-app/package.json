@@ -1,0 +1,50 @@
+{
+  "name": "create-hest-app",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Create HestJS-powered applications with one command",
+  "keywords": [
+    "hestjs",
+    "hono",
+    "tsyringe",
+    "typescript",
+    "framework",
+    "web"
+  ],
+  "author": "HestJS Team",
+  "license": "MIT",
+  "bin": {
+    "create-hest-app": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "templates"
+  ],
+  "scripts": {
+    "dev": "bun build ./src/index.ts --watch --outdir dist/",
+    "build": "bun build ./src/index.ts --outdir ./dist/ --minify --target=node",
+    "prepublishOnly": "bun run build",
+    "test": "echo \"Test script not yet implemented\""
+  },
+  "dependencies": {
+    "commander": "^14.0.0",
+    "inquirer": "^12.9.0",
+    "picocolors": "^1.1.1",
+    "validate-npm-package-name": "^6.0.2",
+    "cross-spawn": "^7.0.6",
+    "fs-extra": "^11.3.0",
+    "conf": "^14.0.0",
+    "update-check": "^1.5.4"
+  },
+  "devDependencies": {
+    "@types/cross-spawn": "^6.0.6",
+    "@types/fs-extra": "^11.0.4",
+    "@types/inquirer": "^9.0.8",
+    "@types/node": "^24.1.0",
+    "@types/validate-npm-package-name": "^4.0.2",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
