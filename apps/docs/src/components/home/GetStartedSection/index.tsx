@@ -3,18 +3,15 @@ import { motion } from 'framer-motion';
 import { Button } from '../../ui/Button';
 import Link from '@docusaurus/Link';
 import { Terminal, Download, ArrowRight } from 'lucide-react';
+import Translate from '@docusaurus/Translate';
 
 const GetStartedSection = () => {
   return (
-    <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-700 relative overflow-hidden">
-      {/* 背景装饰 */}
-      <div className="absolute inset-0">
-        <div className="absolute top-10 left-10 w-20 h-20 bg-white/10 rounded-full blur-xl"></div>
-        <div className="absolute bottom-10 right-10 w-32 h-32 bg-white/10 rounded-full blur-xl"></div>
-        <div className="absolute top-1/2 left-1/3 w-16 h-16 bg-purple-300/20 rounded-full blur-lg"></div>
-      </div>
+    <section className="py-20 relative overflow-hidden" style={{ zIndex: 1 }}>
+      {/* 微妙的背景装饰 */}
+
       
-      <div className="container mx-auto px-6 text-center relative z-10">
+      <div className="container mx-auto px-6 text-center relative">
         <motion.div
           className="max-w-3xl mx-auto"
           initial={{ opacity: 0, y: 20 }}
@@ -22,17 +19,31 @@ const GetStartedSection = () => {
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          <h2 className="text-4xl font-bold mb-6 text-white">Ready to Build Your Way?</h2>
-          <p className="text-xl text-blue-100 mb-8 leading-relaxed">
-            Start with the packages you need, expand when you want to. 
-            No framework constraints, no vendor lock-in - just powerful tools that respect your choices.
+          <h2 
+            className="text-4xl font-bold mb-6"
+            style={{ color: 'var(--homepage-cta-text)' }}
+          >
+            <Translate id="homepage.getStarted.title">
+              Ready to Build Your Way?
+            </Translate>
+          </h2>
+          <p 
+            className="text-xl mb-8 leading-relaxed"
+            style={{ color: 'var(--homepage-cta-text)', opacity: 0.9 }}
+          >
+            <Translate id="homepage.getStarted.subtitle">
+              Start with the packages you need, expand when you want to. 
+              No framework constraints, no vendor lock-in - just powerful tools that respect your choices.
+            </Translate>
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
             <Button asChild variant="secondary" size="xl">
               <Link to="/docs/intro">
                 <Terminal className="w-5 h-5 mr-2" />
-                Read Documentation
+                <Translate id="homepage.getStarted.documentation">
+                  Read Documentation
+                </Translate>
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Link>
             </Button>
@@ -40,7 +51,9 @@ const GetStartedSection = () => {
             <Button asChild variant="ghost" size="xl" className="text-white border-white hover:bg-white hover:text-blue-600">
               <Link to="https://github.com/aqz236/hestjs-demo" target="_blank">
                 <Download className="w-5 h-5 mr-2" />
-                Download Examples
+                <Translate id="homepage.getStarted.examples">
+                  Download Examples
+                </Translate>
               </Link>
             </Button>
           </div>

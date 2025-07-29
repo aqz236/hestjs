@@ -9,49 +9,98 @@ import {
   Database, 
   GitBranch 
 } from 'lucide-react';
+import Translate, { translate } from '@docusaurus/Translate';
 
 const FeaturesSection = () => {
   const features = [
     {
       icon: <Layers className="w-8 h-8" />,
-      title: "Modular by Design",
-      description: "Pick only the packages you need. Each HestJS package works independently or together, giving you complete control over your stack.",
+      title: (
+        <Translate id="homepage.features.items.modular.title">
+          Modular by Design
+        </Translate>
+      ),
+      description: (
+        <Translate id="homepage.features.items.modular.description">
+          Pick only the packages you need. Each HestJS package works independently or together, giving you complete control over your stack.
+        </Translate>
+      ),
       gradient: "from-purple-400 to-indigo-500"
     },
     {
       icon: <Zap className="w-8 h-8" />,
-      title: "Blazing Fast",
-      description: "Built on Hono's performance foundation. No unnecessary overhead, just the features you choose to include.",
+      title: (
+        <Translate id="homepage.features.items.fast.title">
+          Blazing Fast
+        </Translate>
+      ),
+      description: (
+        <Translate id="homepage.features.items.fast.description">
+          Built on Hono's performance foundation. No unnecessary overhead, just the features you choose to include.
+        </Translate>
+      ),
       gradient: "from-yellow-400 to-orange-500"
     },
     {
       icon: <Shield className="w-8 h-8" />,
-      title: "Type Safe",
-      description: "Full TypeScript support with strict typing across all packages. Catch errors early, code with confidence.",
+      title: (
+        <Translate id="homepage.features.items.typeSafe.title">
+          Type Safe
+        </Translate>
+      ),
+      description: (
+        <Translate id="homepage.features.items.typeSafe.description">
+          Full TypeScript support with intelligent autocompletion and compile-time error detection.
+        </Translate>
+      ),
       gradient: "from-green-400 to-emerald-500"
     },
     {
       icon: <Code className="w-8 h-8" />,
-      title: "Zero Lock-in",
-      description: "No vendor constraints. Use HestJS packages with any setup, migrate gradually, or mix with other libraries freely.",
+      title: (
+        <Translate id="homepage.features.items.zeroLockIn.title">
+          Zero Lock-in
+        </Translate>
+      ),
+      description: (
+        <Translate id="homepage.features.items.zeroLockIn.description">
+          Use any database, any hosting, any additional libraries. HestJS doesn't limit your choices.
+        </Translate>
+      ),
       gradient: "from-blue-400 to-cyan-500"
     },
     {
       icon: <Database className="w-8 h-8" />,
-      title: "Package Ecosystem",
-      description: "From CQRS to logging, validation to documentation - choose from a growing collection of focused packages.",
+      title: (
+        <Translate id="homepage.features.items.ecosystem.title">
+          Rich Ecosystem
+        </Translate>
+      ),
+      description: (
+        <Translate id="homepage.features.items.ecosystem.description">
+          Access to the entire Node.js ecosystem. Use any npm package alongside HestJS tools.
+        </Translate>
+      ),
       gradient: "from-pink-400 to-rose-500"
     },
     {
       icon: <GitBranch className="w-8 h-8" />,
-      title: "Developer Freedom",
-      description: "Familiar patterns without the framework overhead. Build your way, not ours.",
+      title: (
+        <Translate id="homepage.features.items.freedom.title">
+          Architectural Freedom
+        </Translate>
+      ),
+      description: (
+        <Translate id="homepage.features.items.freedom.description">
+          Build microservices, monoliths, or anything in between. The architecture choice is yours.
+        </Translate>
+      ),
       gradient: "from-teal-400 to-cyan-500"
     }
   ];
 
   return (
-    <section className="py-20 bg-gray-50">
+    <section className="py-20 relative" style={{ zIndex: 1 }}>
       <div className="container mx-auto px-6">
         <motion.div
           className="text-center mb-16"
@@ -60,10 +109,21 @@ const FeaturesSection = () => {
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          <h2 className="text-4xl font-bold mb-4 text-gray-900">Why Choose HestJS Packages?</h2>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-            Unlike monolithic frameworks, HestJS gives you the power to choose. 
-            Use one package or combine them all - the architecture is entirely up to you.
+          <h2 
+            className="text-4xl font-bold mb-4"
+            style={{ color: 'var(--homepage-text-primary)' }}
+          >
+            <Translate id="homepage.features.title">
+              Why Choose HestJS Packages?
+            </Translate>
+          </h2>
+          <p 
+            className="text-xl max-w-3xl mx-auto"
+            style={{ color: 'var(--homepage-text-secondary)' }}
+          >
+            <Translate id="homepage.features.subtitle">
+              Unlike monolithic frameworks, HestJS gives you the power to choose. Use one package or combine them all - the architecture is entirely up to you.
+            </Translate>
           </p>
         </motion.div>
         
