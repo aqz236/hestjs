@@ -21,7 +21,7 @@ function HomepageHeader() {
           <Link
             className="button button--secondary button--lg"
             to="/docs/intro">
-            Docusaurus Tutorial - 5min ⏱️
+            Get Started with HestJS 🚀
           </Link>
         </div>
       </div>
@@ -33,8 +33,8 @@ export default function Home(): ReactNode {
   const {siteConfig} = useDocusaurusContext();
   return (
     <Layout
-      title={`Hello from ${siteConfig.title}`}
-      description="Description will go into a meta tag in <head />">
+      title={`${siteConfig.title} - Modern Node.js Framework`}
+      description="HestJS is a modern, type-safe Node.js framework inspired by NestJS, built with Hono and TSyringe for dependency injection.">
       <HomepageHeader />
       <main>
         <HomepageFeatures />
