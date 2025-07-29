@@ -323,7 +323,7 @@
     "description": "The title of the tag list page"
   },
   "homepage.hero.subtitle": {
-    "message": "灵活的 Node.js 包，而非框架束缚"
+    "message": "灵活的 JavaScript 包，而非框架束缚"
   },
   "homepage.hero.description": {
     "message": "享受完全自由地构建。按需组合 HestJS 包，无厂商锁定，无强制架构。只有无缝协作的强大工具。"
