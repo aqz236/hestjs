@@ -27,6 +27,7 @@ const sidebars: SidebarsConfig = {
         'getting-started/project-structure',
         'getting-started/cli-usage',
       ],
+      collapsed: false,
     },
     {
       type: 'category',
@@ -43,6 +44,7 @@ const sidebars: SidebarsConfig = {
         // 'fundamentals/exception-filters',
         // 'fundamentals/lifecycle-events',
       ],
+      collapsed: false,
     },
     // {
     //   type: 'category',

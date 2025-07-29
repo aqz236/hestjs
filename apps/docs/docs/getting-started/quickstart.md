@@ -1,4 +1,4 @@
-# 安装
+# 快速开始
 
 ## 系统要求
 
@@ -101,7 +101,6 @@ export class AppController {
 - [创建第一个应用](./first-application) - 构建完整的用户管理 API
 - [了解项目结构](./project-structure) - 学习如何组织代码
 - [核心概念](../fundamentals/controllers) - 深入了解 HestJS
-
 - [创建完整应用](./first-application.md) - 学习更多概念
 - [项目结构](./project-structure.md) - 了解代码组织
 - [基础教程](../fundamentals/controllers.md) - 深入学习
