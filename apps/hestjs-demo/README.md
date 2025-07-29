@@ -32,10 +32,10 @@
 - ⚡ **极致性能** - 基于 Hono 和 Bun 的高性能运行时
 - 💉 **轻量依赖注入** - 基于 TSyringe，简洁而强大
 - 🏗️ **灵活模块化** - 按需组合，不强制架构约束
-- 🛡️ **可选数据验证** - 需要时才引入 TypeBox 验证系统
+- 🛡️ **可选数据验证** - 需要时才引入验证系统
 - 📚 **可选 API 文档** - 按需集成 OpenAPI 文档生成
 - 🔄 **可选 CQRS 支持** - 复杂业务场景时的命令查询分离
-- 📝 **可选日志系统** - 按需集成 Pino 高性能日志
+- 📝 **可选日志系统** - 按需集成高性能日志
 
 ## 🚀 快速开始
 
@@ -68,46 +68,11 @@ bun run dev
 应用启动后，你可以：
 
 - 🌐 访问 `http://localhost:3002` 查看应用
-- 📖 访问 `http://localhost:3002/docs` 体验精美的 API 文档界面
+- 📖 访问 `http://localhost:3002/docs` 体验精美的 API 文档界面（前提启用了Swagger）
 
 ## 📚 文档
 
 完整的框架文档请访问：**https://aqz236.github.io/hestjs-demo**
-
-## 🎯 API 端点
-
-### 基础端点
-
-- `GET /health` - 健康检查
-- `GET /` - 欢迎消息
-
-### 用户管理
-
-- `GET /api/users` - 获取用户列表
-- `POST /api/users` - 创建新用户
-- `GET /api/users/:id` - 获取用户详情
-- `PUT /api/users/:id` - 更新用户
-- `DELETE /api/users/:id` - 删除用户
-
-### 数据验证示例
-
-- `POST /api/custom-validation/validate-user` - 用户数据验证示例
-
-## 🔧 项目结构
-
-```
-src/
-├── index.ts                    # 应用入口
-├── app.module.ts              # 根模块
-├── app.controller.ts          # 应用控制器
-├── modules/                   # 功能模块
-│   ├── users/                 # 用户模块
-│   └── custom-validation/     # 验证示例模块
-├── common/                    # 公共组件
-│   ├── filters/               # 异常过滤器
-│   └── interceptors/          # 拦截器
-└── config/                    # 配置文件
-```
 
 ## 🛠️ 技术栈
 
@@ -144,6 +109,10 @@ async function bootstrap() {
     console.log(`${c.req.method} ${c.req.url}`);
     await next();
   });
+
+  // 添加全局拦截器和异常过滤器
+  app.useGlobalInterceptors(new ValidationInterceptor());
+  app.useGlobalFilters(new HttpExceptionFilter());
 
   // 使用 Bun 的原生 serve
   Bun.serve({
@@ -201,6 +170,36 @@ export class UsersController {
 }
 ```
 
+### 创建服务
+
+```typescript
+import { injectable } from '@hestjs/core';
+
+@injectable()
+export class UsersService {
+  private users = [
+    { id: 1, name: 'John Doe', email: 'john@example.com', age: 30 },
+  ];
+
+  findAll() {
+    return this.users;
+  }
+
+  findOne(id: number) {
+    return this.users.find(user => user.id === id);
+  }
+
+  create(userData: CreateUserDto) {
+    const newUser = {
+      id: this.users.length + 1,
+      ...userData,
+    };
+    this.users.push(newUser);
+    return newUser;
+  }
+}
+```
+
 ### 创建模块
 
 ```typescript
@@ -216,12 +215,54 @@ import { UsersService } from './users.service';
 export class UsersModule {}
 ```
 
+### 根模块
+
+```typescript
+import { Module } from '@hestjs/core';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { UsersModule } from './modules/users/users.module';
+
+@Module({
+  imports: [UsersModule],
+  controllers: [AppController],
+  providers: [AppService],
+})
+export class AppModule {}
+```
+
+## 🎯 可用装饰器
+
+### 路由装饰器
+
+- `@Controller(path?)` - 定义控制器和路径前缀
+- `@Get(path?)` - GET 请求
+- `@Post(path?)` - POST 请求
+- `@Put(path?)` - PUT 请求
+- `@Delete(path?)` - DELETE 请求
+- `@Patch(path?)` - PATCH 请求
+
+### 参数装饰器
+
+- `@Context()` - 获取完整的 Hono Context 对象
+- `@Body(dto?)` - 获取请求体（支持验证）
+- `@Param(key?)` - 获取路径参数
+- `@Query(key?)` - 获取查询参数
+- `@Header(key?)` - 获取请求头
+- `@Req()` - 获取请求对象
+- `@Res()` - 获取响应对象
+
+### 依赖注入装饰器
+
+- `@injectable()` - 标记类为可注入
+- `@Module(metadata)` - 定义模块
+
 ## 🧪 测试 API
 
 ### 创建用户
 
 ```bash
-curl -X POST http://localhost:3002/api/users \
+curl -X POST http://localhost:3002/users \
   -H "Content-Type: application/json" \
   -d '{
     "name": "Alice Johnson",
@@ -233,7 +274,36 @@ curl -X POST http://localhost:3002/api/users \
 ### 获取用户列表
 
 ```bash
-curl http://localhost:3002/api/users
+curl http://localhost:3002/users
+```
+
+### 获取特定用户
+
+```bash
+curl http://localhost:3002/users/1
+```
+
+## 🔧 项目结构
+
+```
+src/
+├── index.ts                    # 应用入口
+├── app.module.ts              # 根模块
+├── app.controller.ts          # 应用控制器
+├── app.service.ts             # 应用服务
+├── modules/                   # 功能模块
+│   ├── users/                 # 用户模块
+│   │   ├── users.controller.ts
+│   │   ├── users.service.ts
+│   │   ├── users.module.ts
+│   │   └── dto/               # 数据传输对象
+│   └── other-features/        # 其他功能模块
+├── common/                    # 公共组件
+│   ├── filters/               # 异常过滤器
+│   ├── interceptors/          # 拦截器
+│   ├── guards/                # 守卫
+│   └── decorators/            # 自定义装饰器
+└── config/                    # 配置文件
 ```
 
 ## 📋 可用脚本
@@ -251,6 +321,29 @@ bun run start
 # 类型检查
 bun run check-types
 ```
+
+## 🔄 与 NestJS 的对比
+
+| 特性            | HestJS   | NestJS          |
+| --------------- | -------- | --------------- |
+| 运行时          | Bun      | Node.js         |
+| Web 框架        | Hono     | Express/Fastify |
+| 启动速度        | 极快     | 较慢            |
+| 内存占用        | 低       | 较高            |
+| 构建产物        | 0.52MB   | 通常 > 10MB     |
+| TypeScript 支持 | 原生     | 需要编译        |
+| 依赖注入        | TSyringe | 自研            |
+| 底层访问        | 完全开放 | 部分封装        |
+| 学习曲线        | 平缓     | 陡峭            |
+| 生态系统        | 新兴     | 成熟            |
+
+## 💡 设计原则
+
+1. **不封装底层框架** - 直接暴露 Hono 实例，保留所有原生功能
+2. **可选增强** - 所有功能都是可选的，按需使用
+3. **类型安全** - 完整的 TypeScript 支持和类型推导
+4. **性能优先** - 基于 Bun 和 Hono，追求极致性能
+5. **开发体验** - 熟悉的装饰器语法，平滑的学习曲线
 
 ## 🤝 贡献
 
