@@ -30,7 +30,7 @@
   "author": "aqz236",
   "license": "MIT",
   "dependencies": {
-    "@hestjs/core": "^0.1.7",
+    "@hestjs/core": "^0.1.8",
     "@hestjs/logger": "^0.1.5",
     "@hestjs/scalar": "^0.1.2",
     "@hestjs/validation": "^0.1.5",
