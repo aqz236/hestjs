@@ -21,7 +21,6 @@ const GetStartedSection = () => {
         >
           <h2 
             className="text-4xl font-bold mb-6"
-            style={{ color: 'var(--homepage-cta-text)' }}
           >
             <Translate id="homepage.getStarted.title">
               Ready to Build Your Way?
@@ -29,7 +28,6 @@ const GetStartedSection = () => {
           </h2>
           <p 
             className="text-xl mb-8 leading-relaxed"
-            style={{ color: 'var(--homepage-cta-text)', opacity: 0.9 }}
           >
             <Translate id="homepage.getStarted.subtitle">
               Start with the packages you need, expand when you want to. 
@@ -48,7 +46,7 @@ const GetStartedSection = () => {
               </Link>
             </Button>
             
-            <Button asChild variant="ghost" size="xl" className="text-white border-white hover:bg-white hover:text-blue-600">
+            <Button asChild variant="ghost" size="xl" className=" border-white hover:bg-white hover:text-blue-600">
               <Link to="https://github.com/aqz236/hestjs-demo" target="_blank">
                 <Download className="w-5 h-5 mr-2" />
                 <Translate id="homepage.getStarted.examples">
@@ -59,7 +57,7 @@ const GetStartedSection = () => {
           </div>
           
           <motion.div
-            className="p-6 bg-black/20 rounded-lg backdrop-blur-sm border border-white/10"
+            className="p-6 bg-black/50 rounded-lg backdrop-blur-sm border border-white/10"
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}

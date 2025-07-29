@@ -17,7 +17,8 @@ export default function Home() {
       <main 
         className="overflow-hidden"
         style={{ 
-          minHeight: '100vh'
+          minHeight: '100vh',
+          paddingTop: '0'
         }}
       >
         <HeroSection />
