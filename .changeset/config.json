@@ -7,10 +7,5 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": [
-    "hestjs-docs",
-    "create-hest-app",
-    "@hestjs/cqrs-demo",
-    "@hestjs/demo"
-  ]
+  "ignore": []
 }
