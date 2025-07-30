@@ -187,7 +187,10 @@ const HestApplicationInstancePrototype =
 ### 4.5 【遗留】其他
 
 - `@hestjs/validation` 仓库版本为 `0.1.3`，落后于 npm 已发布的 `0.1.5`，需确认以哪一侧为准。
-- 13 个旧仓库的处置（保留 / archive / 删除）未定。
+  （跟踪 issue #3）
+- ~~13 个旧仓库的处置未定~~ → **已完成**：11 个子仓库已加迁移横幅并归档，
+  `flow-orchestrator` 保持独立，`aqz236/hestjs` 即本仓库。
+  远端另保留 `legacy/pre-monorepo` 与 `gh-pages` 分支作回退。
 - monorepo 尚无测试覆盖：除 `@hestjs/eslint-config` 与 `create-hest-app` 使用
   `node --test` 外，其余包无测试。
 - `packages/logger/assets/`、`apps/hestjs-demo/assets/` 与 `apps/docs/docs/getting-started/assets/`
