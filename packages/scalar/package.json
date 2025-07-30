@@ -1,6 +1,6 @@
 {
   "name": "@hestjs/scalar",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "HestJS Scalar API Reference Integration - Beautiful API documentation for HestJS applications",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
