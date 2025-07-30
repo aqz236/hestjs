@@ -13,11 +13,12 @@ HestJS 核心包 - 基于 Hono 构建的现代化 TypeScript 后端库，提供�
 
 ## 🎯 核心理念
 
-- **🔓 拒绝过度封装**：直接暴露原生 Hono 实例，保留所有底层功能
+- **🔓 拒绝过度封装**：用户直接控制 Hono 实例，保留所有底层功能和灵活性
 - **✈️ 零配置**：你看不到类似 `hestjs.config.ts`这样的配置文件，无需任何配置
 - **🎯 装饰器驱动**：提供熟悉的 NestJS 风格开发体验
 - **💉 轻量依赖注入**：基于 TSyringe 的简洁 DI 容器
 - **⚡ 极致性能**：基于 Hono 和 Bun 的高性能运行时
+- **🌊 原生中间件**：直接使用 Hono 中间件，无需额外抽象层
 
 ## 📦 安装
 
@@ -48,6 +49,8 @@ bun add @hestjs/core
 
 ```typescript
 import { Controller, Get, HestFactory, Module } from "@hestjs/core";
+import { Hono } from "hono";
+import { cors } from "hono/cors";
 
 @Controller("/")
 export class WelcomeController {
@@ -66,9 +69,13 @@ export class WelcomeController {
 export class AppModule {}
 
 async function bootstrap() {
-  const app = await HestFactory.create(AppModule);
-  const hono = app.hono();
+  const hono = new Hono();
+  hono.use(cors());
+  
+  // 将 Hono 实例传递给 HestJS
+  const app = await HestFactory.create(hono, AppModule);
 
+  // 直接使用原生 Hono 实例
   Bun.serve({
     port: 3000,
     fetch: hono.fetch,
@@ -78,7 +85,36 @@ async function bootstrap() {
 bootstrap();
 ```
 
-### 2. 定义控制器
+### 2. 异常处理中间件
+
+替代全局异常过滤器，直接使用 Hono 中间件处理异常：
+
+```typescript
+import type { Context, Next } from 'hono';
+
+const exceptionMiddleware = async (c: Context, next: Next) => {
+  try {
+    await next();
+  } catch (error: any) {
+    const status = error.status || 500;
+    return c.json({
+      statusCode: status,
+      timestamp: new Date().toISOString(),
+      path: c.req.url,
+      message: error.message || 'Internal Server Error',
+    }, status);
+  }
+};
+
+// 在 bootstrap 中使用
+const hono = new Hono();
+hono.use('*', exceptionMiddleware); // 全局异常处理
+hono.use(cors());
+
+const app = await HestFactory.create(hono, AppModule);
+```
+
+### 3. 定义控制器
 
 ```typescript
 import { Controller, Get, Post, Context, Body, Param } from "@hestjs/core";
@@ -103,7 +139,7 @@ export class UsersController {
 }
 ```
 
-### 3. 创建模块
+### 4. 创建模块
 
 ```typescript
 import { Module } from "@hestjs/core";
@@ -118,7 +154,7 @@ import { UsersService } from "./users.service";
 export class UsersModule {}
 ```
 
-### 4. 创建服务
+### 5. 创建服务
 
 ```typescript
 import { injectable } from "@hestjs/core";
@@ -307,27 +343,6 @@ export class UsersService {
 }
 ```
 
-### 🔄 拦截器和过滤器
-
-#### 全局拦截器
-
-```typescript
-const app = await HestFactory.create(AppModule);
-
-// 添加全局拦截器
-app.useGlobalInterceptors(new ValidationInterceptor());
-app.useGlobalInterceptors(new ResponseInterceptor());
-```
-
-#### 全局异常过滤器
-
-```typescript
-const app = await HestFactory.create(AppModule);
-
-// 添加全局异常过滤器
-app.useGlobalFilters(new HttpExceptionFilter());
-```
-
 ### 🌐 直接访问 Hono
 
 HestJS 不会封装 Hono，你可以直接使用所有 Hono 功能：
@@ -408,16 +423,57 @@ async handler(@Context() c: HestContext) {
 
 ### ✅ 已实现功能
 
-- [x] **应用工厂** - `HestFactory.create()`
-- [x] **控制器系统** - `@Controller()` 装饰器
-- [x] **路由装饰器** - `@Get()`, `@Post()`, `@Put()`, `@Delete()`, `@Patch()`
-- [x] **参数装饰器** - `@Context()`, `@Body()`, `@Param()`, `@Query()`, `@Header()`
-- [x] **模块系统** - `@Module()` 装饰器
-- [x] **依赖注入** - 基于 TSyringe 的 DI 容器
-- [x] **异常处理** - 基础异常过滤器
-- [x] **拦截器** - 全局拦截器支持
-- [x] **类型安全** - 完整的 TypeScript 支持
-- [x] **Hono 集成** - 直接访问 Hono 实例
+- [X] **应用工厂** - `HestFactory.create(honoInstance, moduleClass)`
+- [X] **控制器系统** - `@Controller()` 装饰器
+- [X] **路由装饰器** - `@Get()`, `@Post()`, `@Put()`, `@Delete()`, `@Patch()`
+- [X] **参数装饰器** - `@Context()`, `@Body()`, `@Param()`, `@Query()`, `@Header()`
+- [X] **模块系统** - `@Module()` 装饰器
+- [X] **依赖注入** - 基于 TSyringe 的 DI 容器
+
+## 🔄 重构说明
+
+### v0.2.0 重大更新 - 移除过度封装
+
+为了提供更大的灵活性和更好的性能，我们进行了一次重要的架构重构：
+
+#### 🗑️ 移除的功能
+
+- **全局异常过滤器** - 使用 Hono 中间件替代
+- **拦截器系统** - 使用 Hono 中间件替代
+- **`app.hono()` 方法** - 用户直接控制 Hono 实例
+- **`app.useGlobalFilters()` 方法** - 使用中间件实现
+
+#### ✨ 新的设计理念
+
+- **用户控制** - 用户手动创建 `new Hono()` 实例
+- **原生中间件** - 直接使用 Hono 的中间件生态
+- **零抽象层** - 减少性能开销和学习成本
+- **最大灵活性** - 保留 Hono 的所有原生功能
+
+#### 🚀 迁移指南
+
+**旧的方式：**
+
+```typescript
+const app = await HestFactory.create(AppModule);
+app.useGlobalFilters(new ExceptionFilter());
+const hono = app.hono();
+```
+
+**新的方式：**
+
+```typescript
+const hono = new Hono();
+hono.use('*', exceptionMiddleware); // 直接使用中间件
+const app = await HestFactory.create(hono, AppModule);
+```
+
+这种设计让 HestJS 真正成为"基于 Hono 的 OOP 框架"，而不是"包装 Hono 的框架"。
+
+- [X] **异常处理** - 基础异常过滤器
+- [X] **拦截器** - 全局拦截器支持
+- [X] **类型安全** - 完整的 TypeScript 支持
+- [X] **Hono 集成** - 直接访问 Hono 实例
 
 ### 🚧 开发中功能
 

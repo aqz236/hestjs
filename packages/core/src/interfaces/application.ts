@@ -10,9 +10,9 @@ export type HestContext<E extends Env = Env> = Context<E>;
  */
 export interface HestApplication {
   /**
-   * 获取底层 Hono 实例
+   * 获取 DI 容器
    */
-  hono(): any;
+  getContainer(): any;
 }
 
 /**

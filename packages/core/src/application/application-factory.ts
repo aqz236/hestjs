@@ -13,9 +13,9 @@ export class HestFactory {
   /**
    * 创建应用实例
    */
-  static async create(moduleClass: any): Promise<HestApplicationInstance> {
-    // 创建 Hono 实例
-    const app = new Hono();
+  static async create(honoApp: Hono, moduleClass: any): Promise<HestApplicationInstance> {
+    // 使用用户传入的 Hono 实例
+    const app = honoApp;
 
     // 创建 DI 容器
     const container = Container.getInstance();
@@ -28,8 +28,6 @@ export class HestFactory {
 
     // 设置路由
     const routerExplorer = new RouterExplorer(app, container);
-    routerExplorer.setGlobalFilters(appInstance.getGlobalFilters());
-    routerExplorer.setGlobalInterceptors(appInstance.getGlobalInterceptors());
 
     // 收集所有模块的控制器
     const allControllers = HestFactory.collectAllControllers(moduleClass);

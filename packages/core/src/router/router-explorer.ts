@@ -1,16 +1,6 @@
 import { createLogger } from "@hestjs/logger";
 import { Hono } from "hono";
 import { Container } from "../container/container";
-import {
-  DefaultArgumentsHost,
-  DefaultExceptionFilter,
-  type ExceptionFilter,
-} from "../exceptions/exception-filter";
-import {
-  DefaultCallHandler,
-  DefaultExecutionContext,
-  type Interceptor,
-} from "../interceptors/interceptor";
 import type { HestContext } from "../interfaces/application";
 import type {
   ControllerMetadata,
@@ -35,26 +25,10 @@ const logger = createLogger("Router");
 export class RouterExplorer {
   private readonly app: Hono;
   private readonly container: Container;
-  private globalFilters: ExceptionFilter[] = [];
-  private globalInterceptors: Interceptor[] = [];
 
   constructor(app: Hono, container: Container) {
     this.app = app;
     this.container = container;
-  }
-
-  /**
-   * 设置全局异常过滤器
-   */
-  setGlobalFilters(filters: ExceptionFilter[]): void {
-    this.globalFilters = filters;
-  }
-
-  /**
-   * 设置全局拦截器
-   */
-  setGlobalInterceptors(interceptors: Interceptor[]): void {
-    this.globalInterceptors = interceptors;
   }
 
   /**
@@ -105,38 +79,24 @@ export class RouterExplorer {
       route.methodName
     );
 
-    // 创建增强的路由处理器（支持拦截器和异常处理）
+    // 创建路由处理器
     const handler: RouteHandler = async (c: HestContext) => {
       try {
-        // 创建执行上下文
-        const executionContext = new DefaultExecutionContext(
-          controllerInstance.constructor,
-          { name: route.methodName },
-          [],
-          c
+        // 解析参数
+        const resolutionResult = await this.resolveParameters(
+          c,
+          paramMetadata
         );
-
-        // 原始方法执行逻辑
-        const executeMethod = async () => {
-          const resolutionResult = await this.resolveParameters(
-            c,
-            paramMetadata
+        if (resolutionResult.errors && resolutionResult.errors.length > 0) {
+          // 处理参数解析错误
+          throw new Error(
+            `Parameter resolution failed: ${resolutionResult.errors.map((e) => e.error).join(", ")}`
           );
-          if (resolutionResult.errors && resolutionResult.errors.length > 0) {
-            // 处理参数解析错误
-            throw new Error(
-              `Parameter resolution failed: ${resolutionResult.errors.map((e) => e.error).join(", ")}`
-            );
-          }
-          return await controllerInstance[route.methodName](
-            ...resolutionResult.args
-          );
-        };
-
-        // 应用拦截器
-        let result = await this.applyInterceptors(
-          executionContext,
-          executeMethod
+        }
+        
+        // 执行控制器方法
+        const result = await controllerInstance[route.methodName](
+          ...resolutionResult.args
         );
 
         // 返回结果
@@ -148,8 +108,8 @@ export class RouterExplorer {
           return c.json({ data: result });
         }
       } catch (error) {
-        // 应用异常过滤器
-        return this.handleException(error, c);
+        // 直接抛出异常，由用户的Hono中间件处理
+        throw error;
       }
     };
 
@@ -250,52 +210,6 @@ export class RouterExplorer {
     }
 
     return { args, errors: errors.length > 0 ? errors : undefined };
-  }
-
-  /**
-   * 应用拦截器
-   */
-  private async applyInterceptors(
-    context: DefaultExecutionContext,
-    handler: () => Promise<any>
-  ): Promise<any> {
-    if (this.globalInterceptors.length === 0) {
-      return await handler();
-    }
-
-    // 构建拦截器链
-    let index = 0;
-    const callNext = async (): Promise<any> => {
-      if (index >= this.globalInterceptors.length) {
-        return await handler();
-      }
-
-      const interceptor = this.globalInterceptors[index++];
-      const callHandler = new DefaultCallHandler(callNext);
-      return await interceptor.intercept(context, callHandler);
-    };
-
-    return await callNext();
-  }
-
-  /**
-   * 处理异常
-   */
-  private handleException(error: Error | unknown, context: HestContext): any {
-    const argumentsHost = new DefaultArgumentsHost(context);
-
-    // 优先使用全局异常过滤器
-    for (const filter of this.globalFilters) {
-      try {
-        return filter.catch(error, argumentsHost);
-      } catch (filterError) {
-        console.error("Exception filter error:", filterError);
-      }
-    }
-
-    // 默认异常处理
-    const defaultFilter = new DefaultExceptionFilter();
-    return defaultFilter.catch(error, argumentsHost);
   }
 
   /**
