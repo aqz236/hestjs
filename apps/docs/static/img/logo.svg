@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3B82F6" />
+      <stop offset="50%" stop-color="#8B5CF6" />
+      <stop offset="100%" stop-color="#EC4899" />
+    </linearGradient>
+    <linearGradient id="accentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981" />
+      <stop offset="100%" stop-color="#06B6D4" />
+    </linearGradient>
+  </defs>
+  
+  <!-- 主体形状 - 代表 H -->
+  <rect x="4" y="8" width="4" height="24" rx="2" fill="url(#logoGradient)" />
+  <rect x="32" y="8" width="4" height="24" rx="2" fill="url(#logoGradient)" />
+  <rect x="8" y="18" width="24" height="4" rx="2" fill="url(#logoGradient)" />
+  
+  <!-- 装饰性元素 - 代表模块化 -->
+  <circle cx="14" cy="12" r="2" fill="url(#accentGradient)" opacity="0.8" />
+  <circle cx="26" cy="12" r="2" fill="url(#accentGradient)" opacity="0.8" />
+  <circle cx="14" cy="28" r="2" fill="url(#accentGradient)" opacity="0.8" />
+  <circle cx="26" cy="28" r="2" fill="url(#accentGradient)" opacity="0.8" />
+  
+  <!-- 连接线 - 代表包之间的连接 -->
+  <path 
+    d="M14 14 Q20 10 26 14" 
+    stroke="url(#accentGradient)" 
+    stroke-width="1.5" 
+    fill="none" 
+    opacity="0.6"
+  />
+  <path 
+    d="M14 26 Q20 30 26 26" 
+    stroke="url(#accentGradient)" 
+    stroke-width="1.5" 
+    fill="none" 
+    opacity="0.6"
+  />
+</svg>

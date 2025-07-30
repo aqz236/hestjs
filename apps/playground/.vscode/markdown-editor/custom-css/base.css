@@ -1,0 +1,254 @@
+/* ===========================================
+   基于原版 main.css 的增强样式
+   =========================================== */
+
+/* 基础布局保持原版结构 */
+body {
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  width: 100%;
+}
+
+/* VSCode主题色彩集成 */
+body[data-use-vscode-theme-color="1"] .vditor {
+  --panel-background-color: var(--vscode-editor-background);
+  --toolbar-background-color: var(--vscode-editor-background);
+  --textarea-background-color: var(--vscode-editor-background);
+}
+
+/* 修复字体族 - 保持原版 */
+.vditor .vditor-reset {
+  font-family: var(--vscode-editor-font-family) !important;
+}
+
+/* 修复代码块颜色 - 增强版 */
+.vditor--dark .vditor-reset code:not(.hljs):not(.highlight-chroma) {
+  background-color: rgba(30, 30, 30, 0.8) !important;
+}
+
+/* 修复指定语言的代码块背景色 */
+.vditor-ir pre.vditor-reset {
+  position: relative;
+  background-color: rgba(182, 177, 177, 0.8) !important;
+}
+
+/* 语法高亮代码块背景 */
+.vditor-reset .hljs,
+.vditor-reset pre[data-lang],
+.vditor-reset pre.language-javascript,
+.vditor-reset pre.language-typescript,
+.vditor-reset pre.language-python,
+.vditor-reset pre.language-java,
+.vditor-reset pre.language-css,
+.vditor-reset pre.language-html,
+.vditor-reset pre.language-json {
+  background-color: rgba(241, 239, 235, 0.899) !important;
+}
+
+/* 工具栏增强样式 */
+.vditor-toolbar.vditor-toolbar--pin {
+  padding-left: 35px !important;
+}
+
+/* 工具栏高度和按钮样式 */
+.vditor .vditor-toolbar {
+  --toolbar-height: 25px !important;
+  height: var(--toolbar-height) !important;
+  margin-top: 5px;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  --toolbar-background-color: rgba(255, 255, 255, 0.1) !important;
+  background-color: transparent !important;
+  border-bottom: none !important;
+}
+
+.vditor .vditor-toolbar__item .vditor-tooltipped {
+  height: var(--toolbar-height) !important;
+  padding: 0 5px !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vditor .vditor-toolbar__item svg {
+  height: 15px !important;
+  width: 15px !important;
+}
+
+.vditor .vditor-toolbar button {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-radius: 4px;
+  margin: 2px;
+}
+
+/* 上传按钮修复 */
+.vditor .vditor-toolbar__item.vditor-toolbar__upload {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: var(--toolbar-height) !important;
+}
+
+.vditor .vditor-toolbar__upload .vditor-tooltipped {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-radius: 4px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: calc(var(--toolbar-height) - 4px) !important;
+  width: calc(var(--toolbar-height) - 4px) !important;
+}
+
+/* 面板样式 - 保持原版基础 */
+.vditor-panel {
+  transform: translate(-25px, 0);
+  max-width: 21px;
+  max-height: 21px;
+  overflow: hidden;
+  transition: width 0.2s ease-in-out;
+  --panel-background-color: rgba(20, 20, 20, 0.85) !important;
+}
+
+.vditor-panel::after {
+  content: '...';
+  width: 21px;
+  height: 21px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  background-color: white;
+  color: black;
+  text-align: center;
+  font-family: none;
+}
+
+.vditor-panel:hover,
+.vditor-panel_hover {
+  opacity: 0.86;
+  max-width: none;
+  max-height: none;
+  overflow: visible;
+}
+
+.vditor-panel:hover:after,
+.vditor-panel_hover:after {
+  display: none;
+}
+
+/* 内容区域样式 */
+.vditor-reset {
+  padding-left: 35px !important;
+  background-color: transparent !important;
+}
+
+.vditor .vditor-sv {
+  --textarea-background-color: transparent !important;
+}
+
+/* 大纲样式增强 */
+.vditor-outline {
+  background-color: transparent !important;
+  user-select: none !important;
+  transition: width 0.2s ease;
+  box-sizing: border-box;
+}
+
+.vditor-outline__title {
+  background-color: transparent !important;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.2) !important;
+}
+
+.vditor-outline li > span {
+  background-color: transparent !important;
+  transition: background-color 0.2s ease, border-radius 0.2s ease;
+}
+
+.vditor-outline li > span:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  border-radius: 6px !important;
+}
+
+.vditor-outline__action {
+  background-color: transparent !important;
+}
+
+/* 大纲调整手柄样式 */
+.outline-resize-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: transparent;
+  cursor: col-resize;
+  z-index: 1000;
+  transition: background-color 0.2s ease;
+}
+
+.outline-resize-handle:hover {
+  background-color: var(--vscode-sash-hoverBorder, rgba(0, 122, 255, 0.5)) !important;
+}
+
+.outline-resize-handle:active {
+  background-color: var(--vscode-sash-activeBorder, rgba(0, 122, 255, 0.8)) !important;
+}
+
+/* 滚动条样式 - VSCode默认 */
+.vditor-ir,
+.vditor-reset {
+  scrollbar-width: auto !important;
+  scrollbar-color: auto !important;
+}
+
+.vditor-ir::-webkit-scrollbar,
+.vditor-reset::-webkit-scrollbar {
+  width: auto !important;
+  background: transparent !important;
+}
+
+.vditor-ir::-webkit-scrollbar-track,
+.vditor-reset::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.vditor-ir::-webkit-scrollbar-thumb,
+.vditor-reset::-webkit-scrollbar-thumb {
+  background: var(--vscode-scrollbarSlider-background) !important;
+  border-radius: 0 !important;
+}
+
+.vditor-ir::-webkit-scrollbar-thumb:hover,
+.vditor-reset::-webkit-scrollbar-thumb:hover {
+  background: var(--vscode-scrollbarSlider-hoverBackground) !important;
+}
+
+.vditor-ir::-webkit-scrollbar-thumb:active,
+.vditor-reset::-webkit-scrollbar-thumb:active {
+  background: var(--vscode-scrollbarSlider-activeBackground) !important;
+}
+
+/* 暗色主题样式 */
+.vditor--dark {
+  --textarea-text-color: rgba(255, 255, 255, 0.9) !important;
+  --border-color: rgba(255, 255, 255, 0.1) !important;
+  --toolbar-icon-color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.vditor--dark .vditor-reset {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* 确认对话框样式 - 保持原版 */
+.jconfirm {
+  color: black;
+}
+
+.jconfirm-buttons button {
+  text-transform: none !important;
+}
