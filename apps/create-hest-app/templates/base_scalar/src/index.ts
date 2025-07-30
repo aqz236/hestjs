@@ -3,7 +3,6 @@ import { logger } from '@hestjs/logger';
 import '@hestjs/scalar'; // 导入scalar扩展
 import { ValidationInterceptor } from '@hestjs/validation';
 import { cors } from 'hono/cors';
-import { AppController } from './app.controller';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
