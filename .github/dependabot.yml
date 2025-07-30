@@ -1,18 +1,15 @@
 version: 2
 updates:
-  - package-ecosystem: npm
-    directory: /
-    schedule:
-      interval: weekly
-      day: monday
-    open-pull-requests-limit: 5
-    commit-message:
-      prefix: "chore(deps)"
-
+  # 仅跟踪 GitHub Actions。
+  #
+  # 注意：Dependabot 目前不支持 bun 的 bun.lock，开启 npm ecosystem 每次运行都会失败
+  # （"dependency_file_not_supported"）。本仓库使用 bun workspaces，
+  # 依赖升级请使用 `bun update` 并提交新的 bun.lock。
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
       day: monday
+    open-pull-requests-limit: 5
     commit-message:
       prefix: "chore(ci)"
