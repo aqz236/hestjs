@@ -23,9 +23,8 @@ async function bootstrap() {
     // 全局异常过滤器
     app.useGlobalFilters(new HttpExceptionFilter());
 
-    // 设置OpenAPI规范端点 - 基于注解生成
-    app.useScalarWithControllers(
-      [AppController], // 传入需要生成文档的控制器
+    // 设置OpenAPI规范端点
+    app.useSwagger(
       {
         info: {
           title: 'HestJS Demo API',
