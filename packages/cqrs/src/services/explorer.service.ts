@@ -1,4 +1,4 @@
-import { Injectable, logger } from "@hestjs/core";
+import { Injectable, logger, Container } from "@hestjs/core";
 import "reflect-metadata";
 import {
   COMMAND_HANDLER_METADATA,
@@ -27,28 +27,48 @@ export interface ExplorerResult<EventBase extends IEvent = IEvent> {
 export class ExplorerService<EventBase extends IEvent = IEvent> {
   private registeredHandlers = new Set<Function>();
 
+  constructor(private readonly container: Container) {}
+
   /**
-   * Explores and discovers all CQRS handlers and sagas from the TSyringe container.
+   * Explores and discovers all CQRS handlers and sagas from the container.
    */
   explore(): ExplorerResult<EventBase> {
-    const commands: CommandHandlerType<ICommand>[] = [];
-    const queries: QueryHandlerType<IQuery>[] = [];
-    const events: EventHandlerType<EventBase>[] = [];
-    const sagas: SagaType<EventBase>[] = [];
+    // 自动从容器中发现所有提供者
+    this.autoDiscoverHandlers();
+    
+    return this.getRegisteredHandlers();
+  }
 
-    // In a real implementation, you would iterate through registered providers
-    // For now, we'll provide a way to manually register handlers
+  /**
+   * 自动从容器中发现处理器
+   */
+  private autoDiscoverHandlers(): void {
+    const providerItems = this.container.getItemsByType('provider');
+    
+    let discoveredCount = 0;
+    for (const item of providerItems) {
+      const handlerClass = item.provider;
+      
+      // 检查是否是CQRS处理器
+      if (this.isCqrsHandler(handlerClass)) {
+        this.registerHandler(handlerClass);
+        discoveredCount++;
+      }
+    }
+    
+    logger.info(`🔍 Auto-discovered ${discoveredCount} CQRS handlers from container`);
+  }
 
-    logger.info(
-      `CQRS Explorer: Discovered handlers - commands: ${commands.length}, queries: ${queries.length}, events: ${events.length}, sagas: ${sagas.length}`
+  /**
+   * 检查类是否是CQRS处理器
+   */
+  private isCqrsHandler(handlerClass: Function): boolean {
+    return (
+      Reflect.hasMetadata(COMMAND_HANDLER_METADATA, handlerClass) ||
+      Reflect.hasMetadata(QUERY_HANDLER_METADATA, handlerClass) ||
+      Reflect.hasMetadata(EVENT_HANDLER_METADATA, handlerClass) ||
+      Reflect.hasMetadata(SAGA_METADATA, handlerClass)
     );
-
-    return {
-      commands,
-      queries,
-      events,
-      sagas,
-    };
   }
 
   /**
@@ -109,6 +129,10 @@ export class ExplorerService<EventBase extends IEvent = IEvent> {
         sagas.push(handlerClass as SagaType<EventBase>);
       }
     }
+
+    logger.info(
+      `📊 CQRS Handlers registered - commands: ${commands.length}, queries: ${queries.length}, events: ${events.length}, sagas: ${sagas.length}`
+    );
 
     return {
       commands,

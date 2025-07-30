@@ -1,5 +1,8 @@
 import "reflect-metadata";
 
+// 自动初始化CQRS扩展
+import "./auto-discovery";
+
 // 导出所有公共 API
 export * from "./classes";
 export * from "./decorators";
