@@ -51,16 +51,16 @@ export class HestFactory {
     }
 
     // 注册模块自身
-    container.register(moduleClass, moduleClass);
+    container.register(moduleClass, moduleClass, 'module');
 
     // 注册提供者
     if (moduleMetadata.providers) {
       for (const provider of moduleMetadata.providers) {
         if (MetadataScanner.isInjectable(provider)) {
           // 注册类本身作为令牌
-          container.register(provider, provider);
+          container.register(provider, provider, 'provider');
           // 同时注册类名字符串作为令牌，以支持 @Inject('ClassName') 语法
-          container.register(provider.name, provider);
+          container.register(provider.name, provider, 'provider');
         } else {
           console.warn(
             `Provider ${provider.name} is not injectable, skipping registration`
@@ -73,7 +73,7 @@ export class HestFactory {
     if (moduleMetadata.controllers) {
       for (const controller of moduleMetadata.controllers) {
         if (MetadataScanner.isController(controller)) {
-          container.register(controller, controller);
+          container.register(controller, controller, 'controller');
         } else {
           throw new Error(`${controller.name} is not a valid controller`);
         }
