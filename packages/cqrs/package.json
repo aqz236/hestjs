@@ -1,6 +1,6 @@
 {
   "name": "@hestjs/cqrs",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "HestJS CQRS - Command Query Responsibility Segregation module for HestJS",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -28,7 +28,7 @@
   "author": "aqz236",
   "license": "MIT",
   "dependencies": {
-    "@hestjs/core": "^0.1.9",
+    "@hestjs/core": "^0.1.10",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
     "tsyringe": "^4.10.0"
