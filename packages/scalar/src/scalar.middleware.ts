@@ -1,6 +1,7 @@
 import { Scalar } from "@scalar/hono-api-reference";
 import { createMarkdownFromOpenApi } from "@scalar/openapi-to-markdown";
 import type { Context, Hono, MiddlewareHandler } from "hono";
+import type { ControllerConstructor } from "@hestjs/core";
 import type {
   ScalarConfig,
   ScalarMiddlewareConfig,
@@ -144,7 +145,7 @@ export function setupScalar(app: Hono, config: ScalarConfig): void {
  */
 export function setupScalarWithControllers(
   app: Hono,
-  controllers: any[],
+  controllers: ControllerConstructor[],
   generatorConfig: OpenAPIGeneratorConfig,
   scalarConfig: Omit<ScalarConfig, 'spec'> = {}
 ): void {
