@@ -1,4 +1,4 @@
-import { Controller, Get, NotFoundException, Param, Post } from "@hestjs/core";
+import { Controller, Get, Param, Post } from "@hestjs/core";
 
 import { Body } from "@hestjs/validation";
 import { AppService } from "./app.service";
@@ -22,7 +22,9 @@ export class AppController {
   getUser(@Param("id") id: string) {
     const user = this.appService.getUser(id);
     if (!user) {
-      throw new NotFoundException(`User with id ${id} not found`);
+      const error = new Error(`User with id ${id} not found`) as Error & { status: number };
+      error.status = 404;
+      throw error;
     }
     return user;
   }

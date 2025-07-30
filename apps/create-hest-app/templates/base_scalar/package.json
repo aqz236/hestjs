@@ -30,11 +30,11 @@
   "author": "aqz236",
   "license": "MIT",
   "dependencies": {
-    "@hestjs/core": "^0.1.10",
+    "@hestjs/core": "^0.2.0",
     "@hestjs/logger": "^0.1.5",
-    "@hestjs/scalar": "^0.1.5",
+    "@hestjs/scalar": "^0.1.6",
     "@hestjs/validation": "^0.1.5",
-    "hono": "^4.8.9",
+    "hono": "^4.8.10",
     "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
