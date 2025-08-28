@@ -1,15 +1,20 @@
 # @hestjs/core
 
+<div align="center">
+
 [![npm version](https://img.shields.io/npm/v/@hestjs/core.svg)](https://www.npmjs.com/package/@hestjs/core)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
 [![Hono](https://img.shields.io/badge/Hono-4.x-green.svg)](https://hono.dev/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+</div>
+
 HestJS 核心包 - 基于 Hono 构建的现代化 TypeScript 后端库，提供装饰器驱动的开发体验和依赖注入系统。
 
 ## 🎯 核心理念
 
-- **🔓 不过度封装**：直接暴露原生 Hono 实例，保留所有底层功能
+- **🔓 拒绝过度封装**：直接暴露原生 Hono 实例，保留所有底层功能
+- **✈️ 零配置**：你看不到类似 `hestjs.config.ts`这样的配置文件，无需任何配置
 - **🎯 装饰器驱动**：提供熟悉的 NestJS 风格开发体验
 - **💉 轻量依赖注入**：基于 TSyringe 的简洁 DI 容器
 - **⚡ 极致性能**：基于 Hono 和 Bun 的高性能运行时
@@ -379,16 +384,16 @@ async handler(@Context() c: HestContext) {
 
 ### ✅ 已实现功能
 
-- [x] **应用工厂** - `HestFactory.create()`
-- [x] **控制器系统** - `@Controller()` 装饰器
-- [x] **路由装饰器** - `@Get()`, `@Post()`, `@Put()`, `@Delete()`, `@Patch()`
-- [x] **参数装饰器** - `@Context()`, `@Body()`, `@Param()`, `@Query()`, `@Header()`
-- [x] **模块系统** - `@Module()` 装饰器
-- [x] **依赖注入** - 基于 TSyringe 的 DI 容器
-- [x] **异常处理** - 基础异常过滤器
-- [x] **拦截器** - 全局拦截器支持
-- [x] **类型安全** - 完整的 TypeScript 支持
-- [x] **Hono 集成** - 直接访问 Hono 实例
+- [X] **应用工厂** - `HestFactory.create()`
+- [X] **控制器系统** - `@Controller()` 装饰器
+- [X] **路由装饰器** - `@Get()`, `@Post()`, `@Put()`, `@Delete()`, `@Patch()`
+- [X] **参数装饰器** - `@Context()`, `@Body()`, `@Param()`, `@Query()`, `@Header()`
+- [X] **模块系统** - `@Module()` 装饰器
+- [X] **依赖注入** - 基于 TSyringe 的 DI 容器
+- [X] **异常处理** - 基础异常过滤器
+- [X] **拦截器** - 全局拦截器支持
+- [X] **类型安全** - 完整的 TypeScript 支持
+- [X] **Hono 集成** - 直接访问 Hono 实例
 
 ### 🚧 开发中功能
 
