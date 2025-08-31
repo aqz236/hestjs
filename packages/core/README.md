@@ -423,5 +423,5 @@ async handler(@Context() c: HestContext) {
 **更多信息**：
 
 - 📚 [完整文档](https://aqz236.github.io/hestjs-demo)
-- 🎮 [示例项目](https://github.com/aqz236/hest/tree/main/apps/hestjs-demo)
+- 🎮 [示例项目](https://github.com/aqz236/hestjs-demo)
 - 🐛 [问题反馈](https://github.com/aqz236/hest/issues)
