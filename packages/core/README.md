@@ -33,21 +33,45 @@ bun add @hestjs/core
 
 ### 1. 创建基础应用
 
+在此之前你应该在tsconfig中添加以下内容：
+
+```json
+{
+  "compilerOptions": {
+    ...
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "esModuleInterop": true
+  }
+}
+```
+
 ```typescript
-import { HestFactory } from "@hestjs/core";
-import { AppModule } from "./app.module";
+import { Controller, Get, HestFactory, Module } from "@hestjs/core";
+
+@Controller("/")
+export class WelcomeController {
+  @Get("/welcome")
+  async welcome() {
+    return "Welcome to HestJS!";
+  }
+}
+
+@Module({
+  controllers: [WelcomeController],
+  providers: [],
+  imports: [],
+  exports: [],
+})
+export class AppModule {}
 
 async function bootstrap() {
-  // 创建应用实例
   const app = await HestFactory.create(AppModule);
+  const hono = app.hono();
 
-  // 直接访问 Hono 实例
-  const honoApp = app.hono();
-
-  // 使用 Bun 启动服务器
   Bun.serve({
     port: 3000,
-    fetch: honoApp.fetch,
+    fetch: hono.fetch,
   });
 }
 
@@ -384,16 +408,16 @@ async handler(@Context() c: HestContext) {
 
 ### ✅ 已实现功能
 
-- [X] **应用工厂** - `HestFactory.create()`
-- [X] **控制器系统** - `@Controller()` 装饰器
-- [X] **路由装饰器** - `@Get()`, `@Post()`, `@Put()`, `@Delete()`, `@Patch()`
-- [X] **参数装饰器** - `@Context()`, `@Body()`, `@Param()`, `@Query()`, `@Header()`
-- [X] **模块系统** - `@Module()` 装饰器
-- [X] **依赖注入** - 基于 TSyringe 的 DI 容器
-- [X] **异常处理** - 基础异常过滤器
-- [X] **拦截器** - 全局拦截器支持
-- [X] **类型安全** - 完整的 TypeScript 支持
-- [X] **Hono 集成** - 直接访问 Hono 实例
+- [x] **应用工厂** - `HestFactory.create()`
+- [x] **控制器系统** - `@Controller()` 装饰器
+- [x] **路由装饰器** - `@Get()`, `@Post()`, `@Put()`, `@Delete()`, `@Patch()`
+- [x] **参数装饰器** - `@Context()`, `@Body()`, `@Param()`, `@Query()`, `@Header()`
+- [x] **模块系统** - `@Module()` 装饰器
+- [x] **依赖注入** - 基于 TSyringe 的 DI 容器
+- [x] **异常处理** - 基础异常过滤器
+- [x] **拦截器** - 全局拦截器支持
+- [x] **类型安全** - 完整的 TypeScript 支持
+- [x] **Hono 集成** - 直接访问 Hono 实例
 
 ### 🚧 开发中功能
 
