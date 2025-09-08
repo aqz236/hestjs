@@ -3,6 +3,7 @@ import { Container } from "../container/container";
 import { MetadataScanner } from "../metadata/metadata-scanner";
 import { RouterExplorer } from "../router/router-explorer";
 import { HestApplicationInstance } from "./hest-application";
+import { ApplicationHooks } from "./application-hooks";
 import { logger } from "@hestjs/logger";
 
 /**
@@ -34,6 +35,9 @@ export class HestFactory {
     if (moduleMetadata?.controllers) {
       routerExplorer.explore(moduleMetadata.controllers);
     }
+
+    // 执行所有注册的应用启动钩子
+    await ApplicationHooks.getInstance().executeHooks(container);
 
     return appInstance;
   }
