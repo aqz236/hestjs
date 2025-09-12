@@ -31,9 +31,10 @@ export class HestFactory {
     routerExplorer.setGlobalFilters(appInstance.getGlobalFilters());
     routerExplorer.setGlobalInterceptors(appInstance.getGlobalInterceptors());
 
-    const moduleMetadata = MetadataScanner.scanModule(moduleClass);
-    if (moduleMetadata?.controllers) {
-      routerExplorer.explore(moduleMetadata.controllers);
+    // 收集所有模块的控制器
+    const allControllers = HestFactory.collectAllControllers(moduleClass);
+    if (allControllers.length > 0) {
+      routerExplorer.explore(allControllers);
     }
 
     // 执行所有注册的应用启动钩子
@@ -92,5 +93,37 @@ export class HestFactory {
     }
 
     logger.info(`✅ Module ${moduleClass.name} initialized`);
+  }
+
+  /**
+   * 递归收集所有模块的控制器
+   */
+  private static collectAllControllers(moduleClass: any, visited = new Set<any>()): any[] {
+    // 防止循环依赖
+    if (visited.has(moduleClass)) {
+      return [];
+    }
+    visited.add(moduleClass);
+
+    const controllers: any[] = [];
+    const moduleMetadata = MetadataScanner.scanModule(moduleClass);
+    
+    if (!moduleMetadata) {
+      return controllers;
+    }
+
+    // 收集当前模块的控制器
+    if (moduleMetadata.controllers) {
+      controllers.push(...moduleMetadata.controllers);
+    }
+
+    // 递归收集导入模块的控制器
+    if (moduleMetadata.imports) {
+      for (const importedModule of moduleMetadata.imports) {
+        controllers.push(...HestFactory.collectAllControllers(importedModule, visited));
+      }
+    }
+
+    return controllers;
   }
 }
