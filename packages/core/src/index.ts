@@ -4,8 +4,6 @@ import "reflect-metadata";
 export * from "./application";
 export * from "./container";
 export * from "./decorators";
-export * from "./exceptions";
-export * from "./interceptors";
 export * from "./interfaces";
 export * from "./metadata";
 export * from "./middlewares";
