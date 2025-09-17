@@ -1,0 +1,57 @@
+{
+  "name": "@hest/logger",
+  "version": "0.1.0",
+  "description": "HestJS Logger - A powerful logging solution based on Pino",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "check-types": "tsc --noEmit",
+    "prepublishOnly": "npm run clean && npm run build",
+    "publish:npm": "npm publish --access public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aqz236/hest.git",
+    "directory": "packages/logger"
+  },
+  "homepage": "https://github.com/aqz236/hest#readme",
+  "bugs": {
+    "url": "https://github.com/aqz236/hest/issues"
+  },
+  "author": "aqz236",
+  "license": "MIT",
+  "dependencies": {
+    "pino": "^9.5.0",
+    "pino-pretty": "^13.0.0",
+    "pino-std-serializers": "^7.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "5.8.3"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "keywords": [
+    "hestjs",
+    "logger",
+    "pino",
+    "logging",
+    "structured-logging"
+  ]
+}
