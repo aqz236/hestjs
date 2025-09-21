@@ -19,22 +19,21 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/aqz236/hest.git",
-    "directory": "packages/logger"
+    "url": "https://github.com/aqz236/hest-logger.git"
   },
-  "homepage": "https://github.com/aqz236/hest#readme",
+  "homepage": "https://github.com/aqz236/hest-logger#readme",
   "bugs": {
-    "url": "https://github.com/aqz236/hest/issues"
+    "url": "https://github.com/aqz236/hest-logger/issues"
   },
   "author": "aqz236",
   "license": "MIT",
   "dependencies": {
-    "pino": "^9.5.0",
+    "pino": "^9.7.0",
     "pino-pretty": "^13.0.0",
     "pino-std-serializers": "^7.0.0"
   },
   "devDependencies": {
-    "@types/node": "^20.0.0",
+    "@types/node": "^24.1.0",
     "typescript": "5.8.3"
   },
   "peerDependencies": {
