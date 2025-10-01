@@ -1,10 +1,14 @@
-import pino from 'pino';
-import { HestLogger } from './logger';
-import { mergeConfig, getEnvironmentConfig, createConfigFromEnv } from './config';
-import { getDefaultSerializers } from './serializers';
-import { getDefaultFormatters } from './formatters';
-import { getEnvironmentTransport } from './transports';
-import type { Logger, LoggerConfig } from './types';
+import pino from "pino";
+import pretty from "pino-pretty";
+import {
+  createConfigFromEnv,
+  getEnvironmentConfig,
+  mergeConfig,
+} from "./config";
+import { getDefaultFormatters } from "./formatters";
+import { HestLogger } from "./logger";
+import { getDefaultSerializers } from "./serializers";
+import type { Logger, LoggerConfig } from "./types";
 
 /**
  * 创建 Logger 实例
@@ -17,17 +21,14 @@ export function createLogger(
   const envConfig = getEnvironmentConfig();
   const envVarConfig = createConfigFromEnv();
   const userConfig = config || {};
-  
+
   // 如果提供了名称，添加到配置中
   if (name) {
     userConfig.name = name;
   }
 
-  const finalConfig = mergeConfig(
-    envConfig,
-    envVarConfig,
-    userConfig
-  );
+  const finalConfig = mergeConfig(envConfig, envVarConfig, userConfig);
+
 
   // 设置默认序列化器和格式化器
   if (!finalConfig.serializers) {
@@ -38,22 +39,57 @@ export function createLogger(
     finalConfig.formatters = getDefaultFormatters();
   }
 
-  // 设置传输
-  if (!finalConfig.transport) {
-    const transport = getEnvironmentTransport();
-    if (transport) {
-      finalConfig.transport = transport;
-    }
+  // 根据环境创建 logger
+  const environment = process.env.NODE_ENV || "development";
+  let pinoLogger: any;
+
+  if (environment === "development" || environment === "dev") {
+    // 开发环境使用 pino-pretty 作为流
+    const stream = pretty({
+      levelFirst: false,
+      colorize: true,
+      ignore: "pid,hostname",
+      translateTime: "yy-mm-dd HH:MM:ss.l",
+      messageFormat: "{name}: {msg}",
+      customLevels: {
+        fatal: 60,
+        error: 50,
+        warn: 40,
+        info: 30,
+        debug: 20,
+        trace: 10,
+      },
+      customColors: {
+        60: "bgRed",
+        50: "red",
+        40: "yellow",
+        30: "green",
+        20: "blue",
+        10: "gray",
+      },
+    });
+
+    const pinoConfig = {
+      name: finalConfig.name || name || "HestJS",
+      level: finalConfig.level || "debug",
+    };
+    
+    
+    pinoLogger = pino(pinoConfig, stream);
+    
+
+  } else {
+    // 生产环境直接输出 JSON 到 stdout
+    pinoLogger = pino({
+      name: finalConfig.name || "HestJS",
+      level: finalConfig.level || "info",
+      serializers: finalConfig.serializers,
+      formatters: finalConfig.formatters,
+    });
   }
 
-  // 创建 Pino Logger
-  const pinoLogger = pino(finalConfig as pino.LoggerOptions);
-
-  // 如果有 name，创建一个 child logger 来包含 name
-  const loggerWithName = name ? pinoLogger.child({ name }) : pinoLogger;
-
   // 返回 HestLogger 实例
-  return new HestLogger(loggerWithName);
+  return new HestLogger(pinoLogger);
 }
 
 /**
