@@ -71,6 +71,8 @@ export function createLogger(
     const pinoConfig = {
       name: finalConfig.name || name || "HestJS",
       level: finalConfig.level || "debug",
+      serializers: finalConfig.serializers,
+      formatters: finalConfig.formatters,
     };
 
     pinoLogger = pino(pinoConfig, stream);
