@@ -1,4 +1,4 @@
-import { Injectable, logger } from "@hestjs/core";
+import { Injectable, Module, logger } from "@hestjs/core";
 import { container } from "tsyringe";
 import { CommandBus } from "./command-bus";
 import { CQRS_MODULE_OPTIONS } from "./constants";
@@ -16,6 +16,10 @@ import { ExplorerService } from "./services";
  * CQRS Module for HestJS
  * Provides Command Query Responsibility Segregation capabilities
  */
+@Module({
+  providers: [CommandBus, QueryBus, EventBus, ExplorerService],
+  exports: [CommandBus, QueryBus, EventBus, ExplorerService],
+})
 @Injectable()
 export class CqrsModule<EventBase extends IEvent = IEvent> {
   private static isInitialized = false;
