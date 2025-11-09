@@ -62,19 +62,19 @@ export function initializeCqrsAutoDiscovery() {
         // 检查命令处理器
         if (Reflect.hasMetadata(COMMAND_HANDLER_METADATA, handlerClass)) {
           handlers.commands.push(handlerClass);
-          logger.debug(`Found command handler: ${handlerClass.name}`);
+          // logger.debug(`Found command handler: ${handlerClass.name}`);
         }
         
         // 检查查询处理器
         if (Reflect.hasMetadata(QUERY_HANDLER_METADATA, handlerClass)) {
           handlers.queries.push(handlerClass);
-          logger.debug(`Found query handler: ${handlerClass.name}`);
+          // logger.debug(`Found query handler: ${handlerClass.name}`);
         }
         
         // 检查事件处理器
         if (Reflect.hasMetadata(EVENT_HANDLER_METADATA, handlerClass)) {
           handlers.events.push(handlerClass);
-          logger.debug(`Found event handler: ${handlerClass.name}`);
+          // logger.debug(`Found event handler: ${handlerClass.name}`);
         }
       }
       
@@ -113,7 +113,7 @@ function registerHandlersManually(
           (handlerInstance as any).execute(command)
         );
         
-        logger.info(`Manually registered command handler for "${commandName}"`);
+        // logger.info(`Manually registered command handler for "${commandName}"`);
       }
     } catch (error) {
       logger.error(`Failed to register command handler ${HandlerClass.name}:`, error);
@@ -134,7 +134,7 @@ function registerHandlersManually(
           (handlerInstance as any).execute(query)
         );
         
-        logger.info(`Manually registered query handler for "${queryName}"`);
+        // logger.info(`Manually registered query handler for "${queryName}"`);
       }
     } catch (error) {
       logger.warn(`Failed to register query handler ${HandlerClass.name}:`, error);
