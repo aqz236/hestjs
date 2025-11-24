@@ -29,9 +29,9 @@ export interface ScalarConfig {
 
   /**
    * UI 主题
-   * @default 'hest'
+   * @default 'elysia'
    */
-  theme?: 'hest' | 'default' | 'alternate' | 'moon' | 'purple' | 'solarized' | 'none';
+  theme?: 'elysia' | 'default' | 'alternate' | 'moon' | 'purple' | 'solarized' | 'none';
 
   /**
    * 自定义 CDN 地址

@@ -6,33 +6,7 @@ import type {
   ScalarMiddlewareConfig,
 } from "./scalar-config.interface";
 import { OpenAPIGenerator, type OpenAPIGeneratorConfig } from './openapi-generator';
-
-/**
- * HestJS 默认主题样式
- */
-const HEST_THEME_CSS = `
-  .scalar-app {
-    --scalar-color-1: #0066cc;
-    --scalar-color-2: #004499;
-    --scalar-color-3: #0052cc;
-    --scalar-color-accent: #ff6b35;
-    --scalar-background-1: #ffffff;
-    --scalar-background-2: #f8fafc;
-    --scalar-background-3: #e2e8f0;
-    --scalar-border-color: #e2e8f0;
-  }
-  
-  .dark .scalar-app {
-    --scalar-background-1: #0f172a;
-    --scalar-background-2: #1e293b;
-    --scalar-background-3: #334155;
-    --scalar-border-color: #475569;
-  }
-  
-  .scalar-app .scalar-api-reference__header {
-    background: linear-gradient(135deg, var(--scalar-color-1), var(--scalar-color-2));
-  }
-`;
+import { elysiajsTheme } from '@scalar/themes';
 
 /**
  * 创建 Scalar 中间件
@@ -44,7 +18,7 @@ export function createScalarMiddleware(
     spec,
     url,
     content,
-    theme = "hest",
+    theme = "hestjs",
     title = "API Documentation",
     cdn,
     proxyUrl,
@@ -53,11 +27,19 @@ export function createScalarMiddleware(
   } = config;
 
   // 构建 Scalar 配置
-  const scalarConfig: any = {
-    theme: theme === "hest" ? "none" : theme,
-    customCss:
-      theme === "hest" ? `${HEST_THEME_CSS}\n${customCss || ""}` : customCss,
-  };
+  const scalarConfig: any = {};
+
+  // 选择主题CSS
+  let themeCSS = '';
+  if (theme === 'elysia') {
+    themeCSS = elysiajsTheme;
+  }
+  
+  // 设置自定义CSS（主题CSS + 用户自定义CSS）
+  if (themeCSS || customCss) {
+    scalarConfig.customCss = `${themeCSS}
+${customCss || ''}`;
+  }
 
   // 设置规范来源
   if (url) {
