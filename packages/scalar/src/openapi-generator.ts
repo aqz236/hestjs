@@ -1,4 +1,5 @@
 import 'reflect-metadata';
+import type { ControllerConstructor } from '@hestjs/core';
 import type { OpenAPIV3 } from './decorators/openapi.decorators';
 
 /**
@@ -47,7 +48,7 @@ export class OpenAPIGenerator {
   /**
    * 从控制器类生成 OpenAPI 路径
    */
-  addController(controller: any, basePath: string = ''): void {
+  addController(controller: ControllerConstructor, basePath: string = ''): void {
     // console.log(`Processing controller: ${controller.name}, basePath: ${basePath}`);
     const controllerTags = Reflect.getMetadata('openapi:tags', controller) || [];
     // console.log(`Controller tags:`, controllerTags);
