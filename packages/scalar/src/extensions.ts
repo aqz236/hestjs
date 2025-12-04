@@ -17,18 +17,19 @@ declare module "@hestjs/core" {
     useScalar(config: ScalarConfig): void;
     
     /**
+     * 弃用，使用 useScalarAutoDiscover 方法
      * 从控制器自动生成 OpenAPI 并配置 Scalar(手动传入控制器)
      */
-    useScalarWithControllers(
-      controllers: ControllerConstructor[],
-      generatorConfig: OpenAPIGeneratorConfig,
-      scalarConfig?: Omit<ScalarConfig, 'spec'>
-    ): void;
+    // useScalarWithControllers(
+    //   controllers: ControllerConstructor[],
+    //   generatorConfig: OpenAPIGeneratorConfig,
+    //   scalarConfig?: Omit<ScalarConfig, 'spec'>
+    // ): void;
 
     /**
-     * 自动发现控制器并生成 OpenAPI 文档
+     * 从控制器自动生成 OpenAPI 并配置 Scalar
      */
-    useScalarAutoDiscover(
+    useSwagger(
       generatorConfig: OpenAPIGeneratorConfig,
       scalarConfig?: Omit<ScalarConfig, 'spec'>
     ): void;
@@ -51,26 +52,27 @@ export function extendWithScalar() {
     setupScalar(this.hono(), config);
   };
   
-  HestApplicationInstancePrototype.useScalarWithControllers = function (
-    controllers: ControllerConstructor[],
-    generatorConfig: OpenAPIGeneratorConfig,
-    scalarConfig: Omit<ScalarConfig, 'spec'> = {}
-  ) {
-    // 如果没有传入控制器，尝试从容器中获取
-    if (controllers.length === 0) {
-      const autoDiscoveredControllers = this.autoDiscoverControllers();
-      if (autoDiscoveredControllers.length > 0) {
-        controllers = autoDiscoveredControllers;
-      } else {
-        console.warn('No controllers found. Please pass controllers explicitly or ensure controllers are properly registered.');
-        return;
-      }
-    }
+  // 弃用，使用统一的自动发现方法
+  // HestApplicationInstancePrototype.useScalarWithControllers = function (
+  //   controllers: ControllerConstructor[],
+  //   generatorConfig: OpenAPIGeneratorConfig,
+  //   scalarConfig: Omit<ScalarConfig, 'spec'> = {}
+  // ) {
+  //   // 如果没有传入控制器，尝试从容器中获取
+  //   if (controllers.length === 0) {
+  //     const autoDiscoveredControllers = this.autoDiscoverControllers();
+  //     if (autoDiscoveredControllers.length > 0) {
+  //       controllers = autoDiscoveredControllers;
+  //     } else {
+  //       console.warn('No controllers found. Please pass controllers explicitly or ensure controllers are properly registered.');
+  //       return;
+  //     }
+  //   }
     
-    setupScalarWithControllers(this.hono(), controllers, generatorConfig, scalarConfig);
-  };
+  //   setupScalarWithControllers(this.hono(), controllers, generatorConfig, scalarConfig);
+  // };
 
-  HestApplicationInstancePrototype.useScalarAutoDiscover = function (
+  HestApplicationInstancePrototype.useSwagger = function (
     generatorConfig: OpenAPIGeneratorConfig,
     scalarConfig: Omit<ScalarConfig, 'spec'> = {}
   ) {
