@@ -165,12 +165,18 @@ export function setupScalarWithControllers(
   const openApiDoc = generator.generateDocument();
 
   // 调试：打印生成的文档
-  // console.log('Generated OpenAPI Document:', JSON.stringify(openApiDoc, null, 2));
 
   // 首先设置 OpenAPI JSON 端点
   const openApiPath = '/openapi.json';
+  
   app.get(openApiPath, (c) => {
-    return c.json(openApiDoc);
+    
+    // 尝试直接返回字符串
+    const jsonString = JSON.stringify(openApiDoc);
+    
+    return c.text(jsonString, 200, {
+      'Content-Type': 'application/json'
+    });
   });
 
   // 然后设置 Scalar，指向 OpenAPI JSON 端点

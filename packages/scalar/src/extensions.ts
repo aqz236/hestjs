@@ -49,7 +49,7 @@ export function extendWithScalar() {
     require("@hestjs/core").HestApplicationInstance.prototype;
 
   HestApplicationInstancePrototype.useScalar = function (config: ScalarConfig) {
-    setupScalar(this.hono(), config);
+    setupScalar(this.getHonoInstance(), config);
   };
   
   // 弃用，使用统一的自动发现方法
@@ -82,7 +82,7 @@ export function extendWithScalar() {
       return;
     }
     
-    setupScalarWithControllers(this.hono(), controllers, generatorConfig, scalarConfig);
+    setupScalarWithControllers(this.getHonoInstance(), controllers, generatorConfig, scalarConfig);
   };
 
   // 添加自动发现控制器的辅助方法
