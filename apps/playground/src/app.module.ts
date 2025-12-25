@@ -1,14 +1,12 @@
 import { Module } from '@hestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import {
-  CustomValidationController,
-  CustomValidationService,
-} from './custom-validation.controller';
-import { UserController, UserService } from './user.controller';
+import { UsersModule } from './modules/users/users.module';
+import { CustomValidationModule } from './modules/custom-validation/custom-validation.module';
 
 @Module({
-  controllers: [AppController, UserController, CustomValidationController],
-  providers: [AppService, UserService, CustomValidationService],
+  imports: [UsersModule, CustomValidationModule],
+  controllers: [AppController],
+  providers: [AppService],
 })
 export class AppModule {}

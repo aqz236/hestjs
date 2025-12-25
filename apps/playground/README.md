@@ -1,175 +1,156 @@
-# HestJS 🚀
+# HestJS Demo Application 🚀
 
-一个基于 **Hono + Bun + TSyringe** 的现代化 TypeScript 后端框架，提供类似 NestJS 的开发体验，但具有更轻量和更高性能的特点。
+一个基于 **HestJS** 框架的现代化 TypeScript 演示应用，展示了类似 NestJS 的开发体验，但具有更轻量和更高性能的特点。
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
 [![Bun](https://img.shields.io/badge/Bun-latest-orange.svg)](https://bun.sh/)
 [![Hono](https://img.shields.io/badge/Hono-4.x-green.svg)](https://hono.dev/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## ✨ 特性
+## 🏗️ 项目结构
 
-- 🎯 **装饰器驱动** - 使用装饰器定义控制器、服务、中间件
-- 💉 **依赖注入** - 基于 TSyringe 的完整 DI 容器，用户透明
-- 🏗️ **模块化架构** - 采用模块系统组织代码
-- ⚡ **高性能** - 基于 Hono 和 Bun 获得最佳性能
-- 🔒 **类型安全** - 完全的 TypeScript 支持
-- 🛡️ **验证系统** - 基于 TypeBox 的强大验证功能
-- 🔄 **拦截器** - 灵活的请求/响应拦截机制
-- 🚨 **异常处理** - 完善的异常过滤和处理系统
+```
+src/
+├── main.ts                    # 应用入口点
+├── app.module.ts              # 根模块
+├── app.controller.ts          # 应用控制器
+├── app.service.ts             # 应用服务
+├── config/                    # 配置文件
+│   └── app.config.ts          # 应用配置
+├── common/                    # 公共组件
+│   ├── filters/               # 全局过滤器
+│   │   └── http-exception.filter.ts
+│   └── interceptors/          # 全局拦截器
+│       └── response.interceptor.ts
+└── modules/                   # 功能模块
+    ├── users/                 # 用户模块
+    │   ├── dto/               # 数据传输对象
+    │   │   └── user.dto.ts
+    │   ├── entities/          # 实体定义
+    │   │   └── user.entity.ts
+    │   ├── users.controller.ts
+    │   ├── users.service.ts
+    │   └── users.module.ts
+    └── custom-validation/     # 自定义验证模块
+        ├── dto/
+        │   └── custom-validation.dto.ts
+        ├── custom-validation.controller.ts
+        ├── custom-validation.service.ts
+        └── custom-validation.module.ts
+```
 
 ## 🚀 快速开始
 
-### 安装
+### 安装依赖
 
 ```bash
-# 克隆项目
-git clone https://github.com/aqz236/hestjs-demo
-cd hestjs-demo
-
-# 安装依赖
 bun install
+```
 
-# 运行
+### 开发环境
+
+```bash
+# 开发模式（热重载）
 bun run dev
 
-# 构建包
+# 或者在 monorepo 根目录
+turbo run dev --filter=@hestjs/demo
+```
+
+### 构建和部署
+
+```bash
+# 构建
 bun run build
 
+# 生产环境运行
+bun run start:prod
+
+# 创建独立可执行文件
+bun run build:binary
+./dist/hest-demo
 ```
 
-### 创建你的第一个应用
+## 📡 API 文档
 
-```typescript
-// app.controller.ts
-import { Controller, Get, Post, Body } from '@hestjs/core';
-import { IsString, IsEmail, IsNumber } from '@hestjs/validation';
+### 基础端点
 
-export class CreateUserDto {
-  @IsString({ minLength: 2, maxLength: 50 })
-  name!: string;
+- `GET /api` - 应用信息
+- `GET /api/health` - 健康检查
 
-  @IsEmail()
-  email!: string;
+### 用户管理 (`/users`)
 
-  @IsNumber({ minimum: 0, maximum: 120 })
-  age!: number;
-}
+- `GET /users` - 获取所有用户
+- `GET /users/:id` - 获取特定用户
+- `POST /users` - 创建新用户
+- `POST /users/:id` - 更新用户信息
 
-@Controller('/api')
-export class AppController {
-  @Get('/users')
-  getUsers() {
-    return { users: [] };
-  }
+#### 请求示例：
 
-  @Post('/users')
-  createUser(@Body(CreateUserDto) createUserDto: CreateUserDto) {
-    // createUserDto 已经过验证和类型转换
-    return { success: true, data: createUserDto };
-  }
-}
+```bash
+# 创建用户
+curl -X POST http://localhost:3002/users \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "John Doe",
+    "email": "john@example.com",
+    "age": 30,
+    "password": "password123"
+  }'
 ```
 
-```typescript
-// app.module.ts
-import { Module } from '@hestjs/core';
-import { AppController } from './app.controller';
+### 自定义验证 (`/api/custom`)
 
-@Module({
-  controllers: [AppController],
-})
-export class AppModule {}
+- `GET /api/custom` - 验证功能说明
+- `POST /api/custom/validate` - 测试自定义验证
+- `POST /api/custom/search` - 测试搜索参数验证
+- `GET /api/custom/examples` - 获取验证示例
+
+#### 请求示例：
+
+```bash
+# 自定义验证
+curl -X POST http://localhost:3002/api/custom/validate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "john_doe123",
+    "role": "user",
+    "userId": "123e4567-e89b-12d3-a456-426614174000",
+    "phoneNumber": "13812345678",
+    "location": { "lat": 39.9042, "lng": 116.4074 },
+    "emails": ["john@example.com", "john.doe@company.com"]
+  }'
 ```
 
-```typescript
-// main.ts
-import { HestFactory } from '@hestjs/core';
-import { ValidationInterceptor } from '@hestjs/validation';
-import { AppModule } from './app.module';
+## 🛠️ 核心功能
 
-async function bootstrap() {
-  const app = await HestFactory.create(AppModule);
+### 1. 模块化架构
 
-  // 启用全局验证
-  app.useGlobalInterceptors(new ValidationInterceptor());
+- **清晰的模块分离**：每个功能模块都有自己的控制器、服务、DTO 和实体
+- **依赖注入**：使用 `@Injectable()` 和 `@Module()` 装饰器
+- **模块导入/导出**：支持模块间的依赖关系
 
-  await app.listen(3000);
-  console.log('🚀 Application is running on: http://localhost:3000');
-}
+### 2. 强类型验证
 
-bootstrap();
-```
+- **TypeBox 集成**：使用 TypeBox 进行运行时类型验证
+- **自定义验证器**：支持复杂的业务逻辑验证
+- **联合类型支持**：支持 TypeScript 的高级类型特性
 
-## 📁 项目结构
+### 3. 中间件和拦截器
 
-```
-packages/
-├── core/                     # 核心框架包
-│   ├── decorators/           # 装饰器定义
-│   ├── interfaces/           # 核心接口
-│   ├── application/          # 应用核心
-│   └── exceptions/           # 异常处理
-├── validation/               # 验证模块
-│   ├── decorators/           # 验证装饰器
-│   ├── pipes/                # 验证管道
-│   └── interceptors/         # 验证拦截器
-└── ...
-```
+- **全局异常过滤器**：统一的错误处理
+- **响应拦截器**：统一的响应格式
+- **CORS 支持**：跨域资源共享配置
+- **请求日志**：自动记录请求和响应
 
-## 🎯 核心概念
+### 4. 配置管理
 
-### 控制器 (Controllers)
+- **环境变量支持**：通过 `.env` 文件配置
+- **类型安全配置**：使用 TypeScript 确保配置的类型安全
 
-```typescript
-@Controller('/users')
-export class UserController {
-  @Get('/')
-  findAll() {
-    return { users: [] };
-  }
+## 🔧 验证功能展示
 
-  @Get('/:id')
-  findOne(@Param('id') id: string) {
-    return { user: { id } };
-  }
-
-  @Post('/')
-  create(@Body(CreateUserDto) createUserDto: CreateUserDto) {
-    return { success: true };
-  }
-}
-```
-
-### 服务和依赖注入 (Services & DI)
-
-```typescript
-@Injectable()
-export class UserService {
-  async findAll() {
-    return [];
-  }
-
-  async create(userData: any) {
-    // 创建用户逻辑
-    return userData;
-  }
-}
-
-@Controller('/users')
-export class UserController {
-  constructor(private readonly userService: UserService) {}
-
-  @Get('/')
-  async findAll() {
-    return await this.userService.findAll();
-  }
-}
-```
-
-### 验证系统 (Validation)
-
-#### 基础验证装饰器
+### 基础验证
 
 ```typescript
 export class CreateUserDto {
@@ -179,209 +160,147 @@ export class CreateUserDto {
   @IsEmail()
   email!: string;
 
-  @IsNumber({ minimum: 18, maximum: 100 })
+  @IsNumber()
+  @Min(0)
+  @Max(120)
   age!: number;
-
-  @IsOptional()
-  @IsString()
-  bio?: string;
 }
 ```
 
-#### 自定义验证 (TypeBox API)
+### 高级验证
 
 ```typescript
-import { Type } from '@sinclair/typebox';
-import { Custom, CommonValidators, SchemaFactory } from '@hestjs/validation';
-
-export class AdvancedDto {
-  // 使用 TypeBox API 自定义验证
+export class CustomValidationDto {
+  // 正则表达式验证
   @Custom(
-    Type.String({
-      minLength: 3,
-      maxLength: 20,
-      pattern: '^[a-zA-Z0-9_]+$',
-    }),
+    Type.String({ minLength: 3, maxLength: 20, pattern: '^[a-zA-Z0-9_]+$' }),
+    { message: '用户名必须是3-20位字母、数字或下划线' },
   )
   username!: string;
 
-  // 使用联合类型
+  // 联合类型验证
   @Custom(
     Type.Union([
       Type.Literal('admin'),
       Type.Literal('user'),
       Type.Literal('guest'),
     ]),
+    { message: '角色必须是 admin、user 或 guest' },
   )
   role!: 'admin' | 'user' | 'guest';
 
-  // 使用常用验证器
+  // UUID 验证
   @CommonValidators.UUID()
   userId!: string;
 
-  // 使用便捷构建器
-  @Custom(SchemaFactory.chinesePhoneNumber())
-  phoneNumber!: string;
+  // 中国手机号验证
+  @Custom(SchemaFactory.chinesePhoneNumber(), { optional: true })
+  phoneNumber?: string;
 
-  // 复杂对象验证
+  // 嵌套对象验证
   @Custom(
     Type.Object({
       lat: Type.Number({ minimum: -90, maximum: 90 }),
       lng: Type.Number({ minimum: -180, maximum: 180 }),
     }),
+    { optional: true },
   )
-  location!: { lat: number; lng: number };
+  location?: { lat: number; lng: number };
 }
 ```
 
-### 拦截器 (Interceptors)
+## 🎯 架构特点
 
-```typescript
-import { Interceptor, ExecutionContext, CallHandler } from '@hestjs/core';
+### 1. NestJS 风格的目录结构
 
-export class LoggingInterceptor implements Interceptor {
-  intercept(context: ExecutionContext, next: CallHandler) {
-    console.log('Before...');
+- 模块化组织：每个功能模块独立管理
+- 清晰的职责分离：控制器、服务、DTO、实体分离
+- 可扩展性：易于添加新功能模块
 
-    const now = Date.now();
-    return next.handle().then(() => {
-      console.log(`After... ${Date.now() - now}ms`);
-    });
-  }
-}
+### 2. 现代 TypeScript 开发
 
-// 使用拦截器
-app.useGlobalInterceptors(new LoggingInterceptor());
+- 严格的类型检查
+- 装饰器模式
+- 依赖注入
+- 接口优先设计
+
+### 3. 高性能运行时
+
+- Bun 运行时支持
+- Hono 高性能 Web 框架
+- 端口复用优化
+- 生产环境优化
+
+## 📦 部署
+
+### Docker 部署
+
+```dockerfile
+FROM oven/bun:1 as base
+WORKDIR /app
+
+# 复制依赖文件
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
+
+# 复制源代码
+COPY . .
+
+# 构建应用
+RUN bun run build
+
+# 运行应用
+CMD ["bun", "run", "start:prod"]
+EXPOSE 3002
 ```
 
-### 异常处理 (Exception Handling)
-
-```typescript
-import {
-  HttpException,
-  NotFoundException,
-  BadRequestException,
-} from '@hestjs/core';
-
-@Controller('/users')
-export class UserController {
-  @Get('/:id')
-  findOne(@Param('id') id: string) {
-    const user = this.findUserById(id);
-    if (!user) {
-      throw new NotFoundException(`User with id ${id} not found`);
-    }
-    return user;
-  }
-
-  @Post('/')
-  create(@Body() userData: any) {
-    if (!userData.email) {
-      throw new BadRequestException('Email is required');
-    }
-    return this.createUser(userData);
-  }
-}
-```
-
-## 🔧 开发状态
-
-### ✅ 已完成功能
-
-- **Phase 1: 核心基础设施** ✅
-  - 装饰器系统 (`@Controller`, `@Injectable`, `@Module`, 路由装饰器)
-  - 依赖注入容器 (基于 TSyringe)
-  - 应用工厂 (`HestFactory.create()`)
-  - 路由系统和参数注入
-
-- **Phase 2: 中间件和异常处理** ✅
-  - 异常处理系统 (HttpException, 异常过滤器)
-  - 拦截器系统 (Interceptor, ExecutionContext)
-  - 全局拦截器和异常过滤器支持
-
-- **Phase 3: 验证系统** ✅
-  - 基于 TypeBox 的验证装饰器
-  - @Custom() 装饰器支持完整 TypeBox API
-  - ValidationInterceptor 自动验证
-  - SchemaFactory 和 CommonValidators
-  - 详细验证错误处理
-
-### 🚧 开发中
-
-- **Phase 4: 配置和日志系统**
-- **Phase 5: 高级拦截器和管道**
-- **Phase 6: CLI 工具**
-
-## 📊 性能
-
-基于 Bun 运行时和 Hono 框架，HestJS 提供了卓越的性能：
-
-- 🚀 **快速启动** - 得益于 Bun 的快速启动时间
-- ⚡ **高吞吐量** - Hono 的高效路由和中间件系统
-- 💾 **低内存占用** - 轻量级架构设计
-- 🔧 **编译时优化** - TypeScript 装饰器元数据预处理
-
-## 🛠️ 开发
-
-### 构建项目
+### 二进制部署
 
 ```bash
-# 安装依赖
-bun install
+# 构建独立可执行文件
+bun run build:binary
 
-# 构建所有包
-bun run build
+# 部署单个文件
+./dist/hest-demo
+```
 
+## 🧪 测试
+
+```bash
 # 运行测试
-bun run test
+bun test
 
-# 运行示例应用
-cd apps/hest-demo
-bun run dev
+# 覆盖率测试
+bun test --coverage
 ```
 
-### 测试验证功能
+## 📝 开发指南
+
+### 添加新模块
+
+1. 在 `src/modules/` 下创建新目录
+2. 创建 `*.module.ts`、`*.controller.ts`、`*.service.ts`
+3. 在 `app.module.ts` 中导入新模块
+
+### 添加验证规则
+
+1. 在模块的 `dto/` 目录下创建 DTO 类
+2. 使用 `@Custom()` 装饰器定义验证规则
+3. 在控制器中使用 `@Body()` 装饰器应用验证
+
+### 环境配置
 
 ```bash
-# 运行 Phase 3 验证测试
-bun test-phase3.ts
+# .env 文件
+PORT=3002
+NODE_ENV=development
+CORS_ORIGIN=*
 ```
-
-## 📖 API 参考
-
-### 装饰器
-
-- `@Controller(path?)` - 定义控制器
-- `@Injectable()` - 标记可注入服务
-- `@Module(options)` - 定义模块
-- `@Get(path?)`, `@Post(path?)`, `@Put(path?)`, `@Delete(path?)` - HTTP 路由
-- `@Body(dtoClass?)`, `@Param(key?)`, `@Query(key?)` - 参数注入
-- `@IsString()`, `@IsEmail()`, `@IsNumber()` - 基础验证
-- `@Custom(schema, options?)` - 自定义 TypeBox 验证
-
-### 核心类
-
-- `HestFactory` - 应用工厂
-- `HttpException` - HTTP 异常基类
-- `ValidationInterceptor` - 验证拦截器
-- `Interceptor` - 拦截器接口
-- `ExecutionContext` - 执行上下文
 
 ## 🤝 贡献
 
-欢迎贡献代码！请查看 [贡献指南](CONTRIBUTING.md) 了解详情。
+欢迎提交 Issue 和 Pull Request！
 
 ## 📄 许可证
 
-[MIT](LICENSE)
-
-## 🔗 相关链接
-
-- [Hono](https://hono.dev/) - 快速、轻量级的 Web 框架
-- [Bun](https://bun.sh/) - 快速的 JavaScript 运行时
-- [TSyringe](https://github.com/microsoft/tsyringe) - 依赖注入容器
-- [TypeBox](https://github.com/sinclairzx81/typebox) - JSON Schema 类型构建器
-
----
-
-⭐ 如果这个项目对你有帮助，请给个 Star！
+MIT License
