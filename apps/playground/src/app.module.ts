@@ -1,11 +1,11 @@
 import { Module } from '@hestjs/core';
+import { CqrsModule } from '@hestjs/cqrs';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UsersModule } from './modules/users/users.module';
-import { CustomValidationModule } from './modules/custom-validation/custom-validation.module';
+import { UserModule } from './users';
 
 @Module({
-  imports: [UsersModule, CustomValidationModule],
+  imports: [CqrsModule, UserModule],
   controllers: [AppController],
   providers: [AppService],
 })

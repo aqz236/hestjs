@@ -1,5 +1,5 @@
 {
-  "name": "@hestjs/demo",
+  "name": "@hestjs/cqrs-demo",
   "version": "0.1.1",
   "description": "HestJS Demo Application - A demonstration of HestJS framework capabilities",
   "main": "dist/index.js",
@@ -21,17 +21,18 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/aqz236/hestjs-demo.git"
+    "url": "https://github.com/aqz236/hestjs-cqrs-demo.git"
   },
-  "homepage": "https://github.com/aqz236/hestjs-demo#readme",
+  "homepage": "https://github.com/aqz236/hestjs-cqrs-demo#readme",
   "bugs": {
-    "url": "https://github.com/aqz236/hestjs-demo/issues"
+    "url": "https://github.com/aqz236/hestjs-cqrs-demo/issues"
   },
   "author": "aqz236",
   "license": "MIT",
   "dependencies": {
     "@hestjs/core": "^0.1.2",
     "@hestjs/validation": "^0.1.5",
+    "@hestjs/cqrs": "^0.1.0",
     "hono": "^4.8.9",
     "reflect-metadata": "^0.2.2"
   },

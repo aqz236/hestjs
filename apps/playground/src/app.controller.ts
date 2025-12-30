@@ -1,38 +1,29 @@
-import { Controller, Get, NotFoundException, Param, Post } from '@hestjs/core';
-import { Body } from '@hestjs/validation';
+import { Controller, Get } from '@hestjs/core';
+import type { Context } from 'hono';
 import { AppService } from './app.service';
-import { CreateUserDto } from './modules/users/dto/user.dto';
 
-@Controller('/api')
+@Controller('/')
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get('/')
-  getHello() {
-    return { message: this.appService.getHello() };
-  }
-
-  @Get('/users')
-  getUsers() {
-    return this.appService.getUsers();
-  }
-
-  @Get('/users/:id')
-  getUser(@Param('id') id: string) {
-    const user = this.appService.getUser(id);
-    if (!user) {
-      throw new NotFoundException(`User with id ${id} not found`);
-    }
-    return user;
-  }
-
-  @Post('/users')
-  createUser(@Body(CreateUserDto) createUserDto: CreateUserDto) {
-    return this.appService.createUser(createUserDto);
+  getHello(c: Context) {
+    return c.json({
+      message: this.appService.getHello(),
+      description: 'HestJS CQRS Demo - A demonstration of CQRS pattern using HestJS framework',
+      endpoints: {
+        users: {
+          getAll: 'GET /users',
+          getById: 'GET /users/:id',
+          create: 'POST /users',
+          update: 'PUT /users/:id',
+        },
+      },
+    });
   }
 
   @Get('/error')
   throwError() {
-    throw new Error('This is a test error');
+    throw new Error('This is a test error for exception handling');
   }
 }
