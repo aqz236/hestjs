@@ -5,7 +5,7 @@ import { AppService } from './app.service';
 import { UserModule } from './users';
 
 @Module({
-  imports: [CqrsModule, UserModule],
+  imports: [CqrsModule.forRoot(), UserModule],
   controllers: [AppController],
   providers: [AppService],
 })
