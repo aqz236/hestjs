@@ -24,26 +24,26 @@
 
 ```bash
 # 克隆项目
-git clone https://github.com/aqz236/hest.git
-cd HestJS
+git clone https://github.com/aqz236/hestjs-demo
+cd hestjs-demo
 
 # 安装依赖
 bun install
 
+# 运行
+bun run dev
+
 # 构建包
 bun run build
 
-# 运行示例应用
-cd apps/hest-demo
-bun run dev
 ```
 
 ### 创建你的第一个应用
 
 ```typescript
 // app.controller.ts
-import { Controller, Get, Post, Body } from "@hestjs/core";
-import { IsString, IsEmail, IsNumber } from "@hestjs/validation";
+import { Controller, Get, Post, Body } from '@hestjs/core';
+import { IsString, IsEmail, IsNumber } from '@hestjs/validation';
 
 export class CreateUserDto {
   @IsString({ minLength: 2, maxLength: 50 })
@@ -56,14 +56,14 @@ export class CreateUserDto {
   age!: number;
 }
 
-@Controller("/api")
+@Controller('/api')
 export class AppController {
-  @Get("/users")
+  @Get('/users')
   getUsers() {
     return { users: [] };
   }
 
-  @Post("/users")
+  @Post('/users')
   createUser(@Body(CreateUserDto) createUserDto: CreateUserDto) {
     // createUserDto 已经过验证和类型转换
     return { success: true, data: createUserDto };
@@ -73,8 +73,8 @@ export class AppController {
 
 ```typescript
 // app.module.ts
-import { Module } from "@hestjs/core";
-import { AppController } from "./app.controller";
+import { Module } from '@hestjs/core';
+import { AppController } from './app.controller';
 
 @Module({
   controllers: [AppController],
@@ -84,9 +84,9 @@ export class AppModule {}
 
 ```typescript
 // main.ts
-import { HestFactory } from "@hestjs/core";
-import { ValidationInterceptor } from "@hestjs/validation";
-import { AppModule } from "./app.module";
+import { HestFactory } from '@hestjs/core';
+import { ValidationInterceptor } from '@hestjs/validation';
+import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await HestFactory.create(AppModule);
@@ -95,7 +95,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ValidationInterceptor());
 
   await app.listen(3000);
-  console.log("🚀 Application is running on: http://localhost:3000");
+  console.log('🚀 Application is running on: http://localhost:3000');
 }
 
 bootstrap();
@@ -122,19 +122,19 @@ packages/
 ### 控制器 (Controllers)
 
 ```typescript
-@Controller("/users")
+@Controller('/users')
 export class UserController {
-  @Get("/")
+  @Get('/')
   findAll() {
     return { users: [] };
   }
 
-  @Get("/:id")
-  findOne(@Param("id") id: string) {
+  @Get('/:id')
+  findOne(@Param('id') id: string) {
     return { user: { id } };
   }
 
-  @Post("/")
+  @Post('/')
   create(@Body(CreateUserDto) createUserDto: CreateUserDto) {
     return { success: true };
   }
@@ -156,11 +156,11 @@ export class UserService {
   }
 }
 
-@Controller("/users")
+@Controller('/users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Get("/")
+  @Get('/')
   async findAll() {
     return await this.userService.findAll();
   }
@@ -191,8 +191,8 @@ export class CreateUserDto {
 #### 自定义验证 (TypeBox API)
 
 ```typescript
-import { Type } from "@sinclair/typebox";
-import { Custom, CommonValidators, SchemaFactory } from "@hestjs/validation";
+import { Type } from '@sinclair/typebox';
+import { Custom, CommonValidators, SchemaFactory } from '@hestjs/validation';
 
 export class AdvancedDto {
   // 使用 TypeBox API 自定义验证
@@ -200,20 +200,20 @@ export class AdvancedDto {
     Type.String({
       minLength: 3,
       maxLength: 20,
-      pattern: "^[a-zA-Z0-9_]+$",
-    })
+      pattern: '^[a-zA-Z0-9_]+$',
+    }),
   )
   username!: string;
 
   // 使用联合类型
   @Custom(
     Type.Union([
-      Type.Literal("admin"),
-      Type.Literal("user"),
-      Type.Literal("guest"),
-    ])
+      Type.Literal('admin'),
+      Type.Literal('user'),
+      Type.Literal('guest'),
+    ]),
   )
-  role!: "admin" | "user" | "guest";
+  role!: 'admin' | 'user' | 'guest';
 
   // 使用常用验证器
   @CommonValidators.UUID()
@@ -228,7 +228,7 @@ export class AdvancedDto {
     Type.Object({
       lat: Type.Number({ minimum: -90, maximum: 90 }),
       lng: Type.Number({ minimum: -180, maximum: 180 }),
-    })
+    }),
   )
   location!: { lat: number; lng: number };
 }
@@ -237,11 +237,11 @@ export class AdvancedDto {
 ### 拦截器 (Interceptors)
 
 ```typescript
-import { Interceptor, ExecutionContext, CallHandler } from "@hestjs/core";
+import { Interceptor, ExecutionContext, CallHandler } from '@hestjs/core';
 
 export class LoggingInterceptor implements Interceptor {
   intercept(context: ExecutionContext, next: CallHandler) {
-    console.log("Before...");
+    console.log('Before...');
 
     const now = Date.now();
     return next.handle().then(() => {
@@ -261,12 +261,12 @@ import {
   HttpException,
   NotFoundException,
   BadRequestException,
-} from "@hestjs/core";
+} from '@hestjs/core';
 
-@Controller("/users")
+@Controller('/users')
 export class UserController {
-  @Get("/:id")
-  findOne(@Param("id") id: string) {
+  @Get('/:id')
+  findOne(@Param('id') id: string) {
     const user = this.findUserById(id);
     if (!user) {
       throw new NotFoundException(`User with id ${id} not found`);
@@ -274,10 +274,10 @@ export class UserController {
     return user;
   }
 
-  @Post("/")
+  @Post('/')
   create(@Body() userData: any) {
     if (!userData.email) {
-      throw new BadRequestException("Email is required");
+      throw new BadRequestException('Email is required');
     }
     return this.createUser(userData);
   }
