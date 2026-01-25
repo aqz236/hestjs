@@ -30,15 +30,15 @@
   "author": "aqz236",
   "license": "MIT",
   "dependencies": {
-    "@hestjs/core": "^0.1.0",
-    "@hestjs/eslint-config": "^0.1.1",
-    "@hestjs/typescript-config": "^0.1.0",
-    "@hestjs/validation": "^0.1.4",
+    "@hestjs/core": "^0.1.2",
+    "@hestjs/validation": "^0.1.5",
     "hono": "^4.8.9",
     "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
-    "@types/bun": "latest",
+    "@hestjs/eslint-config": "^0.1.1",
+    "@hestjs/typescript-config": "^0.1.0",
+    "@types/bun": "^1.2.19",
     "jiti": "^2.5.1",
     "typescript": "5.8.3"
   },
