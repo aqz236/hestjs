@@ -1,7 +1,7 @@
 import { Controller, Get, NotFoundException, Param, Post } from '@hestjs/core';
 import { Body } from '@hestjs/validation';
 import { AppService } from './app.service';
-import { CreateUserDto } from './dto/user.dto';
+import { CreateUserDto } from './modules/users/dto/user.dto';
 
 @Controller('/api')
 export class AppController {
