@@ -28,7 +28,7 @@ async function bootstrap() {
       reusePort: true, // 启用端口复用
     });
   } catch (error) {
-    logger.error('❌ Failed to start application:', String(error));
+    logger.error('❌ Failed to start application:', error);
     process.exit(1);
   }
 }
