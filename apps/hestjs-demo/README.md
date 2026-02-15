@@ -46,12 +46,6 @@ bun install
 bun run dev
 ```
 
-### 访问应用
-
-- **API 服务**: http://localhost:3002
-- **API 文档**: http://localhost:3002/docs
-- **健康检查**: http://localhost:3002/health
-
 ## 📚 文档
 
 完整的框架文档请访问：**https://aqz236.github.io/hestjs-demo**
@@ -59,10 +53,12 @@ bun run dev
 ## 🎯 API 端点
 
 ### 基础端点
+
 - `GET /health` - 健康检查
 - `GET /` - 欢迎消息
 
 ### 用户管理
+
 - `GET /api/users` - 获取用户列表
 - `POST /api/users` - 创建新用户
 - `GET /api/users/:id` - 获取用户详情
@@ -70,6 +66,7 @@ bun run dev
 - `DELETE /api/users/:id` - 删除用户
 
 ### 数据验证示例
+
 - `POST /api/custom-validation/validate-user` - 用户数据验证示例
 
 ## 🔧 项目结构
