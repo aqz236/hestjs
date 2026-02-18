@@ -1,22 +1,41 @@
-# HestJS Demo 🚀
+# HestJS 🚀
 
-一个基于 **Hono + Bun + TSyringe** 的现代化 TypeScript 后端框架演示应用，提供类似 NestJS 的开发体验，但具有更轻量和更高性能的特点。
+一个基于 **Hono + Bun + TSyringe** 的现代化 TypeScript 后端库，提供类似 NestJS 的开发体验，但具有更轻量、更高性能、不捆绑用户的特点。
+
+**核心理念**：把选择权交给开发者，拒绝过度封装底层框架。HestJS 直接返回原生 Hono app 实例，让你能够使用 Hono 的所有原生功能，同时提供优雅的 OOP 范式（NestJS风格）和可选的增强功能。
 
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue.svg)](https://www.typescriptlang.org/)
 [![Bun](https://img.shields.io/badge/Bun-latest-orange.svg)](https://bun.sh/)
 [![Hono](https://img.shields.io/badge/Hono-4.x-green.svg)](https://hono.dev/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+## 🎯 核心亮点
+
+### ⚡ 极速构建 - 仅需 54ms，产物仅 0.52MB
+
+![HestJS 极速构建](assets/20250729_155156_image.png)
+
+**突破性的构建速度**：得益于 Bun 的强大性能，HestJS 实现了业界领先的 54ms 构建速度，让开发体验更加流畅，你设置可以边开发边构建！
+
+### 🎨 精美的 API 文档界面
+
+![精美的 Swagger 文档](assets/20250729_155429_image.png)
+
+**专业级文档体验**：集成现代化的 Scalar 文档系统，提供精美、直观的 Swagger 文档界面，让 API 探索变得优雅高效。
+
+---
+
 ## ✨ 核心特性
 
-- 🎯 **装饰器驱动** - 类似 NestJS 的开发体验
-- ⚡ **高性能** - 基于 Hono 和 Bun
-- 💉 **依赖注入** - 基于 TSyringe 的完整 DI 容器
-- 🏗️ **模块化架构** - 清晰的代码组织
-- 🛡️ **数据验证** - 基于 TypeBox 的验证系统
-- 📚 **API 文档** - 自动生成 OpenAPI 文档
-- 🔄 **CQRS 支持** - 命令查询职责分离
-- 📝 **日志系统** - 基于 Pino 的高性能日志
+- 🎯 **优雅的 OOP 范式** - 装饰器驱动的面向对象开发体验
+- 🔓 **原生底层访问** - 直接返回 Hono app 实例，无二次封装，保留所有原生功能
+- ⚡ **极致性能** - 基于 Hono 和 Bun 的高性能运行时
+- 💉 **轻量依赖注入** - 基于 TSyringe，简洁而强大
+- 🏗️ **灵活模块化** - 按需组合，不强制架构约束
+- 🛡️ **可选数据验证** - 需要时才引入 TypeBox 验证系统
+- 📚 **可选 API 文档** - 按需集成 OpenAPI 文档生成
+- 🔄 **可选 CQRS 支持** - 复杂业务场景时的命令查询分离
+- 📝 **可选日志系统** - 按需集成 Pino 高性能日志
 
 ## 🚀 快速开始
 
@@ -42,9 +61,14 @@ npx create-hest-app@latest my-app
 # 安装依赖
 bun install
 
-# 启动开发服务器
+# 启动开发服务器（极速启动，构建仅需 54ms）
 bun run dev
 ```
+
+应用启动后，你可以：
+
+- 🌐 访问 `http://localhost:3002` 查看应用
+- 📖 访问 `http://localhost:3002/docs` 体验精美的 API 文档界面
 
 ## 📚 文档
 
@@ -97,11 +121,46 @@ src/
 
 ## 📖 代码示例
 
+### 直接访问 Hono App 实例
+
+HestJS 不会封装底层框架，你可以直接访问原生 Hono app 来使用所有 Hono 功能：
+
+```typescript
+import { HestFactory } from '@hestjs/core';
+import { cors } from 'hono/cors';
+import { AppModule } from './app.module';
+
+async function bootstrap() {
+  const app = await HestFactory.create(AppModule);
+  
+  // 直接访问原生 Hono app 实例
+  const honoApp = app.hono();
+  
+  // 使用 Hono 原生中间件
+  honoApp.use(cors());
+  
+  // 添加 Hono 路由和中间件
+  honoApp.use('/api/*', async (c, next) => {
+    console.log(`${c.req.method} ${c.req.url}`);
+    await next();
+  });
+
+  // 使用 Bun 的原生 serve
+  Bun.serve({
+    port: 3002,
+    fetch: honoApp.fetch,
+    reusePort: true,
+  });
+}
+```
+
 ### 创建控制器
 
 ```typescript
-import { Controller, Get, Post, Body, Param } from '@hestjs/core';
-import { IsString, IsEmail, IsNumber } from '@hestjs/validation';
+import { Controller, Get, Post, Context } from '@hestjs/core';
+import { Body } from '@hestjs/validation';
+import { IsString, IsEmail, IsNumber, Min, Max } from '@hestjs/validation';
+import type { HestContext } from '@hestjs/core';
 
 export class CreateUserDto {
   @IsString({ minLength: 2, maxLength: 50 })
@@ -110,22 +169,34 @@ export class CreateUserDto {
   @IsEmail()
   email!: string;
 
-  @IsNumber({ minimum: 0, maximum: 120 })
+  @IsNumber()
+  @Min(0)
+  @Max(120)
   age!: number;
 }
 
-@Controller('/api/users')
+@Controller('/users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Get()
-  async findAll() {
-    return await this.usersService.findAll();
+  @Get('/')
+  async getAllUsers() {
+    return {
+      success: true,
+      data: this.usersService.findAll(),
+      message: 'Users retrieved successfully',
+    };
   }
 
-  @Post()
+  @Get('/:id')
+  async getUser(@Context() c: HestContext) {
+    const id = parseInt(c.req.param('id'));
+    return this.usersService.findOne(id);
+  }
+
+  @Post('/')
   async create(@Body(CreateUserDto) createUserDto: CreateUserDto) {
-    return await this.usersService.create(createUserDto);
+    return this.usersService.create(createUserDto);
   }
 }
 ```
