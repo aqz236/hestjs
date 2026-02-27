@@ -1,9 +1,0 @@
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.String = String;
-const index_1 = require("../symbols/index");
-/** `[Json]` Creates a String type */
-function String(options = {}) {
-    return { ...options, [index_1.Kind]: 'String', type: 'string' };
-}
