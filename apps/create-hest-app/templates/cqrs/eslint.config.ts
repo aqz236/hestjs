@@ -17,8 +17,6 @@ export default [
       '*.d.ts',
       '.bun/**',
       'bun.lockb',
-      // shadcn 目录
-      'src/components/ui/**',
       // scripts 目录
       'scripts/**',
     ],

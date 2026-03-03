@@ -30,9 +30,10 @@
   "author": "aqz236",
   "license": "MIT",
   "dependencies": {
-    "@hestjs/core": "^0.1.8",
+    "@hestjs/core": "workspace:*",
     "@hestjs/validation": "^0.1.5",
-    "@hestjs/cqrs": "^0.1.2",
+    "@hestjs/cqrs": "workspace:*",
+    "@hestjs/scalar": "workspace:*",
     "hono": "^4.8.9",
     "reflect-metadata": "^0.2.2"
   },
