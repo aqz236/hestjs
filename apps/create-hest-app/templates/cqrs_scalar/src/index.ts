@@ -2,11 +2,9 @@ import { HestFactory, logger } from '@hestjs/core';
 import '@hestjs/scalar'; // 导入scalar扩展
 import { ValidationInterceptor } from '@hestjs/validation';
 import { cors } from 'hono/cors';
-import { AppController } from './app.controller';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
-import { UserController } from './users';
 
 async function bootstrap() {
   try {
@@ -23,16 +21,14 @@ async function bootstrap() {
     // 全局异常过滤器
     app.useGlobalFilters(new HttpExceptionFilter());
 
-    // 设置OpenAPI规范端点 - 现在支持自动发现
-    // 方式1：手动传入控制器（原有方式）
-    app.useScalarWithControllers(
-      [AppController, UserController], // 传入需要生成文档的控制器
+    // 设置OpenAPI规范端点 - 使用自动发现
+    app.useScalarAutoDiscover(
       {
         info: {
           title: 'HestJS CQRS Demo API',
           version: '1.0.0',
           description:
-            'A demonstration of HestJS CQRS framework capabilities with Scalar API documentation',
+            'A demonstration of HestJS CQRS framework capabilities with Scalar API documentation (Auto-discovered controllers)',
         },
         servers: [
           {
@@ -48,6 +44,31 @@ async function bootstrap() {
         markdownPath: '/api-docs.md',
       },
     );
+
+    // 可选：仍然支持手动指定控制器的方式
+    // app.useScalarWithControllers(
+    //   [AppController, UserController], // 传入需要生成文档的控制器
+    //   {
+    //     info: {
+    //       title: 'HestJS CQRS Demo API',
+    //       version: '1.0.0',
+    //       description:
+    //         'A demonstration of HestJS CQRS framework capabilities with Scalar API documentation',
+    //     },
+    //     servers: [
+    //       {
+    //         url: 'http://localhost:3002',
+    //         description: 'Development server',
+    //       },
+    //     ],
+    //   },
+    //   {
+    //     path: '/docs',
+    //     theme: 'elysia', // 使用elysia主题
+    //     enableMarkdown: true,
+    //     markdownPath: '/api-docs.md',
+    //   },
+    // );
 
     logger.info('📚 API Documentation available at:');
     logger.info('  • Scalar UI: http://localhost:3002/docs');
