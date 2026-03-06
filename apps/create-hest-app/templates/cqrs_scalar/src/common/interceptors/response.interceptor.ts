@@ -19,13 +19,12 @@ export class ResponseInterceptor implements Interceptor {
     const startTime = Date.now();
     const request = context.switchToHttp().getRequest();
 
-    logger.info(`🚀  Request: ${request.method} ${request.url}`);
 
     const result = await next.handle();
-
+    
     const duration = Date.now() - startTime;
     logger.info(
-      `✅ Response: ${request.method} ${request.url} - ${duration}ms`,
+      `🚀 Response: ${request.method} ${request.url} - ${duration}ms`,
     );
 
     return {

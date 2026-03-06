@@ -70,7 +70,7 @@ export class UserController {
             data: {
               type: 'object',
               properties: {
-                id: { type: 'string', example: 'user-123' },
+                id: { type: 'string', example: '1' },
                 name: { type: 'string', example: 'John Doe' },
                 email: { type: 'string', example: 'john@example.com' },
                 age: { type: 'number', example: 25 },
@@ -112,14 +112,19 @@ export class UserController {
     }
 
     const user = await this.commandBus.execute(new CreateUserCommand(userData));
-    return c.json({ success: true, data: user }, 201);
+    // 直接返回数据，让拦截器处理响应格式
+    // 注意：这里我们无法通过拦截器设置状态码为201，如果需要可以抛出特殊异常或使用其他方式
+    return user;
   }
 
   @Get('/')
-  async getAllUsers(@Context() c: HestContext) {
-    // 使用查询总线获取所有用户，实际需要实现GetAllUsersQuery
+  async getAllUsers() {
+    
+    // 使用查询总线获取所有用户
     const result = await this.queryBus.execute(new GetAllUsersQuery());
-    return c.json({ success: true, data: result.users });
+    
+    // 直接返回数据，让拦截器处理响应格式
+    return result.users;
   }
 
   @Get('/:id')
@@ -130,7 +135,7 @@ export class UserController {
   @ApiParam('id', {
     description: 'User unique identifier',
     schema: { type: 'string' },
-    example: 'user-123',
+    example: '1',
   })
   @ApiResponse('200', {
     description: 'User found successfully',
@@ -143,7 +148,7 @@ export class UserController {
             data: {
               type: 'object',
               properties: {
-                id: { type: 'string', example: 'user-123' },
+                id: { type: 'string', example: '1' },
                 name: { type: 'string', example: 'John Doe' },
                 email: { type: 'string', example: 'john@example.com' },
                 age: { type: 'number', example: 25 },
@@ -178,7 +183,8 @@ export class UserController {
       return c.json({ success: false, error: 'User not found' }, 404);
     }
 
-    return c.json({ success: true, data: result.user });
+    // 直接返回数据，让拦截器处理响应格式
+    return result.user;
   }
 
   @Put('/:id')
@@ -189,7 +195,7 @@ export class UserController {
   @ApiParam('id', {
     description: 'User unique identifier',
     schema: { type: 'string' },
-    example: 'user-123',
+    example: '1',
   })
   @ApiBody(
     {
@@ -235,7 +241,7 @@ export class UserController {
             data: {
               type: 'object',
               properties: {
-                id: { type: 'string', example: 'user-123' },
+                id: { type: 'string', example: '1' },
                 name: { type: 'string', example: 'Jane Doe' },
                 email: { type: 'string', example: 'jane@example.com' },
                 age: { type: 'number', example: 30 },
@@ -287,7 +293,8 @@ export class UserController {
       const user = await this.commandBus.execute(
         new UpdateUserCommand(id, userData),
       );
-      return c.json({ success: true, data: user });
+      // 直接返回数据，让拦截器处理响应格式
+      return user;
     } catch (error) {
       if (error instanceof Error && error.message.includes('not found')) {
         return c.json({ success: false, error: 'User not found' }, 404);

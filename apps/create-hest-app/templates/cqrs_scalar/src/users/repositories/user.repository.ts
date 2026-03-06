@@ -4,7 +4,46 @@ import { User, CreateUserData, UpdateUserData } from '../entities';
 @Injectable()
 export class UserRepository {
   private users: Map<string, User> = new Map();
-  private nextId = 1;
+  private nextId = 4; // 从4开始，因为我们预填充了3个用户
+
+  constructor() {
+    // 初始化一些 mock 数据
+    this.initializeMockData();
+  }
+
+  private initializeMockData() {
+    const mockUsers: User[] = [
+      {
+        id: '1',
+        name: 'Alice Johnson',
+        email: 'alice@example.com',
+        age: 28,
+        createdAt: new Date('2024-01-15T08:30:00Z'),
+        updatedAt: new Date('2024-01-15T08:30:00Z'),
+      },
+      {
+        id: '2',
+        name: 'Bob Smith',
+        email: 'bob@example.com',
+        age: 32,
+        createdAt: new Date('2024-01-16T10:15:00Z'),
+        updatedAt: new Date('2024-01-16T10:15:00Z'),
+      },
+      {
+        id: '3',
+        name: 'Charlie Brown',
+        email: 'charlie@example.com',
+        age: 25,
+        createdAt: new Date('2024-01-17T14:20:00Z'),
+        updatedAt: new Date('2024-01-17T14:20:00Z'),
+      },
+    ];
+
+    // 将 mock 数据添加到内存存储中
+    mockUsers.forEach(user => {
+      this.users.set(user.id, user);
+    });
+  }
 
   async create(userData: CreateUserData): Promise<User> {
     const id = this.nextId.toString();

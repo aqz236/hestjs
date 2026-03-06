@@ -1,4 +1,4 @@
-# HestJS Demo Application 🚀
+# HestJS Application 🚀
 
 一个基于 **HestJS** 框架的现代化 TypeScript 演示应用，展示了类似 NestJS 的开发体验，但具有更轻量和更高性能的特点。内置支持通过注解自动生成 **OpenAPI 3.0** 规范的 Swagger 文档。
 
@@ -66,7 +66,7 @@ export class UsersController {
         items: {
           type: 'object',
           properties: {
-            id: { type: 'string', example: 'user-123' },
+            id: { type: 'string', example: '' },
             name: { type: 'string', example: 'John Doe' },
             email: { type: 'string', format: 'email', example: 'john@example.com' },
           },
@@ -87,7 +87,7 @@ async getUsers() {
 @ApiParam('id', {
   description: 'User unique identifier',
   schema: { type: 'string' },
-  example: 'user-123',
+  example: '1',
 })
 @ApiResponse('200', {
   description: 'User found',
@@ -175,14 +175,14 @@ async createUser(@Body() userData: CreateUserDto) {
 
 ### 🎨 可用装饰器
 
-| 装饰器 | 用途 | 示例 |
-|--------|------|------|
-| `@ApiTags(...)` | 为控制器或方法添加标签 | `@ApiTags('Users', 'Admin')` |
-| `@ApiOperation(...)` | 描述 API 操作 | `@ApiOperation({ summary: '获取用户' })` |
-| `@ApiResponse(status, spec)` | 定义响应格式 | `@ApiResponse('200', { description: '成功' })` |
-| `@ApiParam(name, spec)` | 描述路径参数 | `@ApiParam('id', { type: 'string' })` |
-| `@ApiQuery(name, spec)` | 描述查询参数 | `@ApiQuery('page', { type: 'number' })` |
-| `@ApiBody(schema, options)` | 描述请求体 | `@ApiBody({ schema: userSchema })` |
+| 装饰器                         | 用途                   | 示例                                             |
+| ------------------------------ | ---------------------- | ------------------------------------------------ |
+| `@ApiTags(...)`              | 为控制器或方法添加标签 | `@ApiTags('Users', 'Admin')`                   |
+| `@ApiOperation(...)`         | 描述 API 操作          | `@ApiOperation({ summary: '获取用户' })`       |
+| `@ApiResponse(status, spec)` | 定义响应格式           | `@ApiResponse('200', { description: '成功' })` |
+| `@ApiParam(name, spec)`      | 描述路径参数           | `@ApiParam('id', { type: 'string' })`          |
+| `@ApiQuery(name, spec)`      | 描述查询参数           | `@ApiQuery('page', { type: 'number' })`        |
+| `@ApiBody(schema, options)`  | 描述请求体             | `@ApiBody({ schema: userSchema })`             |
 
 ### ⚙️ 配置选项
 
