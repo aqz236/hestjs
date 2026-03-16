@@ -21,8 +21,8 @@ async function bootstrap() {
     // 全局异常过滤器
     app.useGlobalFilters(new HttpExceptionFilter());
 
-    // 设置OpenAPI规范端点 - 使用自动发现
-    app.useScalarAutoDiscover(
+    // 设置OpenAPI规范端点
+    app.useSwagger(
       {
         info: {
           title: 'HestJS CQRS Demo API',

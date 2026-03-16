@@ -71,13 +71,13 @@ export async function promptForOptions(defaults: CreateOptions): Promise<Partial
   options.packageManager = packageManager
 
   // Install dependencies
-  const { skipInstall } = await inquirer.prompt<{ skipInstall: boolean }>({
+  const { installDependencies } = await inquirer.prompt<{ installDependencies: boolean }>({
     type: 'confirm',
-    name: 'skipInstall',
-    message: 'Skip installing dependencies?',
-    default: false
+    name: 'installDependencies',
+    message: 'Would you like to install dependencies?',
+    default: true
   })
-  options.skipInstall = skipInstall
+  options.skipInstall = !installDependencies
 
   return options
 }
