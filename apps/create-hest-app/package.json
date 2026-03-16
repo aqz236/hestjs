@@ -1,6 +1,6 @@
 {
   "name": "create-hest-app",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "type": "module",
   "description": "Create HestJS-powered applications with one command",
   "keywords": [
