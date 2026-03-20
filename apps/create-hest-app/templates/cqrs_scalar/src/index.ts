@@ -45,31 +45,6 @@ async function bootstrap() {
       },
     );
 
-    // 可选：仍然支持手动指定控制器的方式
-    // app.useScalarWithControllers(
-    //   [AppController, UserController], // 传入需要生成文档的控制器
-    //   {
-    //     info: {
-    //       title: 'HestJS CQRS Demo API',
-    //       version: '1.0.0',
-    //       description:
-    //         'A demonstration of HestJS CQRS framework capabilities with Scalar API documentation',
-    //     },
-    //     servers: [
-    //       {
-    //         url: 'http://localhost:3002',
-    //         description: 'Development server',
-    //       },
-    //     ],
-    //   },
-    //   {
-    //     path: '/docs',
-    //     theme: 'elysia', // 使用elysia主题
-    //     enableMarkdown: true,
-    //     markdownPath: '/api-docs.md',
-    //   },
-    // );
-
     logger.info('📚 API Documentation available at:');
     logger.info('  • Scalar UI: http://localhost:3002/docs');
     logger.info('  • OpenAPI JSON: http://localhost:3002/openapi.json');
