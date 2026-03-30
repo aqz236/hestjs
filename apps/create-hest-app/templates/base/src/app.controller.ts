@@ -1,41 +1,43 @@
-import { Controller, Get, Param, Post } from "@hestjs/core";
+import { Controller, Get, Param, Post } from '@hestjs/core';
 
-import { Body } from "@hestjs/validation";
-import { AppService } from "./app.service";
-import { CreateUserDto } from "./modules/users/dto/user.dto";
+import { Body } from '@hestjs/validation';
+import { AppService } from './app.service';
+import { CreateUserDto } from './modules/users/dto/user.dto';
 
-@Controller("/api")
+@Controller('/api')
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Get("/")
+  @Get('/')
   getHello() {
     return { message: this.appService.getHello() };
   }
 
-  @Get("/users")
+  @Get('/users')
   getUsers() {
     return this.appService.getUsers();
   }
 
-  @Get("/users/:id")
-  getUser(@Param("id") id: string) {
+  @Get('/users/:id')
+  getUser(@Param('id') id: string) {
     const user = this.appService.getUser(id);
     if (!user) {
-      const error = new Error(`User with id ${id} not found`) as Error & { status: number };
+      const error = new Error(`User with id ${id} not found`) as Error & {
+        status: number;
+      };
       error.status = 404;
       throw error;
     }
     return user;
   }
 
-  @Post("/users")
+  @Post('/users')
   createUser(@Body(CreateUserDto) createUserDto: CreateUserDto) {
     return this.appService.createUser(createUserDto);
   }
 
-  @Get("/error")
+  @Get('/error')
   throwError() {
-    throw new Error("This is a test error");
+    throw new Error('This is a test error');
   }
 }

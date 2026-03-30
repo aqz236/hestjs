@@ -1,13 +1,13 @@
-import { HestFactory } from "@hestjs/core";
-import { logger } from "@hestjs/logger";
-import { Hono } from "hono";
-import { cors } from "hono/cors";
-import { AppModule } from "./app.module";
-import { exceptionMiddleware, responseMiddleware } from "./common/middleware";
+import { HestFactory } from '@hestjs/core';
+import { logger } from '@hestjs/logger';
+import { Hono } from 'hono';
+import { cors } from 'hono/cors';
+import { AppModule } from './app.module';
+import { exceptionMiddleware, responseMiddleware } from './common/middleware';
 
 async function bootstrap() {
   try {
-    logger.info("🚀 Starting HestJS application...");
+    logger.info('🚀 Starting HestJS application...');
 
     // 创建 Hono 实例
     const hono = new Hono();
@@ -26,7 +26,7 @@ async function bootstrap() {
 
     logger.info(`🎉 Server is running on http://localhost:3002`);
   } catch (error) {
-    logger.error("❌ Failed to start application:", error);
+    logger.error('❌ Failed to start application:', error);
     process.exit(1);
   }
 }
