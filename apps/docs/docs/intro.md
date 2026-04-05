@@ -2,46 +2,58 @@
 sidebar_position: 1
 ---
 
-# Tutorial Intro
+# Welcome to HestJS
 
-Let's discover **Docusaurus in less than 5 minutes**.
+**HestJS** is a modern, type-safe Node.js framework inspired by NestJS, built with **Hono** and **TSyringe** for dependency injection.
+
+## What is HestJS?
+
+HestJS combines the best of modern web development:
+
+- 🚀 **High Performance**: Built on top of Hono for blazing-fast performance
+- 💉 **Dependency Injection**: Uses TSyringe for clean, testable code
+- 🎯 **Type Safety**: Full TypeScript support with strict typing
+- 🏗️ **OOP Design**: Object-Oriented Programming patterns like NestJS
+- 📦 **Modular**: Clean, modular architecture for scalable applications
 
 ## Getting Started
 
-Get started by **creating a new site**.
-
-Or **try Docusaurus immediately** with **[docusaurus.new](https://docusaurus.new)**.
+Get started with HestJS in less than 5 minutes.
 
 ### What you'll need
 
-- [Node.js](https://nodejs.org/en/download/) version 18.0 or above:
-  - When installing Node.js, you are recommended to check all checkboxes related to dependencies.
+- [Node.js](https://nodejs.org/en/download/) version 18.0 or above
+- [Bun](https://bun.sh) (recommended) or npm/yarn
 
-## Generate a new site
+## Create a new HestJS project
 
-Generate a new Docusaurus site using the **classic template**.
-
-The classic template will automatically be added to your project after you run the command:
+Generate a new HestJS project using our CLI tool:
 
 ```bash
-npm init docusaurus@latest my-website classic
+npx create-hest-app my-app
 ```
 
-You can type this command into Command Prompt, Powershell, Terminal, or any other integrated terminal of your code editor.
-
-The command also installs all necessary dependencies you need to run Docusaurus.
-
-## Start your site
-
-Run the development server:
+Or with Bun:
 
 ```bash
-cd my-website
-npm run start
+bunx create-hest-app my-app
 ```
 
-The `cd` command changes the directory you're working with. In order to work with your newly created Docusaurus site, you'll need to navigate the terminal there.
+The command will create a new HestJS application with all the necessary dependencies and a basic project structure.
 
-The `npm run start` command builds your website locally and serves it through a development server, ready for you to view at http://localhost:3000/.
+## Start your application
 
-Open `docs/intro.md` (this page) and edit some lines: the site **reloads automatically** and displays your changes.
+Navigate to your project directory and start the development server:
+
+```bash
+cd my-app
+bun run dev
+```
+
+Your HestJS application will be running at http://localhost:3000/.
+
+## Next Steps
+
+- Explore the [Core Concepts](/docs/tutorial-basics/create-a-document) to understand HestJS architecture
+- Learn about [Dependency Injection](/docs/tutorial-basics/create-a-page) with TSyringe
+- Check out our [Examples](https://github.com/aqz236/hestjs-demo) on GitHub
