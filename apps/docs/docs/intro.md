@@ -2,58 +2,39 @@
 sidebar_position: 1
 ---
 
-# Welcome to HestJS
+# HestJS 文档
 
-**HestJS** is a modern, type-safe Node.js framework inspired by NestJS, built with **Hono** and **TSyringe** for dependency injection.
+**HestJS** 是基于 Hono + TSyringe 的 TypeScript 后端框架，借鉴 NestJS 设计理念。
 
-## What is HestJS?
+## 特点
 
-HestJS combines the best of modern web development:
+- **高性能**: 基于 Hono 的快速路由
+- **依赖注入**: 使用 TSyringe 实现 DI
+- **类型安全**: 完整的 TypeScript 支持
+- **装饰器**: 熟悉的 NestJS 风格 API
+- **模块化**: 清晰的项目组织结构
 
-- 🚀 **High Performance**: Built on top of Hono for blazing-fast performance
-- 💉 **Dependency Injection**: Uses TSyringe for clean, testable code
-- 🎯 **Type Safety**: Full TypeScript support with strict typing
-- 🏗️ **OOP Design**: Object-Oriented Programming patterns like NestJS
-- 📦 **Modular**: Clean, modular architecture for scalable applications
+## 快速开始
 
-## Getting Started
+### 环境要求
 
-Get started with HestJS in less than 5 minutes.
+- Node.js 18+ 或 Bun 1.0+
+- TypeScript 5.0+
 
-### What you'll need
-
-- [Node.js](https://nodejs.org/en/download/) version 18.0 or above
-- [Bun](https://bun.sh) (recommended) or npm/yarn
-
-## Create a new HestJS project
-
-Generate a new HestJS project using our CLI tool:
-
-```bash
-npx create-hest-app my-app
-```
-
-Or with Bun:
+### 创建项目
 
 ```bash
 bunx create-hest-app my-app
-```
-
-The command will create a new HestJS application with all the necessary dependencies and a basic project structure.
-
-## Start your application
-
-Navigate to your project directory and start the development server:
-
-```bash
 cd my-app
+bun install
 bun run dev
 ```
 
-Your HestJS application will be running at http://localhost:3000/.
+应用将在 http://localhost:3002 启动。
 
-## Next Steps
+## 下一步
 
-- Explore the [Core Concepts](/docs/tutorial-basics/create-a-document) to understand HestJS architecture
-- Learn about [Dependency Injection](/docs/tutorial-basics/create-a-page) with TSyringe
-- Check out our [Examples](https://github.com/aqz236/hestjs-demo) on GitHub
+- [安装指南](./getting-started/installation) - 详细安装步骤
+- [第一个应用](./getting-started/first-application) - 创建 Hello World
+- [项目结构](./getting-started/project-structure) - 了解目录组织
+- [核心概念](./fundamentals/controllers) - 学习框架基础

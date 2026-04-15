@@ -1,170 +1,121 @@
-# 项目结构说明
+# 项目结构
 
-本指南将详细介绍 HestJS 项目的标准结构和组织方式，基于官方 `create-hest-app` 模板，帮助你创建可维护、可扩展的应用程序。
+了解 HestJS 项目的标准组织方式。
 
-## 📁 模板类型
+## 基础结构
 
-HestJS 提供两种主要的项目模板：
-
-### Base 模板 - 基础项目结构
-适合简单应用和快速开始：
+使用 `create-hest-app` 创建的标准项目结构：
 
 ```
-my-hest-app/
-├── src/                           # 源代码目录
-│   ├── index.ts                   # 应用入口文件
-│   ├── app.module.ts              # 根模块
-│   ├── app.controller.ts          # 应用级控制器
-│   ├── app.service.ts             # 应用级服务
+my-app/
+├── src/                      # 源代码目录
+│   ├── index.ts             # 应用入口
+│   ├── app.module.ts        # 根模块
+│   ├── app.controller.ts    # 应用控制器
+│   ├── app.service.ts       # 应用服务
 │   │
-│   ├── modules/                   # 功能模块目录
-│   │   ├── users/                 # 用户模块
-│   │   │   ├── users.module.ts
-│   │   │   ├── users.controller.ts
-│   │   │   ├── users.service.ts
-│   │   │   ├── dto/               # 数据传输对象
-│   │   │   │   ├── create-user.dto.ts
-│   │   │   │   └── user.dto.ts
-│   │   │   └── entities/          # 实体定义
-│   │   │       └── user.entity.ts
-│   │   │
-│   │   └── custom-validation/     # 自定义验证模块
-│   │       ├── custom-validation.module.ts
-│   │       ├── custom-validation.controller.ts
-│   │       ├── custom-validation.service.ts
+│   ├── modules/             # 功能模块
+│   │   └── users/           # 用户模块
+│   │       ├── users.module.ts
+│   │       ├── users.controller.ts
+│   │       ├── users.service.ts
 │   │       └── dto/
-│   │           └── custom-validation.dto.ts
+│   │           └── user.dto.ts
 │   │
-│   └── common/                    # 公共组件
-│       ├── filters/               # 异常过滤器
-│       │   └── http-exception.filter.ts
-│       └── interceptors/          # 拦截器
-│           └── response.interceptor.ts
+│   └── common/              # 公共组件
+│       ├── filters/         # 异常过滤器
+│       └── interceptors/    # 拦截器
 │
-├── .vscode/                       # VS Code 配置
-│   ├── extensions.json            # 推荐扩展
-│   ├── launch.json               # 调试配置
-│   └── settings.json             # 编辑器设置
-│
-├── .prettierrc                    # 代码格式化配置
-├── eslint.config.ts              # ESLint 配置
-├── tsconfig.json                 # TypeScript 配置
-├── package.json                  # 项目配置和依赖
-└── README.md                     # 项目说明文档
+├── .vscode/                 # VS Code 配置
+├── package.json             # 项目配置
+├── tsconfig.json           # TypeScript 配置
+└── README.md               # 项目说明
 ```
-
-### CQRS 模板 - 高级项目结构
-适合复杂应用和企业级开发：
-
-```
-my-hest-app/
-├── src/
-│   ├── index.ts                   # 应用入口
-│   ├── app.module.ts              # 根模块
-│   ├── app.controller.ts          # 应用控制器
-│   ├── app.service.ts             # 应用服务
-│   ├── test-error-scenarios.ts    # 错误场景测试
-│   │
-│   ├── modules/                   # 功能模块 (传统结构)
-│   │   ├── users/                 # 用户模块
-│   │   └── custom-validation/     # 验证模块
-│   │
-│   ├── users/                     # CQRS 用户领域 (新架构)
-│   │   ├── index.ts               # 模块导出
-│   │   ├── user.controller.ts     # 用户控制器
-│   │   ├── user.module.ts         # 用户模块
-│   │   │
-│   │   ├── commands/              # 命令定义
-│   │   │   ├── create-user.command.ts
-│   │   │   ├── update-user.command.ts
-│   │   │   └── delete-user.command.ts
-│   │   │
-│   │   ├── queries/               # 查询定义
-│   │   │   ├── get-user.query.ts
-│   │   │   └── get-users.query.ts
-│   │   │
-│   │   ├── handlers/              # 命令和查询处理器
-│   │   │   ├── command/
-│   │   │   │   ├── create-user.handler.ts
-│   │   │   │   ├── update-user.handler.ts
-│   │   │   │   └── delete-user.handler.ts
-│   │   │   └── query/
-│   │   │       ├── get-user.handler.ts
-│   │   │       └── get-users.handler.ts
-│   │   │
-│   │   ├── events/                # 事件定义
-│   │   │   ├── user-created.event.ts
-│   │   │   ├── user-updated.event.ts
-│   │   │   └── user-deleted.event.ts
-│   │   │
-│   │   ├── entities/              # 实体和聚合
 │   │   │   └── user.entity.ts
-│   │   │
-│   │   └── repositories/          # 仓储接口和实现
-│   │       ├── user.repository.interface.ts
-│   │       └── user.repository.ts
-│   │
-│   └── common/                    # 公共组件
-│       ├── filters/
-│       └── interceptors/
-│
-├── .vscode/                       # VS Code 配置
-├── .prettierrc                    # 代码格式化
-├── eslint.config.ts              # ESLint 配置
-├── tsconfig.json                 # TypeScript 配置
-├── package.json                  # 项目配置
-└── README.md                     # 项目文档
+## CQRS 结构 (高级模板)
+
+当使用 CQRS 模板时，项目采用命令查询职责分离模式：
+
+```
+src/
+├── users/                   # 用户领域
+│   ├── commands/           # 命令 (写操作)
+│   │   ├── create-user.command.ts
+│   │   └── update-user.command.ts
+│   ├── queries/            # 查询 (读操作)
+│   │   ├── get-user.query.ts
+│   │   └── get-users.query.ts
+│   ├── handlers/           # 处理器
+│   │   ├── command/
+│   │   └── query/
+│   ├── events/             # 事件
+│   ├── entities/           # 领域实体
+│   └── repositories/       # 数据仓储
 ```
 
-## 🎯 目录结构详解
+## 目录说明
 
-### 📂 src/ - 源代码目录
+### 核心文件
 
-#### 🏠 应用根文件
+- **index.ts**: 应用启动入口
+- **app.module.ts**: 根模块，导入所有功能模块
+- **app.controller.ts**: 应用级控制器
+- **app.service.ts**: 应用级服务
 
-| 文件 | 作用 | 说明 |
-|------|------|------|
-| `index.ts` | 应用入口 | 启动应用，配置全局组件和中间件 |
-| `app.module.ts` | 根模块 | 应用的主模块，导入所有功能模块 |
-| `app.controller.ts` | 应用控制器 | 处理全局路由，如健康检查 |
-| `app.service.ts` | 应用服务 | 应用级别的业务逻辑 |
+### 功能模块
 
-#### 📦 modules/ - 功能模块 (Base 模板)
+#### modules/ (基础结构)
+每个模块包含：
+- `*.module.ts`: 模块定义
+- `*.controller.ts`: 控制器
+- `*.service.ts`: 服务
+- `dto/`: 数据传输对象
 
-Base 模板采用传统的模块化结构，每个功能模块包含：
+#### CQRS 结构
+- `commands/`: 写操作命令
+- `queries/`: 读操作查询
+- `handlers/`: 命令/查询处理器
+- `events/`: 领域事件
+- `entities/`: 业务实体
+
+### 公共组件
+
+- **filters/**: 异常过滤器
+- **interceptors/**: 拦截器
+- **guards/**: 路由守卫
+- **middlewares/**: 中间件
+
+## 最佳实践
+
+### 命名规范
+
+- 文件名使用 kebab-case: `user-service.ts`
+- 类名使用 PascalCase: `UserService`
+- 方法名使用 camelCase: `findUser()`
+
+### 模块组织
 
 ```typescript
-// users/users.module.ts - 模块定义
-import { Module } from '@hestjs/core';
-import { UsersController } from './users.controller';
-import { UsersService } from './users.service';
-
 @Module({
-  controllers: [UsersController],
-  providers: [UsersService],
-  exports: [UsersService],
+  imports: [OtherModule],      // 导入其他模块
+  controllers: [Controller],   // 控制器
+  providers: [Service],        // 服务提供者
+  exports: [Service]           # 导出给其他模块使用
 })
-export class UsersModule {}
+export class FeatureModule {}
 ```
 
-#### 🏛️ CQRS 领域结构 (CQRS 模板)
+### 依赖注入
 
-CQRS 模板采用领域驱动设计，将业务逻辑按照命令查询职责分离：
-
-| 目录 | 用途 | 说明 |
-|------|------|------|
-| `commands/` | 命令定义 | 修改数据的操作（创建、更新、删除） |
-| `queries/` | 查询定义 | 读取数据的操作（获取单个、列表） |
-| `handlers/` | 处理器 | 命令和查询的具体实现逻辑 |
-| `events/` | 事件定义 | 领域事件和集成事件 |
-| `entities/` | 实体聚合 | 业务对象和聚合根 |
-| `repositories/` | 仓储层 | 数据访问接口和实现 |
-
-#### 🔧 common/ - 公共组件
-
-Base 模板包含的公共组件：
-
-| 子目录 | 用途 | 文件示例 |
+```typescript
+@injectable()
+export class UserService {
+  constructor(
+    private userRepository: UserRepository,
+    private logger: Logger
+  ) {}
+}
+```
 |--------|------|----------|
 | `filters/` | 异常过滤器 | `http-exception.filter.ts` |
 | `interceptors/` | 拦截器 | `response.interceptor.ts` |

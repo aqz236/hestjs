@@ -1,79 +1,74 @@
-# CLI 工具使用
+# CLI 工具
 
-HestJS 提供了强大的命令行工具，帮助开发者快速创建项目、生成代码和管理应用程序。本指南将详细介绍如何使用这些 CLI 工具提高开发效率。
+HestJS 提供脚手架工具快速创建项目。
 
-## 📦 create-hest-app
+## create-hest-app
 
-`create-hest-app` 是官方的项目脚手架工具，用于快速创建新的 HestJS 应用。
+官方项目脚手架工具。
 
 ### 基本使用
 
 ```bash
-# 创建新项目
+# 创建项目
 bunx create-hest-app my-app
 
 # 或使用 npm
 npx create-hest-app my-app
 
-# 进入项目目录
+# 进入目录
 cd my-app
 
 # 安装依赖
 bun install
 
-# 启动开发服务器
+# 启动开发
 bun run dev
 ```
 
-### 项目模板选择
+### 指定模板
 
 ```bash
-# 交互式创建，选择模板
-bunx create-hest-app my-app
+# 基础模板
+bunx create-hest-app my-app --template base
 
-# 直接指定模板
-bunx create-hest-app my-app --template basic
-bunx create-hest-app my-app --template full-featured
-bunx create-hest-app my-app --template microservice
+# CQRS 模板  
+bunx create-hest-app my-app --template cqrs
 ```
 
 ### 可用模板
 
-| 模板 | 描述 | 包含功能 |
-|------|------|----------|
-| `basic` | 基础模板 | 核心功能、简单示例 |
-| `full-featured` | 完整功能模板 | 所有功能包、示例代码 |
-| `microservice` | 微服务模板 | 适合微服务架构 |
-| `api-only` | 纯 API 模板 | 无前端，专注 API 开发 |
+| 模板 | 描述 | 特性 |
+|------|------|------|
+| `base` | 基础模板 | 核心功能、简单示例 |
+| `cqrs` | CQRS 模板 | 命令查询分离、事件处理 |
 
 ### 创建选项
 
 ```bash
-# 指定项目名称和目录
-bunx create-hest-app my-awesome-api --directory ./projects
+# 指定目录
+bunx create-hest-app my-app --directory ./projects
 
 # 跳过依赖安装
 bunx create-hest-app my-app --skip-install
-
-# 使用特定版本
-bunx create-hest-app my-app --version 0.1.8
 
 # 显示详细信息
 bunx create-hest-app my-app --verbose
 ```
 
-## 🛠️ 项目内 CLI 命令
+## 项目命令
+
+创建项目后可使用的命令：
 
 ### 开发命令
 
 ```bash
-# 启动开发服务器（热重载）
+# 开发模式（热重载）
 bun run dev
 
 # 构建项目
 bun run build
 
-# 启动生产服务器
+# 生产启动
 bun run start
 
 # 类型检查
@@ -84,6 +79,89 @@ bun run format
 
 # 代码检查
 bun run lint
+```
+
+### 包管理
+
+```bash
+# 安装依赖
+bun install
+
+# 添加依赖
+bun add @hestjs/validation
+
+# 添加开发依赖
+bun add -d @types/node
+
+# 删除依赖
+bun remove package-name
+
+# 更新依赖
+bun update
+```
+
+## 常用工作流
+
+### 新项目创建流程
+
+```bash
+# 1. 创建项目
+bunx create-hest-app my-api --template base
+
+# 2. 进入目录
+cd my-api
+
+# 3. 安装依赖
+bun install
+
+# 4. 启动开发
+bun run dev
+
+# 5. 在新终端中测试
+curl http://localhost:3002/api
+```
+
+### 添加新功能
+
+```bash
+# 1. 创建模块目录
+mkdir -p src/modules/posts
+
+# 2. 创建文件
+touch src/modules/posts/posts.{module,controller,service}.ts
+
+# 3. 安装需要的包
+bun add @hestjs/validation
+
+# 4. 重启开发服务器
+bun run dev
+```
+
+## 故障排除
+
+### 常见问题
+
+**创建失败**
+```bash
+# 清理缓存
+bun pm cache rm
+bunx create-hest-app my-app
+```
+
+**端口占用**
+```bash
+# 查看端口使用
+lsof -i :3002
+
+# 杀死进程
+kill -9 <PID>
+```
+
+**依赖冲突**
+```bash
+# 删除 node_modules 重新安装
+rm -rf node_modules bun.lockb
+bun install
 ```
 
 ### 代码生成器

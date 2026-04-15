@@ -21,6 +21,7 @@ const sidebars: SidebarsConfig = {
       label: '🚀 快速开始',
       items: [
         'getting-started/introduction',
+        'getting-started/quickstart',
         'getting-started/installation',
         'getting-started/first-application',
         'getting-started/project-structure',
