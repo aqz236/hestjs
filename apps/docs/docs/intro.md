@@ -1,10 +1,9 @@
 ---
 sidebar_position: 1
 ---
-
 # HestJS 文档
 
-**HestJS** 是基于 Hono + TSyringe 的 TypeScript 后端框架，借鉴 NestJS 设计理念。
+**HestJS** 是基于 Hono + TSyringe 的 TypeScript 后端库，借鉴 NestJS 设计理念。
 
 ## 特点
 
