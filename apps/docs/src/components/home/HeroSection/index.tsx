@@ -77,32 +77,30 @@ const HeroSection = () => {
           </motion.p>
           
           <motion.div 
-            className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12"
+            className="flex flex-col gap-4 justify-center items-center mb-12"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.6 }}
           >
-            <Button asChild variant="gradient" size="xl">
+            <div 
+              onClick={copyCommand}
+              className="flex items-center px-4 py-3 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border border-gray-200/50 hover:border-blue-300/50 transition-all duration-200 group cursor-pointer"
+              title={copied ? "Copied!" : "Click to copy"}
+            >
+              <span className="text-gray-700 font-mono text-sm select-all">
+                npx create-hest-app@latest my-app
+                {copied ? (
+                  <span className="ml-2 text-green-600">✓</span>
+                ) : null}
+              </span>
+            </div>
+
+            <Button asChild size="xl">
               <Link to="/docs/intro">
                 <Play className="w-5 h-5 mr-2" />
                 Get Started
               </Link>
             </Button>
-            
-            <div className="flex items-center space-x-2 px-4 py-3 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl border border-gray-200/50 hover:border-blue-300/50 transition-all duration-200 group">
-              <span className="text-gray-700 font-mono text-sm select-all">npx create-hest-app@latest my-app</span>
-              <button 
-                onClick={copyCommand}
-                className="text-gray-500 hover:text-blue-600 transition-all duration-200 p-1.5 rounded-lg hover:bg-blue-100/50 flex items-center justify-center"
-                title={copied ? "Copied!" : "Copy command"}
-              >
-                {copied ? (
-                  <Check className="w-4 h-4 text-green-600" />
-                ) : (
-                  <Copy className="w-4 h-4" />
-                )}
-              </button>
-            </div>
           </motion.div>
           
           <motion.div
