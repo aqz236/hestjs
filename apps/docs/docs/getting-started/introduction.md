@@ -1,6 +1,6 @@
 # HestJS 介绍
 
-HestJS 是一个基于 **Hono + Bun + TSyringe** 的现代化 TypeScript 库，提供类似 NestJS 的开发体验，但具有更轻量和更高性能的特点。
+HestJS 是一个基于 **Hono + Bun + TSyringe** 的现代化 TypeScript 库，提供类似 NestJS 的开发体验，但具有更轻量和更高性能的特点, 构建速度极快，构建产物极小。
 
 ## 🎯 核心特性
 
@@ -59,6 +59,14 @@ export class UserModule {}
 - **Bun**: 高性能的 JavaScript 运行时，启动速度快，内存占用低
 - **原生 TypeScript**: 直接支持 TypeScript，无需编译步骤
 
+#### 极速构建体验
+
+HestJS 凭借 Bun 的强大性能，实现了业界领先的构建速度：
+
+![HestJS 极速构建 - 仅需 56ms](assets/20250729_155156_image.png)
+
+*构建速度极快（演示为hestjs-demo），让开发体验更加流畅，大大提升开发效率*
+
 ### 类型安全的验证系统
 
 基于 TypeBox 的强大验证功能，提供运行时类型检查和自动类型推导：
@@ -96,6 +104,14 @@ export class CreateUserHandler implements ICommandHandler<CreateUserCommand> {
 - **拦截器**: 灵活的请求/响应拦截机制
 - **异常处理**: 完善的异常过滤和处理系统
 
+#### 精美的 API 文档界面
+
+HestJS 集成了现代化的 Scalar 文档系统，提供精美、专业的 Swagger 文档体验：
+
+![精美的 Swagger 文档界面](assets/20250729_155429_image.png)
+
+*精心设计的 Swagger 文档界面，提供直观的 API 探索体验和在线测试功能*
+
 ## 🔄 与 NestJS 的对比
 
 | 特性            | HestJS   | NestJS          |
@@ -116,7 +132,7 @@ HestJS 特别适合以下场景：
 ### 高性能 API 服务
 
 - 需要极高性能的 REST API
-- 微服务架构
+- 微服务架构（hestjs-demo构建产物仅0.5MB)
 - 实时数据处理
 
 ### 现代化开发
