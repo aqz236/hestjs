@@ -14,7 +14,12 @@ export default function Home() {
       title={`${siteConfig.title} - Modern Node.js Framework`}
       description="HestJS is a modern, type-safe Node.js framework inspired by NestJS, built with Hono and TSyringe for dependency injection."
     >
-      <main className="overflow-hidden">
+      <main 
+        className="overflow-hidden"
+        style={{ 
+          minHeight: '100vh'
+        }}
+      >
         <HeroSection />
         <CodeExample />
         <FeaturesSection />

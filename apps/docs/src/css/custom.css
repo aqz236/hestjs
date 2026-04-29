@@ -15,6 +15,24 @@
   --ifm-color-primary-lightest: #3cad6e;
   --ifm-code-font-size: 95%;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
+  
+  /* Custom homepage variables for light theme */
+  --homepage-bg-primary: transparent;
+  --homepage-bg-secondary: rgba(248, 250, 252, 0.3);
+  --homepage-text-primary: #1f2937;
+  --homepage-text-secondary: #6b7280;
+  --homepage-text-muted: #9ca3af;
+  --homepage-border: #e5e7eb;
+  --homepage-card-bg: rgba(255, 255, 255, 0.8);
+  --homepage-hero-bg: linear-gradient(135deg, #f8fafc 0%, #ffffff 50%, #f0f9ff 100%);
+  --homepage-hero-accent-1: rgba(147, 51, 234, 0.1);
+  --homepage-hero-accent-2: rgba(59, 130, 246, 0.1);
+  --homepage-hero-accent-3: rgba(99, 102, 241, 0.1);
+  --homepage-code-bg: #1f2937;
+  --homepage-code-border: #374151;
+  --homepage-cta-bg: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+  --homepage-cta-text: #ffffff;
+  --homepage-cta-accent: rgba(255, 255, 255, 0.1);
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
@@ -27,4 +45,22 @@
   --ifm-color-primary-lighter: #32d8b4;
   --ifm-color-primary-lightest: #4fddbf;
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+  
+  /* Custom homepage variables for dark theme */
+  --homepage-bg-primary: transparent;
+  --homepage-bg-secondary: rgba(17, 24, 39, 0.3);
+  --homepage-text-primary: #f9fafb;
+  --homepage-text-secondary: #d1d5db;
+  --homepage-text-muted: #9ca3af;
+  --homepage-border: #374151;
+  --homepage-card-bg: rgba(31, 41, 55, 0.8);
+  --homepage-hero-bg: linear-gradient(135deg, #111827 0%, #1f2937 50%, #1e293b 100%);
+  --homepage-hero-accent-1: rgba(147, 51, 234, 0.2);
+  --homepage-hero-accent-2: rgba(59, 130, 246, 0.2);
+  --homepage-hero-accent-3: rgba(99, 102, 241, 0.2);
+  --homepage-code-bg: #0f172a;
+  --homepage-code-border: #1e293b;
+  --homepage-cta-bg: linear-gradient(135deg, #1e40af 0%, #6b21a8 100%);
+  --homepage-cta-text: #f9fafb;
+  --homepage-cta-accent: rgba(255, 255, 255, 0.2);
 }
