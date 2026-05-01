@@ -64,3 +64,121 @@
   --homepage-cta-text: #f9fafb;
   --homepage-cta-accent: rgba(255, 255, 255, 0.2);
 }
+
+/* Apple Liquid Glass Navbar Styles */
+.navbar {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  z-index: 1000 !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(20px) saturate(1.8) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.8) !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    0 2px 8px rgba(0, 0, 0, 0.08) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+[data-theme='dark'] .navbar {
+  background: rgba(0, 0, 0, 0.3) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 
+    0 0 0 1px rgba(255, 255, 255, 0.05),
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Navbar content styling */
+.navbar__inner {
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+  padding: 0 1.5rem !important;
+}
+
+.navbar__title {
+  font-weight: 700 !important;
+  font-size: 1.25rem !important;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+  text-shadow: none !important;
+}
+
+[data-theme='dark'] .navbar__title {
+  background: linear-gradient(135deg, #a78bfa 0%, #ec4899 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  color: transparent !important;
+}
+
+.navbar__item {
+  color: rgba(0, 0, 0, 0.8) !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+}
+
+[data-theme='dark'] .navbar__item {
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.navbar__link:hover {
+  color: #667eea !important;
+  text-decoration: none !important;
+}
+
+[data-theme='dark'] .navbar__link:hover {
+  color: #a78bfa !important;
+}
+
+/* Dropdown styling */
+.dropdown__menu {
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(20px) saturate(1.8) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 12px !important;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    0 2px 8px rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-theme='dark'] .dropdown__menu {
+  background: rgba(0, 0, 0, 0.8) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 2px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Mobile menu styling */
+.navbar-sidebar {
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(20px) saturate(1.8) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.8) !important;
+}
+
+[data-theme='dark'] .navbar-sidebar {
+  background: rgba(0, 0, 0, 0.95) !important;
+}
+
+/* Ensure content doesn't overlap with fixed navbar */
+.main-wrapper {
+  padding-top: 60px !important;
+}
+
+/* Special frosted glass effect for homepage */
+.homepage-navbar {
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(24px) saturate(2) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(2) !important;
+}
+
+[data-theme='dark'] .homepage-navbar {
+  background: rgba(0, 0, 0, 0.2) !important;
+}
