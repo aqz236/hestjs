@@ -65,32 +65,160 @@
   --homepage-cta-accent: rgba(255, 255, 255, 0.2);
 }
 
-/* Apple Liquid Glass Navbar Styles */
+/* ElysiaJS风格的动态光线效果 */
+.ray {
+  --stripes: repeating-linear-gradient(100deg, #fff 0%, #fff 7%, transparent 10%, transparent 12%, #fff 16%);
+  --stripesDark: repeating-linear-gradient(100deg, #000 0%, #000 7%, transparent 10%, transparent 12%, #000 16%);
+  --rainbow: repeating-linear-gradient(100deg, #60a5fa 10%, #e879f9 16%, #5eead4 22%, #60a5fa 30%);
+  contain: strict;
+  contain-intrinsic-size: 100vw 40vh;
+  background-image: var(--stripes), var(--rainbow);
+  background-size: 300%, 200%;
+  background-position: 50% 50%, 50% 50%;
+  height: inherit;
+  width: 100%;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  perspective: 1000px;
+  -webkit-perspective: 1000px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  filter: invert(100%);
+  -webkit-mask-image: radial-gradient(ellipse at 100% 0%, black 40%, transparent 70%);
+  mask-image: radial-gradient(ellipse at 100% 0%, black 40%, transparent 70%);
+  pointer-events: none;
+  animation: rayMove 180s linear infinite;
+}
+
+.ray::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-image: var(--stripes), var(--rainbow);
+  background-size: 200%, 100%;
+  mix-blend-mode: difference;
+  animation: rayMoveAfter 125s linear infinite reverse;
+}
+
+[data-theme='dark'] .ray {
+  background-image: var(--stripesDark), var(--rainbow);
+  filter: opacity(50%) saturate(200%);
+}
+
+[data-theme='dark'] .ray::after {
+  background-image: var(--stripesDark), var(--rainbow);
+}
+
+@keyframes rayMove {
+  0% {
+    background-position: 0% 0%, 0% 0%;
+  }
+  100% {
+    background-position: 100% 100%, 100% 100%;
+  }
+}
+
+@keyframes rayMoveAfter {
+  0% {
+    background-position: 0% 0%, 0% 0%;
+  }
+  100% {
+    background-position: -100% -100%, -100% -100%;
+  }
+}
+
+/* Enhanced Apple Liquid Glass Navbar Styles */
 .navbar {
   position: fixed !important;
   top: 0 !important;
   left: 0 !important;
   right: 0 !important;
-  z-index: 1000 !important;
-  background: rgba(255, 255, 255, 0.08) !important;
-  backdrop-filter: blur(20px) saturate(1.8) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(1.8) !important;
+  z-index: 9999 !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+  backdrop-filter: blur(25px) saturate(200%) contrast(120%) brightness(110%) !important;
+  -webkit-backdrop-filter: blur(25px) saturate(200%) contrast(120%) brightness(110%) !important;
   border: none !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
   box-shadow: 
-    0 0 0 1px rgba(255, 255, 255, 0.1),
-    0 8px 32px rgba(0, 0, 0, 0.12),
-    0 2px 8px rgba(0, 0, 0, 0.08) !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    0 0 0 1px rgba(255, 255, 255, 0.03),
+    0 8px 32px rgba(0, 0, 0, 0.15),
+    0 2px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.02) !important;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) !important;
+}
+
+/* Edge distortion and refraction effects */
+.navbar::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    transparent 20%,
+    transparent 40%,
+    rgba(255, 255, 255, 0.04) 50%,
+    transparent 60%,
+    transparent 80%,
+    rgba(255, 255, 255, 0.08) 100%
+  );
+  border-radius: inherit;
+  z-index: -1;
+  filter: blur(1.5px);
+  opacity: 0.6;
+}
+
+.navbar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.06) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.04) 0%, transparent 50%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+  border-radius: inherit;
+  z-index: -1;
 }
 
 [data-theme='dark'] .navbar {
-  background: rgba(0, 0, 0, 0.3) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: rgba(0, 0, 0, 0.05) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.02) !important;
   box-shadow: 
-    0 0 0 1px rgba(255, 255, 255, 0.05),
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    0 2px 8px rgba(0, 0, 0, 0.2) !important;
+    0 0 0 1px rgba(255, 255, 255, 0.015),
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.01) !important;
+}
+
+[data-theme='dark'] .navbar::before {
+  background: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    transparent 20%,
+    transparent 40%,
+    rgba(255, 255, 255, 0.02) 50%,
+    transparent 60%,
+    transparent 80%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+}
+
+[data-theme='dark'] .navbar::after {
+  background: 
+    radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.02) 0%, transparent 50%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.015) 0%, rgba(255, 255, 255, 0.005) 100%);
 }
 
 /* Navbar content styling */
@@ -108,6 +236,7 @@
   background-clip: text !important;
   color: transparent !important;
   text-shadow: none !important;
+  filter: drop-shadow(0 0 8px rgba(102, 126, 234, 0.3));
 }
 
 [data-theme='dark'] .navbar__title {
@@ -115,56 +244,187 @@
   -webkit-background-clip: text !important;
   background-clip: text !important;
   color: transparent !important;
+  filter: drop-shadow(0 0 8px rgba(167, 139, 250, 0.4));
 }
 
 .navbar__item {
-  color: rgba(0, 0, 0, 0.8) !important;
+  color: rgba(0, 0, 0, 0.75) !important;
   font-weight: 500 !important;
-  transition: all 0.2s ease !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  backdrop-filter: blur(5px);
+  border-radius: 6px;
+  padding: 4px 8px !important;
+  margin: 0 2px;
 }
 
 [data-theme='dark'] .navbar__item {
-  color: rgba(255, 255, 255, 0.9) !important;
+  color: rgba(255, 255, 255, 0.8) !important;
 }
 
 .navbar__link:hover {
   color: #667eea !important;
   text-decoration: none !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(10px) saturate(150%) !important;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  transform: translateY(-1px);
 }
 
 [data-theme='dark'] .navbar__link:hover {
   color: #a78bfa !important;
+  background: rgba(255, 255, 255, 0.03) !important;
 }
 
-/* Dropdown styling */
+/* Enhanced Dropdown styling with liquid glass */
 .dropdown__menu {
-  background: rgba(255, 255, 255, 0.9) !important;
-  backdrop-filter: blur(20px) saturate(1.8) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(1.8) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  backdrop-filter: blur(25px) saturate(200%) contrast(120%) !important;
+  -webkit-backdrop-filter: blur(25px) saturate(200%) contrast(120%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
   border-radius: 12px !important;
   box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.12),
-    0 2px 8px rgba(0, 0, 0, 0.08) !important;
+    0 8px 32px rgba(0, 0, 0, 0.15),
+    0 2px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.02) !important;
+  overflow: hidden;
+}
+
+.dropdown__menu::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.01) 50%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  z-index: -1;
 }
 
 [data-theme='dark'] .dropdown__menu {
-  background: rgba(0, 0, 0, 0.8) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: rgba(0, 0, 0, 0.15) !important;
+  border: 1px solid rgba(255, 255, 255, 0.03) !important;
   box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    0 2px 8px rgba(0, 0, 0, 0.2) !important;
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 2px 8px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.01) !important;
 }
 
-/* Mobile menu styling */
+[data-theme='dark'] .dropdown__menu::before {
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.02) 0%,
+    rgba(255, 255, 255, 0.005) 50%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
+}
+
+.dropdown__link {
+  color: rgba(0, 0, 0, 0.8) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  backdrop-filter: blur(5px);
+  border-radius: 6px;
+  margin: 2px 4px;
+}
+
+.dropdown__link:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: rgba(0, 0, 0, 1) !important;
+  backdrop-filter: blur(10px) saturate(150%) !important;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+  transform: translateY(-1px);
+}
+
+[data-theme='dark'] .dropdown__link {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+[data-theme='dark'] .dropdown__link:hover {
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: rgba(255, 255, 255, 1) !important;
+}
+
+/* Enhanced Mobile menu styling */
 .navbar-sidebar {
-  background: rgba(255, 255, 255, 0.95) !important;
-  backdrop-filter: blur(20px) saturate(1.8) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(1.8) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(25px) saturate(200%) contrast(120%) !important;
+  -webkit-backdrop-filter: blur(25px) saturate(200%) contrast(120%) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
+  box-shadow: 
+    0 0 40px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+.navbar-sidebar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.01) 100%
+  );
+  z-index: -1;
 }
 
 [data-theme='dark'] .navbar-sidebar {
-  background: rgba(0, 0, 0, 0.95) !important;
+  background: rgba(0, 0, 0, 0.25) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.03) !important;
+  box-shadow: 
+    0 0 40px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+}
+
+[data-theme='dark'] .navbar-sidebar::before {
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0.015) 0%,
+    rgba(255, 255, 255, 0.005) 100%
+  );
+}
+
+.navbar-sidebar__backdrop {
+  backdrop-filter: blur(15px) !important;
+  background: rgba(0, 0, 0, 0.3) !important;
+}
+
+.navbar__toggle {
+  color: rgba(0, 0, 0, 0.8) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  backdrop-filter: blur(5px);
+  border-radius: 6px;
+  padding: 4px !important;
+}
+
+.navbar__toggle:hover {
+  color: rgba(0, 0, 0, 1) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(10px) !important;
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme='dark'] .navbar__toggle {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+[data-theme='dark'] .navbar__toggle:hover {
+  color: rgba(255, 255, 255, 1) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
 }
 
 /* Ensure content doesn't overlap with fixed navbar */
@@ -172,13 +432,81 @@
   padding-top: 60px !important;
 }
 
-/* Special frosted glass effect for homepage */
+/* Enhanced frosted glass effect for homepage */
 .homepage-navbar {
-  background: rgba(255, 255, 255, 0.05) !important;
-  backdrop-filter: blur(24px) saturate(2) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(2) !important;
+  background: rgba(255, 255, 255, 0.01) !important;
+  backdrop-filter: blur(30px) saturate(250%) contrast(125%) brightness(115%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(250%) contrast(125%) brightness(115%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03) !important;
+  box-shadow: 
+    0 0 0 1px rgba(255, 255, 255, 0.02),
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    0 2px 8px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.015) !important;
+}
+
+.homepage-navbar::before {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: -3px;
+  right: -3px;
+  bottom: -3px;
+  background: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.06) 0%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.03) 75%,
+    transparent 100%
+  );
+  border-radius: inherit;
+  z-index: -1;
+  filter: blur(2px);
+  opacity: 0.8;
+}
+
+.homepage-navbar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 15% 85%, rgba(255, 255, 255, 0.04) 0%, transparent 60%),
+    radial-gradient(circle at 85% 15%, rgba(255, 255, 255, 0.03) 0%, transparent 60%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 255, 255, 0.008) 100%);
+  border-radius: inherit;
+  z-index: -1;
 }
 
 [data-theme='dark'] .homepage-navbar {
-  background: rgba(0, 0, 0, 0.2) !important;
+  background: rgba(0, 0, 0, 0.03) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.015) !important;
+  box-shadow: 
+    0 0 0 1px rgba(255, 255, 255, 0.01),
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.008) !important;
+}
+
+[data-theme='dark'] .homepage-navbar::before {
+  background: linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    transparent 25%,
+    transparent 50%,
+    rgba(255, 255, 255, 0.015) 75%,
+    transparent 100%
+  );
+}
+
+[data-theme='dark'] .homepage-navbar::after {
+  background: 
+    radial-gradient(circle at 15% 85%, rgba(255, 255, 255, 0.02) 0%, transparent 60%),
+    radial-gradient(circle at 85% 15%, rgba(255, 255, 255, 0.015) 0%, transparent 60%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.01) 0%, rgba(255, 255, 255, 0.004) 100%);
 }

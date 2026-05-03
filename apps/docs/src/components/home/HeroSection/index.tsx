@@ -22,29 +22,9 @@ const HeroSection = () => {
   
   return (
     <section className="relative flex items-center justify-center overflow-hidden" style={{ minHeight: '100vh' }}>
-      {/* 柔和的彩色光线效果 - 使用固定定位让它延伸到整个页面 */}
-      <div className="fixed inset-0 pointer-events-none" style={{ zIndex: -1 }}>
-        <div 
-          className="absolute top-0 left-1/4 w-96 h-96 rounded-full blur-3xl"
-          style={{ backgroundColor: 'var(--homepage-hero-accent-1)' }}
-        ></div>
-        <div 
-          className="absolute bottom-0 right-1/4 w-96 h-96 rounded-full blur-3xl"
-          style={{ backgroundColor: 'var(--homepage-hero-accent-2)' }}
-        ></div>
-        <div 
-          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full blur-3xl"
-          style={{ backgroundColor: 'var(--homepage-hero-accent-3)' }}
-        ></div>
-        {/* 添加更多光线效果，延伸到页面下方 */}
-        <div 
-          className="absolute bottom-1/4 left-1/3 w-80 h-80 rounded-full blur-3xl"
-          style={{ backgroundColor: 'var(--homepage-hero-accent-1)' }}
-        ></div>
-        <div 
-          className="absolute top-3/4 right-1/3 w-72 h-72 rounded-full blur-3xl"
-          style={{ backgroundColor: 'var(--homepage-hero-accent-2)' }}
-        ></div>
+      {/* ElysiaJS 风格的动态光线效果 */}
+      <div className="absolute flex flex-col z-[40] w-full !max-w-full items-center justify-center bg-transparent transition-bg overflow-hidden h-[60vh] -top-16 pointer-events-none opacity-[.35] dark:opacity-50">
+        <div className="ray absolute opacity-60"></div>
       </div>
       
       <div className="relative container mx-auto px-6 text-center" style={{ zIndex: 1 }}>
