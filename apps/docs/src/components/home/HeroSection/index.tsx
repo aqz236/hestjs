@@ -64,7 +64,7 @@ const HeroSection = () => {
             transition={{ duration: 0.8, delay: 0.4 }}
           >
             <Translate id="homepage.hero.subtitle">
-              Flexible Node.js Packages, Not Framework Constraints
+              Flexible JavaScript Packages, Not Framework Constraints
             </Translate>
           </motion.h2>
           
