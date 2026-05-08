@@ -23,8 +23,9 @@ my-app/
 │   │           └── user.dto.ts
 │   │
 │   └── common/              # 公共组件
-│       ├── filters/         # 异常过滤器
-│       └── interceptors/    # 拦截器
+│       └── middleware/      # 中间件
+│           ├── exception.middleware.ts
+│           └── response.middleware.ts
 │
 ├── .vscode/                 # VS Code 配置
 ├── package.json             # 项目配置
@@ -80,10 +81,9 @@ src/
 
 ### 公共组件
 
-- **filters/**: 异常过滤器
-- **interceptors/**: 拦截器
-- **guards/**: 路由守卫
-- **middlewares/**: 中间件
+- **middleware/**: Hono 中间件
+- **guards/**: 路由守卫（如果需要）
+- **utils/**: 工具函数
 
 ## 最佳实践
 
@@ -116,9 +116,10 @@ export class UserService {
   ) {}
 }
 ```
+| 目录 | 用途 | 示例文件 |
 |--------|------|----------|
-| `filters/` | 异常过滤器 | `http-exception.filter.ts` |
-| `interceptors/` | 拦截器 | `response.interceptor.ts` |
+| `middleware/` | Hono中间件 | `exception.middleware.ts` |
+| `utils/` | 工具函数 | `helpers.ts` |
 
 #### ⚙️ 配置文件
 

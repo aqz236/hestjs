@@ -10,7 +10,7 @@
 - 获取用户详情
 - 数据验证
 - API 文档生成
-- 全局异常处理
+- 中间件错误处理
 
 ## 📁 项目结构
 
@@ -33,10 +33,9 @@ src/
 │       └── entities/
 │           └── user.entity.ts
 ├── common/                    # 公共组件
-│   ├── filters/
-│   │   └── http-exception.filter.ts
-│   └── interceptors/
-│       └── response.interceptor.ts
+│   └── middleware/
+│       ├── exception.middleware.ts
+│       └── response.middleware.ts
 └── config/
     └── env.ts
 ```
@@ -201,8 +200,7 @@ import {
   Put, 
   Delete, 
   Body, 
-  Param,
-  HttpStatus
+  Param
 } from '@hestjs/core';
 import { 
   ApiOperation, 
@@ -210,6 +208,7 @@ import {
   ApiBody, 
   ApiParam 
 } from '@hestjs/scalar';
+import { Context } from 'hono';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserDto } from './dto/user.dto';
@@ -244,12 +243,12 @@ export class UsersController {
       }
     }
   })
-  async findAll() {
+  async findAll(c: Context) {
     const users = await this.usersService.findAll();
-    return {
+    return c.json({
       data: users,
       message: 'Users retrieved successfully',
-    };
+    });
   }
 
   @Get('/:id')
@@ -281,19 +280,19 @@ export class UsersController {
     status: 404, 
     description: 'User not found' 
   })
-  async findById(@Param('id') id: string) {
+  async findById(@Param('id') id: string, c: Context) {
     const user = await this.usersService.findById(id);
     if (!user) {
-      return {
-        statusCode: HttpStatus.NOT_FOUND,
+      return c.status(404).json({
+        statusCode: 404,
         message: 'User not found',
-      };
+      });
     }
 
-    return {
+    return c.json({
       data: user,
       message: 'User found',
-    };
+    });
   }
 
   @Post()
@@ -336,19 +335,17 @@ export class UsersController {
     status: 400, 
     description: 'Invalid input data' 
   })
-  async create(@Body(CreateUserDto) createUserDto: CreateUserDto) {
+  async create(@Body(CreateUserDto) createUserDto: CreateUserDto, c: Context) {
     try {
       const user = await this.usersService.create(createUserDto);
-      return {
-        statusCode: HttpStatus.CREATED,
+      return c.status(201).json({
         data: user,
         message: 'User created successfully',
-      };
+      });
     } catch (error) {
-      return {
-        statusCode: HttpStatus.BAD_REQUEST,
+      return c.status(400).json({
         message: error instanceof Error ? error.message : 'Failed to create user',
-      };
+      });
     }
   }
 
@@ -379,20 +376,20 @@ export class UsersController {
   })
   async update(
     @Param('id') id: string,
-    @Body() updateData: Partial<CreateUserDto>
+    @Body() updateData: Partial<CreateUserDto>,
+    c: Context
   ) {
     const user = await this.usersService.update(id, updateData);
     if (!user) {
-      return {
-        statusCode: HttpStatus.NOT_FOUND,
+      return c.status(404).json({
         message: 'User not found',
-      };
+      });
     }
 
-    return {
+    return c.json({
       data: user,
       message: 'User updated successfully',
-    };
+    });
   }
 
   @Delete('/:id')
@@ -409,18 +406,17 @@ export class UsersController {
     status: 404, 
     description: 'User not found' 
   })
-  async delete(@Param('id') id: string) {
+  async delete(@Param('id') id: string, c: Context) {
     const deleted = await this.usersService.delete(id);
     if (!deleted) {
-      return {
-        statusCode: HttpStatus.NOT_FOUND,
+      return c.status(404).json({
         message: 'User not found',
-      };
+      });
     }
 
-    return {
+    return c.json({
       message: 'User deleted successfully',
-    };
+    });
   }
 }
 ```
@@ -441,40 +437,43 @@ import { UsersService } from './users.service';
 export class UsersModule {}
 ```
 
-## 🛡️ 步骤 5: 添加全局组件
+## 🛡️ 步骤 5: 添加中间件
 
-### 异常过滤器
+### 异常处理中间件
 ```typescript
-// src/common/filters/http-exception.filter.ts
-import { HttpExceptionFilter as BaseHttpExceptionFilter } from '@hestjs/core';
+// src/common/middleware/exception.middleware.ts
+import { Context, Next } from 'hono';
 import { logger } from '@hestjs/logger';
-import type { Context } from 'hono';
 
-export class HttpExceptionFilter extends BaseHttpExceptionFilter {
-  catch(error: Error, c: Context): Response | Promise<Response> {
+export const exceptionMiddleware = async (c: Context, next: Next) => {
+  try {
+    await next();
+  } catch (error) {
     logger.error('HTTP Exception:', {
-      error: error.message,
-      stack: error.stack,
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
       path: c.req.path,
       method: c.req.method,
     });
 
+    const err = error instanceof Error ? error : new Error('Unknown error');
+
     // 处理自定义错误
-    if (error.message.includes('already exists')) {
+    if (err.message.includes('already exists')) {
       return c.json({
         statusCode: 409,
-        message: error.message,
+        message: err.message,
         timestamp: new Date().toISOString(),
         path: c.req.path,
       }, 409);
     }
 
     // 处理验证错误
-    if (error.message.includes('validation')) {
+    if (err.message.includes('validation')) {
       return c.json({
         statusCode: 400,
         message: 'Validation failed',
-        details: error.message,
+        details: err.message,
         timestamp: new Date().toISOString(),
         path: c.req.path,
       }, 400);
@@ -488,39 +487,52 @@ export class HttpExceptionFilter extends BaseHttpExceptionFilter {
       path: c.req.path,
     }, 500);
   }
-}
+};
 ```
 
-### 响应拦截器
+### 响应包装中间件
 ```typescript
-// src/common/interceptors/response.interceptor.ts
-import { Interceptor, InterceptorContext } from '@hestjs/core';
+// src/common/middleware/response.middleware.ts
+import { Context, Next } from 'hono';
 import { logger } from '@hestjs/logger';
 
-export class ResponseInterceptor implements Interceptor {
-  async intercept(context: InterceptorContext, next: () => Promise<any>) {
-    const start = Date.now();
-    const { req } = context;
-    
-    logger.info(`→ ${req.method} ${req.path}`);
-    
-    const result = await next();
-    
-    const duration = Date.now() - start;
-    logger.info(`← ${req.method} ${req.path} (${duration}ms)`);
-    
-    // 统一响应格式
-    if (result && typeof result === 'object' && !result.statusCode) {
-      return {
-        success: true,
-        timestamp: new Date().toISOString(),
-        ...result,
-      };
-    }
-    
-    return result;
+export const responseMiddleware = async (c: Context, next: Next) => {
+  const start = Date.now();
+  
+  logger.info(`→ ${c.req.method} ${c.req.path}`);
+  
+  await next();
+  
+  // 跳过文档相关的路径
+  if (c.req.path === '/openapi.json' || c.req.path === '/docs' || c.req.path.startsWith('/api-docs')) {
+    return;
   }
-}
+  
+  const duration = Date.now() - start;
+  logger.info(`← ${c.req.method} ${c.req.path} (${duration}ms)`);
+  
+  // 只包装JSON响应，且响应状态为2xx
+  const contentType = c.res.headers.get('content-type');
+  if (contentType?.includes('application/json') && c.res.status >= 200 && c.res.status < 300) {
+    try {
+      // 克隆响应以避免消耗原始响应体
+      const responseClone = c.res.clone();
+      const originalResponse = await responseClone.json();
+      
+      const wrappedResponse = {
+        success: true,
+        data: originalResponse,
+        timestamp: new Date().toISOString(),
+        duration: `${duration}ms`,
+      };
+      
+      return c.json(wrappedResponse);
+    } catch (error) {
+      // 如果无法解析JSON，就保持原响应
+      console.warn('Failed to wrap response:', error);
+    }
+  }
+};
 ```
 
 ## 🔧 步骤 6: 配置应用模块
@@ -529,6 +541,7 @@ export class ResponseInterceptor implements Interceptor {
 // src/app.controller.ts
 import { Controller, Get } from '@hestjs/core';
 import { ApiOperation, ApiResponse } from '@hestjs/scalar';
+import { Context } from 'hono';
 
 @Controller()
 export class AppController {
@@ -550,12 +563,12 @@ export class AppController {
       }
     }
   })
-  health() {
-    return {
+  health(c: Context) {
+    return c.json({
       status: 'ok',
       message: 'HestJS application is running!',
       timestamp: new Date().toISOString(),
-    };
+    });
   }
 
   @Get()
@@ -575,11 +588,11 @@ export class AppController {
       }
     }
   })
-  welcome() {
-    return {
+  welcome(c: Context) {
+    return c.json({
       message: 'Welcome to HestJS!',
       version: '1.0.0',
-    };
+    });
   }
 }
 ```
@@ -617,34 +630,34 @@ export class AppModule {}
 
 ```typescript
 // src/index.ts
+import { Hono } from 'hono';
+import { cors } from 'hono/cors';
 import { HestFactory } from '@hestjs/core';
 import { logger } from '@hestjs/logger';
 import '@hestjs/scalar';
-import { ValidationInterceptor } from '@hestjs/validation';
-import { cors } from 'hono/cors';
 import { AppModule } from './app.module';
-import { HttpExceptionFilter } from './common/filters/http-exception.filter';
-import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { exceptionMiddleware } from './common/middleware/exception.middleware';
+import { responseMiddleware } from './common/middleware/response.middleware';
 
 async function bootstrap() {
   try {
     logger.info('🚀 Starting HestJS application...');
 
-    // 创建应用实例
-    const app = await HestFactory.create(AppModule);
+    // 创建 Hono 实例
+    const hono = new Hono();
     
     // 配置 CORS
-    app.hono().use(cors({
+    hono.use(cors({
       origin: ['http://localhost:3000', 'http://localhost:3001'],
       credentials: true,
     }));
 
-    // 注册全局拦截器
-    app.useGlobalInterceptors(new ValidationInterceptor());
-    app.useGlobalInterceptors(new ResponseInterceptor());
+    // 注册全局中间件
+    hono.use('*', exceptionMiddleware);
+    hono.use('*', responseMiddleware);
 
-    // 注册全局异常过滤器
-    app.useGlobalFilters(new HttpExceptionFilter());
+    // 创建应用实例
+    const app = await HestFactory.create(hono, AppModule);
 
     // 配置 API 文档
     app.useScalar({
@@ -670,7 +683,7 @@ async function bootstrap() {
     // 启动服务器
     Bun.serve({
       port,
-      fetch: app.hono().fetch,
+      fetch: hono.fetch,
       reusePort: true,
     });
 
@@ -741,7 +754,7 @@ curl http://localhost:3000/api/users/1
 ✅ **数据验证** - 基于 TypeBox 的验证系统  
 ✅ **依赖注入** - TSyringe 驱动的 DI 容器  
 ✅ **模块化架构** - 清晰的代码组织  
-✅ **全局组件** - 拦截器和异常过滤器  
+✅ **中间件系统** - 异常处理和响应包装  
 ✅ **API 文档** - 自动生成的 OpenAPI 文档  
 ✅ **日志系统** - 结构化日志记录  
 ✅ **错误处理** - 统一的错误处理机制  

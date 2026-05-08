@@ -80,16 +80,19 @@ my-app/
 打开 `src/app.controller.ts` 并编辑 `getHello` 方法：
 
 ```typescript
+import { Controller, Get } from '@hestjs/core';
+import { Context } from 'hono';
+
 @Controller('/api')
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
   @Get('/')
-  getHello() {
-    return { 
+  getHello(c: Context) {
+    return c.json({ 
       message: 'Hello from HestJS!',
       timestamp: new Date().toISOString()
-    };
+    });
   }
 }
 ```

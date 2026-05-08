@@ -9,18 +9,23 @@ HestJS 是一个基于 **Hono + Bun + TSyringe** 的现代化 TypeScript 库，�
 HestJS 采用装饰器驱动的开发模式，让你可以使用熟悉的语法来定义控制器、服务、中间件等组件：
 
 ```typescript
+import { Controller, Get, Post, Body } from '@hestjs/core';
+import { Context } from 'hono';
+
 @Controller('/api/users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get()
-  async findAll() {
-    return await this.userService.findAll();
+  async findAll(c: Context) {
+    const users = await this.userService.findAll();
+    return c.json(users);
   }
 
   @Post()
-  async create(@Body(CreateUserDto) createUserDto: CreateUserDto) {
-    return await this.userService.create(createUserDto);
+  async create(@Body(CreateUserDto) createUserDto: CreateUserDto, c: Context) {
+    const user = await this.userService.create(createUserDto);
+    return c.json(user);
   }
 }
 ```
@@ -101,8 +106,8 @@ export class CreateUserHandler implements ICommandHandler<CreateUserCommand> {
 
 - **日志系统**: 基于 Pino 的高性能日志
 - **API 文档**: 基于 Scalar 的 OpenAPI 集成
-- **拦截器**: 灵活的请求/响应拦截机制
-- **异常处理**: 完善的异常过滤和处理系统
+- **中间件系统**: 灵活的 Hono 中间件机制
+- **错误处理**: 完善的异常处理中间件
 
 #### 精美的 API 文档界面
 

@@ -10,12 +10,13 @@
 
 ```typescript
 import { Controller, Get } from '@hestjs/core';
+import { Context } from 'hono';
 
 @Controller('/api/users')
 export class UsersController {
   @Get()
-  findAll() {
-    return { users: [] };
+  findAll(c: Context) {
+    return c.json({ users: [] });
   }
 }
 ```
@@ -33,37 +34,38 @@ import {
   Delete, 
   Patch 
 } from '@hestjs/core';
+import { Context } from 'hono';
 
 @Controller('/api/users')
 export class UsersController {
   @Get()                    // GET /api/users
-  findAll() {
-    return { users: [] };
+  findAll(c: Context) {
+    return c.json({ users: [] });
   }
 
   @Get('/:id')             // GET /api/users/:id
-  findById() {
-    return { user: {} };
+  findById(c: Context) {
+    return c.json({ user: {} });
   }
 
   @Post()                  // POST /api/users
-  create() {
-    return { user: {}, message: 'Created' };
+  create(c: Context) {
+    return c.json({ user: {}, message: 'Created' });
   }
 
   @Put('/:id')             // PUT /api/users/:id
-  update() {
-    return { user: {}, message: 'Updated' };
+  update(c: Context) {
+    return c.json({ user: {}, message: 'Updated' });
   }
 
   @Delete('/:id')          // DELETE /api/users/:id
-  remove() {
-    return { message: 'Deleted' };
+  remove(c: Context) {
+    return c.json({ message: 'Deleted' });
   }
 
   @Patch('/:id')           // PATCH /api/users/:id
-  partialUpdate() {
-    return { user: {}, message: 'Partially updated' };
+  partialUpdate(c: Context) {
+    return c.json({ user: {}, message: 'Partially updated' });
   }
 }
 ```
@@ -74,24 +76,26 @@ export class UsersController {
 
 ```typescript
 import { Controller, Get, Param } from '@hestjs/core';
+import { Context } from 'hono';
 
 @Controller('/api/users')
 export class UsersController {
   @Get('/:id')
-  findById(@Param('id') id: string) {
+  findById(@Param('id') id: string, c: Context) {
     console.log('User ID:', id); // 从 URL 中提取的 ID
-    return { user: { id } };
+    return c.json({ user: { id } });
   }
 
   @Get('/:userId/posts/:postId')
   findUserPost(
     @Param('userId') userId: string,
-    @Param('postId') postId: string
+    @Param('postId') postId: string,
+    c: Context
   ) {
-    return { 
+    return c.json({ 
       user: { id: userId },
       post: { id: postId }
-    };
+    });
   }
 }
 ```
@@ -105,14 +109,15 @@ export class ApiController {
   getOrderItem(
     @Param('userId') userId: string,
     @Param('orderId') orderId: string,
-    @Param('itemId') itemId: string
+    @Param('itemId') itemId: string,
+    c: Context
   ) {
-    return {
+    return c.json({
       userId,
       orderId,
       itemId,
       item: {} // 实际的业务逻辑
-    };
+    });
   }
 }
 ```
@@ -121,6 +126,7 @@ export class ApiController {
 
 ```typescript
 import { Controller, Get, Query } from '@hestjs/core';
+import { Context } from 'hono';
 
 @Controller('/api/users')
 export class UsersController {
@@ -128,7 +134,8 @@ export class UsersController {
   findAll(
     @Query('page') page?: string,
     @Query('limit') limit?: string,
-    @Query('search') search?: string
+    @Query('search') search?: string,
+    c: Context
   ) {
     // 查询参数处理
     const pageNum = page ? parseInt(page, 10) : 1;
@@ -136,28 +143,29 @@ export class UsersController {
     
     console.log('Query params:', { page: pageNum, limit: limitNum, search });
     
-    return {
+    return c.json({
       users: [],
       pagination: {
         page: pageNum,
         limit: limitNum,
         total: 0
       }
-    };
+    });
   }
 
   @Get('/search')
   search(
     @Query('q') query: string,
     @Query('category') category?: string,
-    @Query('sort') sort?: string
+    @Query('sort') sort?: string,
+    c: Context
   ) {
-    return {
+    return c.json({
       query,
       category,
       sort,
       results: []
-    };
+    });
   }
 }
 ```
@@ -168,6 +176,7 @@ export class UsersController {
 
 ```typescript
 import { Controller, Post, Body } from '@hestjs/core';
+import { Context } from 'hono';
 
 interface CreateUserDto {
   name: string;
@@ -178,7 +187,7 @@ interface CreateUserDto {
 @Controller('/api/users')
 export class UsersController {
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
+  create(@Body() createUserDto: CreateUserDto, c: Context) {
     console.log('Received data:', createUserDto);
     
     // 业务逻辑处理
@@ -188,10 +197,10 @@ export class UsersController {
       createdAt: new Date()
     };
     
-    return {
+    return c.json({
       success: true,
       user: newUser
-    };
+    });
   }
 }
 ```
