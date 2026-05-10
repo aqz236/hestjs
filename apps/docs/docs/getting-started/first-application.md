@@ -5,6 +5,7 @@
 ## 🎯 应用概览
 
 我们将创建一个用户管理 API，包含以下功能：
+
 - 用户列表查询
 - 创建新用户
 - 获取用户详情
@@ -43,6 +44,7 @@ src/
 ## 🏗️ 步骤 1: 创建实体和 DTO
 
 ### 用户实体
+
 ```typescript
 // src/modules/users/entities/user.entity.ts
 export interface User {
@@ -56,6 +58,7 @@ export interface User {
 ```
 
 ### 用户 DTO
+
 ```typescript
 // src/modules/users/dto/create-user.dto.ts
 import { IsString, IsEmail, IsNumber } from '@hestjs/validation';
@@ -131,7 +134,7 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto): Promise<User> {
     logger.info('Creating new user', createUserDto);
-    
+  
     // 检查邮箱是否已存在
     const existingUser = this.users.find(user => user.email === createUserDto.email);
     if (existingUser) {
@@ -147,13 +150,13 @@ export class UsersService {
 
     this.users.push(newUser);
     logger.info(`User created with id: ${newUser.id}`);
-    
+  
     return newUser;
   }
 
   async update(id: string, updateData: Partial<CreateUserDto>): Promise<User | null> {
     logger.info(`Updating user with id: ${id}`, updateData);
-    
+  
     const userIndex = this.users.findIndex(user => user.id === id);
     if (userIndex === -1) {
       logger.warn(`User with id ${id} not found for update`);
@@ -168,13 +171,13 @@ export class UsersService {
 
     this.users[userIndex] = updatedUser;
     logger.info(`User with id ${id} updated successfully`);
-    
+  
     return updatedUser;
   }
 
   async delete(id: string): Promise<boolean> {
     logger.info(`Deleting user with id: ${id}`);
-    
+  
     const userIndex = this.users.findIndex(user => user.id === id);
     if (userIndex === -1) {
       logger.warn(`User with id ${id} not found for deletion`);
@@ -183,7 +186,7 @@ export class UsersService {
 
     this.users.splice(userIndex, 1);
     logger.info(`User with id ${id} deleted successfully`);
-    
+  
     return true;
   }
 }
@@ -440,6 +443,7 @@ export class UsersModule {}
 ## 🛡️ 步骤 5: 添加中间件
 
 ### 异常处理中间件
+
 ```typescript
 // src/common/middleware/exception.middleware.ts
 import { Context, Next } from 'hono';
@@ -491,6 +495,7 @@ export const exceptionMiddleware = async (c: Context, next: Next) => {
 ```
 
 ### 响应包装中间件
+
 ```typescript
 // src/common/middleware/response.middleware.ts
 import { Context, Next } from 'hono';
@@ -518,14 +523,14 @@ export const responseMiddleware = async (c: Context, next: Next) => {
       // 克隆响应以避免消耗原始响应体
       const responseClone = c.res.clone();
       const originalResponse = await responseClone.json();
-      
+    
       const wrappedResponse = {
         success: true,
         data: originalResponse,
         timestamp: new Date().toISOString(),
         duration: `${duration}ms`,
       };
-      
+    
       return c.json(wrappedResponse);
     } catch (error) {
       // 如果无法解析JSON，就保持原响应
@@ -645,7 +650,7 @@ async function bootstrap() {
 
     // 创建 Hono 实例
     const hono = new Hono();
-    
+  
     // 配置 CORS
     hono.use(cors({
       origin: ['http://localhost:3000', 'http://localhost:3001'],
@@ -659,8 +664,8 @@ async function bootstrap() {
     // 创建应用实例
     const app = await HestFactory.create(hono, AppModule);
 
-    // 配置 API 文档
-    app.useScalar({
+    // 配置 API 文档, 会自动将所有的Controller展示到docs中
+    app.useSwagger({
       info: {
         title: 'HestJS User Management API',
         version: '1.0.0',
@@ -679,7 +684,7 @@ async function bootstrap() {
     });
 
     const port = 3000;
-    
+  
     // 启动服务器
     Bun.serve({
       port,
@@ -711,6 +716,7 @@ bootstrap();
 ## 🧪 步骤 8: 测试应用
 
 启动开发服务器：
+
 ```bash
 bun run dev
 ```
@@ -718,16 +724,19 @@ bun run dev
 ### 测试 API 端点
 
 1. **健康检查**
+
 ```bash
 curl http://localhost:3000/health
 ```
 
 2. **获取所有用户**
+
 ```bash
 curl http://localhost:3000/api/users
 ```
 
 3. **创建新用户**
+
 ```bash
 curl -X POST http://localhost:3000/api/users \
   -H "Content-Type: application/json" \
@@ -739,25 +748,27 @@ curl -X POST http://localhost:3000/api/users \
 ```
 
 4. **获取特定用户**
+
 ```bash
 curl http://localhost:3000/api/users/1
 ```
 
 ### 查看 API 文档
+
 访问 `http://localhost:3000/docs` 查看自动生成的 API 文档。
 
 ## 🎉 完成！
 
 恭喜！你已经成功创建了第一个 HestJS 应用。这个应用包含了：
 
-✅ **RESTful API** - 完整的 CRUD 操作  
-✅ **数据验证** - 基于 TypeBox 的验证系统  
-✅ **依赖注入** - TSyringe 驱动的 DI 容器  
-✅ **模块化架构** - 清晰的代码组织  
-✅ **中间件系统** - 异常处理和响应包装  
-✅ **API 文档** - 自动生成的 OpenAPI 文档  
-✅ **日志系统** - 结构化日志记录  
-✅ **错误处理** - 统一的错误处理机制  
+✅ **RESTful API** - 完整的 CRUD 操作
+✅ **数据验证** - 基于 TypeBox 的验证系统
+✅ **依赖注入** - TSyringe 驱动的 DI 容器
+✅ **模块化架构** - 清晰的代码组织
+✅ **中间件系统** - 异常处理和响应包装
+✅ **API 文档** - 自动生成的 OpenAPI 文档
+✅ **日志系统** - 结构化日志记录
+✅ **错误处理** - 统一的错误处理机制
 
 ## 📚 下一步
 
