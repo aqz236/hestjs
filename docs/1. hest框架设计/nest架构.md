@@ -186,7 +186,7 @@ apps/
 
 ## 核心模块设计
 
-### 1. Core 模块 (@hest/core)
+### 1. Core 模块 (@hestjs/core)
 
 核心模块提供框架的基础功能：
 
@@ -196,7 +196,7 @@ apps/
 - **路由系统**: 自动扫描和注册路由
 - **异常处理**: 统一的异常处理机制
 
-### 2. Common 模块 (@hest/common)
+### 2. Common 模块 (@hestjs/common)
 
 通用功能模块：
 
@@ -206,7 +206,7 @@ apps/
 - **拦截器**: 请求/响应拦截处理
 - **DTO 基类**: 数据传输对象基础类
 
-### 3. Validation 模块 (@hest/validation)
+### 3. Validation 模块 (@hestjs/validation)
 
 数据验证模块：
 
@@ -214,7 +214,7 @@ apps/
 - **验证管道**: 自动数据验证
 - **自定义验证器**: 支持自定义验证逻辑
 
-### 4. Config 模块 (@hest/config)
+### 4. Config 模块 (@hestjs/config)
 
 配置管理模块：
 
@@ -236,7 +236,7 @@ apps/
 
 ```typescript
 // main.ts
-import { HestFactory } from "@hest/core";
+import { HestFactory } from "@hestjs/core";
 import { AppModule } from "./app.module";
 
 async function bootstrap() {
@@ -252,7 +252,7 @@ bootstrap();
 
 ```typescript
 // app.module.ts
-import { Module } from "@hest/core";
+import { Module } from "@hestjs/core";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 
@@ -267,7 +267,7 @@ export class AppModule {}
 
 ```typescript
 // app.controller.ts
-import { Controller, Get, Post, Body, Param } from "@hest/core";
+import { Controller, Get, Post, Body, Param } from "@hestjs/core";
 import { AppService } from "./app.service";
 import { CreateUserDto } from "./dto/create-user.dto";
 
@@ -296,7 +296,7 @@ export class AppController {
 
 ```typescript
 // app.service.ts
-import { Injectable } from "@hest/core";
+import { Injectable } from "@hestjs/core";
 
 @Injectable()
 export class AppService {
