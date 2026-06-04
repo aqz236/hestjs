@@ -1,0 +1,55 @@
+{
+  "name": "@hestjs/validation",
+  "version": "0.1.3",
+  "description": "HestJS Validation Module with TypeBox",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hestjs/core": "workspace:*",
+    "@sinclair/typebox": "^0.32.15",
+    "reflect-metadata": "^0.2.2"
+  },
+  "devDependencies": {
+    "@hestjs/typescript-config": "workspace:*",
+    "@types/node": "^20.0.0",
+    "typescript": "5.8.3"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "author": "aqz236",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aqz236/hestjs.git",
+    "directory": "packages/validation"
+  },
+  "homepage": "https://github.com/aqz236/hestjs/tree/main/packages/validation#readme",
+  "bugs": {
+    "url": "https://github.com/aqz236/hestjs/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "sideEffects": false
+}

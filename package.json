@@ -1,0 +1,38 @@
+{
+  "name": "hestjs",
+  "version": "0.0.0",
+  "private": true,
+  "description": "HestJS — 基于 Hono + Bun + TSyringe 的现代化 TypeScript 后端框架",
+  "license": "MIT",
+  "packageManager": "bun@1.4.2",
+  "engines": {
+    "node": ">=18",
+    "bun": ">=1.2.0"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "check-types": "turbo run check-types",
+    "clean": "turbo run clean",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,md,yml,yaml}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md,yml,yaml}\"",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "turbo run build && changeset publish"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.27.9",
+    "prettier": "^3.6.2",
+    "turbo": "^2.5.5",
+    "typescript": "5.8.3"
+  },
+  "overrides": {
+    "webpackbar": "^7.0.0"
+  }
+}

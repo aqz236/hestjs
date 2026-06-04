@@ -1,0 +1,70 @@
+{
+  "prettier.enable": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.formatOnSave": true,
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  // i18n-ally
+  "i18n-ally.enabledParsers": ["json"],
+  "i18n-ally.displayLanguage": "zh-CN",
+  "i18n-ally.localesPaths": ["i18n", "public/messages", "script/i18n"],
+  "i18n-ally.keystyle": "nested",
+
+  // 文件嵌套
+  "explorer.fileNesting.enabled": true,
+  "explorer.fileNesting.expand": true,
+  "explorer.fileNesting.patterns": {
+    "*.ts": "${basename}.md, ${basename}.d.ts, ${basename}.test.ts, ${basename}.spec.ts, ${basename}.stories.ts, ${basename}.stories.tsx",
+    "*.tsx": "${basename}.md, ${basename}.d.ts, ${basename}.test.tsx, ${basename}.spec.tsx, ${basename}.stories.ts, ${basename}.stories.tsx",
+    "*.js": "${basename}.md, ${basename}.d.ts, ${basename}.test.js, ${basename}.spec.js, ${basename}.stories.js, ${basename}.stories.jsx",
+    "*.jsx": "${basename}.md, ${basename}.d.ts, ${basename}.test.jsx, ${basename}.spec.jsx, ${basename}.stories.js, ${basename}.stories.jsx",
+    "*.env": ".env.local, .env.development, .env.production, .env.test",
+    "package.json": "package-lock.json, yarn.lock, pnpm-lock.yaml, .gitignore, .prettierrc, eslint.config.mjs, i18n.ts, components.json, postcss.config.mjs, tsconfig.json, eslint.config.ts, .prettierignore, bun.lock, .dockerignore",
+    "eslint.config.mjs": "eslint.config.cjs, eslint.config.jsx, eslint.config.ts, eslint.config.tsx",
+    "tsconfig.json": "tsconfig.cjs.json, tsconfig.jsx.json, tsconfig.ts.json, tsconfig.tsx.json",
+    "tailwind.config.mjs": "tailwind.config.cjs, tailwind.config.jsx, tailwind.config.ts, tailwind.config.tsx",
+    "next.config.ts": "next.config.cjs, next.config.jsx, next.config.tsx, next-env.d.ts"
+  },
+
+  // ESLint 配置
+  "eslint.enable": true,
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  "eslint.alwaysShowStatus": true,
+
+  // TypeScript 配置
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "typescript.suggest.autoImports": true,
+
+  // 额外的文件排除
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true
+    // "**/node_modules": true,
+    // "**/.next": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/bower_components": true,
+    "**/*.code-search": true,
+    "**/.next": true,
+    "**/dist": true
+  }
+}

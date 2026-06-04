@@ -1,9 +1,0 @@
-## 服务健康检测
-
-{{
-  const { getConsulConfigSafe } = require('./consul-config.js');
-  exports.consul = getConsulConfigSafe();
-}}
-
-GET {{consul.consul.check.http}}
-Accept: application/json

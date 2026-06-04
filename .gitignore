@@ -1,0 +1,51 @@
+# 依赖
+node_modules/
+.pnp
+.pnp.js
+
+# 构建产物
+dist/
+build/
+lib/
+out/
+.turbo/
+*.tsbuildinfo
+
+# 测试与覆盖率
+coverage/
+.nyc_output/
+
+# 环境变量（只提交 .env.example）
+.env
+.env.*
+!.env.example
+
+# 日志
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+bun-debug.log*
+logs/
+
+# 编辑器与系统
+.DS_Store
+.idea/
+*.swp
+*.swo
+
+# 例外：保留 .vscode 的共享配置
+!.vscode/
+
+# 缓存
+.cache/
+.eslintcache
+*.local
+
+# Docusaurus
+apps/docs/.docusaurus/
+apps/docs/build/
+
+# 本地数据
+*.sqlite
+*.db

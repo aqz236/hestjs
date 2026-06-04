@@ -1,0 +1,75 @@
+{
+  "name": "@hestjs/scalar",
+  "version": "0.1.6",
+  "description": "HestJS Scalar API Reference Integration - Beautiful API documentation for HestJS applications",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "check-types": "tsc --noEmit",
+    "prepublishOnly": "npm run clean && npm run build",
+    "publish:npm": "npm publish --access public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aqz236/hestjs.git",
+    "directory": "packages/scalar"
+  },
+  "homepage": "https://github.com/aqz236/hestjs/tree/main/packages/scalar#readme",
+  "bugs": {
+    "url": "https://github.com/aqz236/hestjs/issues"
+  },
+  "author": "aqz236",
+  "license": "MIT",
+  "dependencies": {
+    "@scalar/themes": "^0.13.11",
+    "hono": "^4.8.9",
+    "reflect-metadata": "^0.2.2"
+  },
+  "optionalDependencies": {
+    "@scalar/hono-api-reference": "^0.9.12",
+    "@scalar/openapi-to-markdown": "^0.2.23",
+    "ajv": "^8.17.1"
+  },
+  "devDependencies": {
+    "@hestjs/core": "workspace:*",
+    "@hestjs/typescript-config": "workspace:*",
+    "@types/node": "^24.1.0",
+    "typescript": "5.8.3"
+  },
+  "peerDependencies": {
+    "@hestjs/core": "workspace:^",
+    "hono": ">=4.0.0",
+    "typescript": ">=5.0.0"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "keywords": [
+    "hestjs",
+    "scalar",
+    "api-reference",
+    "openapi",
+    "swagger",
+    "documentation",
+    "hono",
+    "typescript"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "sideEffects": false
+}
