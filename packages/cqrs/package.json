@@ -18,7 +18,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/aqz236/hestjs.git",
+    "url": "git+https://github.com/aqz236/hestjs.git",
     "directory": "packages/cqrs"
   },
   "homepage": "https://github.com/aqz236/hestjs/tree/main/packages/cqrs#readme",
