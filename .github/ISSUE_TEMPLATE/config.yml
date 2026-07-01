@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 阅读贡献指南
+    url: https://github.com/aqz236/hestjs/blob/main/CONTRIBUTING.md
+    about: 环境准备、仓库结构、提交信息与发布流程都写在这里。

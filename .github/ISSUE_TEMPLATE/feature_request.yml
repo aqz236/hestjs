@@ -1,0 +1,56 @@
+name: 功能建议
+description: 提出一个新能力或改进
+title: '[feat] '
+labels: ['enhancement']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        HestJS 的目标是保持核心足够小。请先说明**要解决的问题**，再谈 API 形态。
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 你遇到的问题
+      description: 现在是怎么绕过去的？为什么绕不过去？
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 期望的 API
+      description: 如果只是想讨论，可以只写个方向。
+      render: typescript
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 考虑过的替代方案
+    validations:
+      required: false
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: 落点
+      options:
+        - 'packages/core'
+        - 'packages/cqrs'
+        - 'packages/validation'
+        - 'packages/logger'
+        - 'packages/scalar'
+        - '文档'
+        - '不确定'
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: willing
+    attributes:
+      label: 参与意愿
+      options:
+        - label: 我可以自己提 PR
+        - label: 我可以帮忙补测试

@@ -1,0 +1,72 @@
+name: Bug 报告
+description: 报告一个可复现的缺陷
+title: '[bug] '
+labels: ['bug']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈。可复现的最小示例是我们定位问题最快的方式，请尽量补齐下面的信息。
+        提交前请先搜索现有 Issue，避免重复。
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 现象
+      description: 实际发生了什么？期望的行为是什么？
+      placeholder: 调用 `@UseMiddleware()` 后拦截器没有执行，期望按注册顺序执行。
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: 最小复现
+      description: 一个能跑起来的最小示例，或仓库链接。
+      render: typescript
+    validations:
+      required: true
+
+  - type: dropdown
+    id: package
+    attributes:
+      label: 受影响包
+      multiple: true
+      options:
+        - '@hestjs/core'
+        - '@hestjs/cqrs'
+        - '@hestjs/validation'
+        - '@hestjs/logger'
+        - '@hestjs/scalar'
+        - '不确定'
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: 版本
+      description: 受影响包的版本，或对应的 commit SHA。
+      placeholder: '@hestjs/core@0.2.0'
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: 运行环境
+      value: |
+        - Bun:
+        - 操作系统:
+        - Hono:
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 报错堆栈或日志
+      description: 请粘贴完整堆栈，不要截断中间部分。
+      render: shell
+    validations:
+      required: false
