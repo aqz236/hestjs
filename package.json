@@ -28,9 +28,13 @@
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.9",
+    "@swc/core": "1.16.13",
+    "@vitest/coverage-v8": "5.0.3",
     "prettier": "^3.6.2",
     "turbo": "^2.5.5",
-    "typescript": "5.8.3"
+    "typescript": "5.8.3",
+    "unplugin-swc": "2.0.0",
+    "vitest": "5.0.3"
   },
   "overrides": {
     "webpackbar": "^7.0.0"
