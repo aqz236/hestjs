@@ -7,9 +7,9 @@ import { Controller } from '../decorators/controller';
 import { Injectable } from '../decorators/injectable';
 import { Body, Context, Get, Param, Post, Query } from '../decorators/route';
 import type { ExceptionFilter, ArgumentsHost } from '../exceptions/exception-filter';
-import { HttpException, NotFoundException } from '../exceptions/http-exception';
+import { BadRequestException, HttpException, NotFoundException } from '../exceptions/http-exception';
 import type { CallHandler, ExecutionContext, Interceptor } from '../interceptors/interceptor';
-import { RouterExplorer } from './router-explorer';
+import { compareRouteSpecificity, RouterExplorer } from './router-explorer';
 
 @Injectable()
 class ItemsService {
@@ -37,8 +37,8 @@ class ItemsService {
 class ItemsController {
   constructor(private readonly itemsService: ItemsService) {}
 
-  // 注意：静态路径必须声明在同层级的参数路径之前。
-  // RouterExplorer 按声明顺序注册路由，先注册的 /:id 会遮蔽后注册的 /ctx。
+  // 声明顺序不再影响匹配：RouterExplorer 注册前会按静态段优先排序。
+  // 这里刻意保持 /:id 在 /ctx 之前，用于验证该排序生效。
   @Get('/')
   list() {
     return this.itemsService.findAll();
@@ -237,7 +237,7 @@ describe('RouterExplorer：同层级路由优先级', () => {
     }
   }
 
-  it('先声明的参数路由会遮蔽后声明的静态路径', async () => {
+  it('即使参数路由先声明，静态路径仍然优先命中', async () => {
     const app = new Hono();
     const container = new Container();
     container.register(PrioController, PrioController, 'controller');
@@ -245,6 +245,74 @@ describe('RouterExplorer：同层级路由优先级', () => {
 
     const res = await app.request('/prio/static');
 
-    await expect(res.json()).resolves.toEqual({ matched: 'param', id: 'static' });
+    await expect(res.json()).resolves.toEqual({ matched: 'static' });
+  });
+
+  it('参数路径仍能正常匹配', async () => {
+    const app = new Hono();
+    const container = new Container();
+    container.register(PrioController, PrioController, 'controller');
+    new RouterExplorer(app, container).explore([PrioController]);
+
+    const res = await app.request('/prio/42');
+
+    await expect(res.json()).resolves.toEqual({ matched: 'param', id: '42' });
+  });
+});
+
+describe('compareRouteSpecificity', () => {
+  const order = (paths: string[]) =>
+    paths.map((path) => ({ path })).sort(compareRouteSpecificity).map((r) => r.path);
+
+  it('同层级静态段排在参数段之前', () => {
+    expect(order(['/:id', '/static'])).toEqual(['/static', '/:id']);
+  });
+
+  it('多段路径逐段比较', () => {
+    expect(order(['/a/:x/:y', '/a/b/:y', '/a/b/c'])).toEqual([
+      '/a/b/c',
+      '/a/b/:y',
+      '/a/:x/:y',
+    ]);
+  });
+
+  it('相同优先级时保持原有顺序（稳定排序）', () => {
+    expect(order(['/:a', '/:b'])).toEqual(['/:a', '/:b']);
+  });
+
+  it('不相关路径不影响彼此的相对顺序', () => {
+    expect(order(['/x', '/y'])).toEqual(['/x', '/y']);
+  });
+});
+
+describe('RouterExplorer：结构化异常到达客户端', () => {
+  @Controller('/structured')
+  class StructuredErrorController {
+    @Get('/')
+    fail(): never {
+      throw new BadRequestException({
+        message: '参数校验失败',
+        error: 'VALIDATION_FAILED',
+        field: 'email',
+        reason: 'invalid format',
+      });
+    }
+  }
+
+  it('details 会出现在 HTTP 响应体中', async () => {
+    const app = new Hono();
+    const container = new Container();
+    container.register(StructuredErrorController, StructuredErrorController, 'controller');
+    new RouterExplorer(app, container).explore([StructuredErrorController]);
+
+    const res = await app.request('/structured');
+    const body = (await res.json()) as Record<string, unknown>;
+
+    expect(res.status).toBe(400);
+    expect(body).toMatchObject({
+      message: '参数校验失败',
+      error: 'VALIDATION_FAILED',
+      details: { field: 'email', reason: 'invalid format' },
+    });
   });
 });

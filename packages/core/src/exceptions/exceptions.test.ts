@@ -55,15 +55,41 @@ describe('HttpException 及子类', () => {
     }
   });
 
-  // 记录当前缺陷：传入结构化对象时只读取其中的 message 字段，
-  // 其余字段被丢弃，且不会出现在 getResponse() 里。
-  // 见 issue「HttpException 丢弃结构化响应体」。
-  it('结构化 response 对象的额外字段目前会被丢弃', () => {
+  it('结构化 response 对象的额外字段保留在 details 中', () => {
     const err = new BadRequestException({ field: 'email', reason: 'invalid' });
 
     expect(err.status).toBe(400);
     expect(err.message).toBe('Http Exception');
-    expect(JSON.stringify(err.getResponse())).not.toContain('email');
+    expect(err.details).toEqual({ field: 'email', reason: 'invalid' });
+    expect(err.getResponse().details).toEqual({ field: 'email', reason: 'invalid' });
+  });
+
+  it('结构化 response 中的 message / error 会覆盖默认值', () => {
+    const err = new BadRequestException({
+      message: '邮箱格式不正确',
+      error: 'INVALID_EMAIL',
+      field: 'email',
+    });
+
+    expect(err.message).toBe('邮箱格式不正确');
+    expect(err.error).toBe('INVALID_EMAIL');
+    expect(err.details).toEqual({ field: 'email' });
+  });
+
+  it('description 会被保留并出现在响应体中', () => {
+    const err = new NotFoundException('用户不存在', 'USER_NOT_FOUND');
+    const body = err.getResponse();
+
+    expect(err.description).toBe('USER_NOT_FOUND');
+    expect(body.description).toBe('USER_NOT_FOUND');
+  });
+
+  it('未传结构化对象时 details 为空且不出现在响应体中', () => {
+    const err = new BadRequestException('简单消息');
+    const body = err.getResponse();
+
+    expect(err.details).toBeUndefined();
+    expect('details' in body).toBe(false);
   });
 
   it('允许自定义描述覆盖默认文案', () => {
