@@ -1,0 +1,13 @@
+# 默认评审人
+*       @aqz236
+
+# CI、发布与仓库配置
+/.github/   @aqz236
+/scripts/   @aqz236
+
+# 会发布到 npm 的包
+/packages/core/         @aqz236
+/packages/cqrs/         @aqz236
+/packages/validation/   @aqz236
+/packages/logger/       @aqz236
+/packages/scalar/       @aqz236
