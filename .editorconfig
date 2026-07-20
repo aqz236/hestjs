@@ -16,3 +16,13 @@ indent_size = 2
 
 [Makefile]
 indent_style = tab
+
+[*.{ts,tsx,mts,cts}]
+indent_size = 2
+quote_type = single
+
+[*.json]
+indent_size = 2
+
+[*.{sh,bash}]
+indent_size = 2

@@ -1,0 +1,15 @@
+# 默认按文本处理，统一使用 LF
+* text=auto eol=lf
+
+# 二进制资源不做换行符转换
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.woff binary
+*.woff2 binary
+
+# 生成物不参与 diff
+bun.lock     -diff linguist-generated
+*.snap       -diff linguist-generated
