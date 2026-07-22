@@ -62,15 +62,37 @@ describe('Container', () => {
     expect(resolved.dep).toBe(container.resolve(SingletonService));
   });
 
-  // 注意：这是 tsyringe 的既有行为，不是 HestJS 特意设计的。
-  // 未注册的类 token 不会被拒绝，而是被直接构造并注入其可解析的依赖。
-  // 也就是说 Container.resolve 不是「只允许已注册项」的白名单。
-  // 这一点与 issue #14（模块无作用域隔离）是同一个根因。
-  it('未注册的类 token 会被直接构造，而不是抛错', () => {
+  // tsyringe 的原始行为是直接构造未注册的类，使 Container 失去白名单语义。
+  // 现已改为显式拒绝，这与模块可见性控制是配套的（见 #14 / #17）。
+  it('未注册的类 token 会抛错，而不是被构造', () => {
     class NeverRegistered {}
 
-    expect(() => container.resolve(NeverRegistered)).not.toThrow();
+    expect(() => container.resolve(NeverRegistered)).toThrow(
+      /Cannot resolve unregistered token "NeverRegistered"/,
+    );
     expect(container.isRegistered(NeverRegistered)).toBe(false);
+  });
+
+  it('未注册的字符串 token 报错时给出可读名称', () => {
+    expect(() => container.resolve('MISSING_TOKEN' as never)).toThrow(/MISSING_TOKEN/);
+  });
+
+  it('未注册的 symbol token 报错时给出可读名称', () => {
+    const token = Symbol('SOME_TOKEN');
+
+    expect(() => container.resolve(token as never)).toThrow(/SOME_TOKEN/);
+  });
+
+  it('tryResolve 对未注册 token 返回 undefined 而不抛错', () => {
+    class Nope {}
+
+    expect(container.tryResolve(Nope)).toBeUndefined();
+  });
+
+  it('tryResolve 对已注册 token 返回实例', () => {
+    container.register(SingletonService, SingletonService);
+
+    expect(container.tryResolve(SingletonService)).toBeInstanceOf(SingletonService);
   });
 
   it('registerInstance 按值注册', () => {
