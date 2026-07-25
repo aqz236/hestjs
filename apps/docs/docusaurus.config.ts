@@ -18,12 +18,12 @@ const config: Config = {
   url: 'https://aqz236.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/hestjs-demo/',
+  baseUrl: '/hestjs/',
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'aqz236', // Usually your GitHub org/user name.
-  projectName: 'hestjs-demo', // Usually your repo name.
+  projectName: 'hestjs', // Usually your repo name.
   deploymentBranch: 'gh-pages', // The branch to deploy to
   trailingSlash: false,
 
@@ -46,8 +46,7 @@ const config: Config = {
           sidebarPath: './sidebars.ts',
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
+          editUrl: 'https://github.com/aqz236/hestjs/tree/main/apps/docs/',
         },
         blog: {
           showReadingTime: true,
@@ -57,8 +56,7 @@ const config: Config = {
           },
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/',
+          editUrl: 'https://github.com/aqz236/hestjs/tree/main/apps/docs/',
           // Useful options to enforce blogging best practices
           onInlineTags: 'warn',
           onInlineAuthors: 'warn',
@@ -98,7 +96,7 @@ const config: Config = {
           position: 'right',
         },
         {
-          href: 'https://github.com/aqz236/hestjs-demo',
+          href: 'https://github.com/aqz236/hestjs',
           label: 'GitHub',
           position: 'right',
         },
@@ -121,7 +119,7 @@ const config: Config = {
           items: [
             {
               label: 'GitHub',
-              href: 'https://github.com/aqz236/hestjs-demo',
+              href: 'https://github.com/aqz236/hestjs',
             },
           ],
         },
@@ -134,7 +132,7 @@ const config: Config = {
             },
             {
               label: 'GitHub',
-              href: 'https://github.com/aqz236/hestjs-demo',
+              href: 'https://github.com/aqz236/hestjs',
             },
           ],
         },

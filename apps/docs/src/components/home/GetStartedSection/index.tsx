@@ -47,7 +47,7 @@ const GetStartedSection = () => {
             </Button>
             
             <Button asChild variant="ghost" size="xl" className=" border-white hover:bg-white hover:text-blue-600">
-              <Link to="https://github.com/aqz236/hestjs-demo" target="_blank">
+              <Link to="https://github.com/aqz236/hestjs" target="_blank">
                 <Download className="w-5 h-5 mr-2" />
                 <Translate id="homepage.getStarted.examples">
                   Download Examples
