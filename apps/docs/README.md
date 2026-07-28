@@ -2,7 +2,7 @@
 
 HestJS 官方文档网站，使用 [Docusaurus](https://docusaurus.io/) 构建。
 
-🌐 **在线访问**: https://aqz236.github.io/hestjs-demo/
+🌐 **在线访问**: https://aqz236.github.io/hestjs/
 
 ## 🚀 快速开始
 
@@ -115,6 +115,6 @@ packages/hestjs-docs/
 
 ---
 
-**🌐 在线访问**: https://aqz236.github.io/hestjs-demo/
+**🌐 在线访问**: https://aqz236.github.io/hestjs/
 
-**📖 HestJS 项目**: https://github.com/aqz236/hestjs-demo
+**📖 HestJS 项目**: https://github.com/aqz236/hestjs
