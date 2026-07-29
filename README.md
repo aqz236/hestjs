@@ -183,6 +183,51 @@ export class UserController {
 }
 ```
 
+### 模块与作用域 (Modules)
+
+`imports` 与 `exports` 是**真实生效**的可见性边界，不只是初始化顺序的声明。
+
+每个模块拥有独立的子容器，订阅规则如下：
+
+- 模块自己的 `providers` 只在该模块内可见
+- 只有被 `exports` 声明的 provider，导入方才能使用
+- 单例在多个导入方之间共享同一个实例；`transient` 则每次解析都是新对象
+- 同一模块被多处 `import` 时只初始化一次
+
+```typescript
+@Injectable()
+export class UserRepository {}
+
+@Module({
+  providers: [UserRepository],
+  exports: [UserRepository],        // 不写 exports，外部就看不到
+})
+export class UserModule {}
+
+@Controller('/users')
+export class UsersController {
+  constructor(private readonly repo: UserRepository) {}
+}
+
+@Module({
+  imports: [UserModule],            // 需要显式 import
+  controllers: [UsersController],
+})
+export class AppModule {}
+```
+
+越权依赖**在启动时**就会以明确的错误暴露，而不是等到运行期：
+
+```
+模块 AppModule 中的 UsersController 依赖 UserRepository（第 0 个构造参数），
+但该依赖对 AppModule 不可见。它由模块 UserModule 提供，但未对该模块导出；
+请在 UserModule 的 exports 中声明 UserRepository，并把 UserModule
+加入 AppModule 的 imports。
+```
+
+> 已知限制：`@Inject('字符串令牌')` 的参数类型在 `design:paramtypes` 中呈现为
+> Object/String 等内置类型，无法还原真实令牌，因此这类依赖不会被静态校验覆盖。
+
 ### 验证系统 (Validation)
 
 #### 基础验证装饰器

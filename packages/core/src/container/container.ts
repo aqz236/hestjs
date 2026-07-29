@@ -54,6 +54,10 @@ export class Container {
   private static instance: Container;
   private container: DependencyContainer;
   private logicalContainer: Map<InjectionToken<any>, LogicalContainerItem> = new Map();
+  /** 由本容器派生的模块子容器 */
+  private readonly children: Container[] = [];
+  /** 父容器（根容器为 undefined） */
+  private parent?: Container;
 
   constructor() {
     this.container = tsyringeContainer.createChildContainer();
@@ -146,11 +150,23 @@ export class Container {
 
   /**
    * 创建子容器
+   *
+   * 模块系统用它为每个模块建立独立的解析作用域：子容器只能看到自己与
+   * 祖先容器中注册的内容，因而天然形成可见性边界。
    */
   createChild(): Container {
     const child = new Container();
     child.container = this.container.createChildContainer();
+    child.parent = this;
+    this.children.push(child);
     return child;
+  }
+
+  /**
+   * 直接子容器
+   */
+  getChildren(): readonly Container[] {
+    return this.children;
   }
 
   /**
@@ -168,10 +184,27 @@ export class Container {
   }
 
   /**
-   * 获取指定类型的所有项
+   * 获取指定类型的所有项（含子容器）
+   *
+   * 模块各自把 provider 注册在自己的子容器里，因此应用级查询需要向下聚合。
+   * 同 token 以更靠近根的注册为准，避免子容器里的重导出重复计数。
    */
   getItemsByType(type: 'controller' | 'provider' | 'module'): LogicalContainerItem[] {
-    return Array.from(this.logicalContainer.values()).filter(item => item.type === type);
+    const seen = new Map<InjectionToken<any>, LogicalContainerItem>();
+
+    const collect = (container: Container): void => {
+      for (const item of container.getLogicalContainer().values()) {
+        if (item.type === type && !seen.has(item.token)) {
+          seen.set(item.token, item);
+        }
+      }
+      for (const child of container.children) {
+        collect(child);
+      }
+    };
+
+    collect(this);
+    return Array.from(seen.values());
   }
 
   /**
