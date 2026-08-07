@@ -10,9 +10,12 @@
   ],
   "scripts": {
     "build": "tsc",
-    "dev": "tsc --watch",
+    "check-types": "tsc --noEmit",
     "clean": "rm -rf dist",
-    "check-types": "tsc --noEmit"
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@hestjs/core": "workspace:*",
