@@ -93,21 +93,25 @@ export class ValidationPipe {
     const errors: ValidationError[] = [];
 
     // 创建 TypeBox 对象 schema
+    //
+    // 注意：Type.Object 会依据属性列表自行推导 required，**显式传入的
+    // required 选项会被忽略**。因此可选字段必须用 Type.Optional 包裹，
+    // 否则 @IsOptional() 只是标记了元数据，实际仍会被当作必填
+    // （该缺陷曾使 @IsOptional 端到端完全失效）。
     const schemaProperties: Record<string, TSchema> = {};
-    const requiredFields: string[] = [];
 
     for (const prop of metadata.properties) {
       const propName = String(prop.propertyKey);
-      schemaProperties[propName] = prop.schema;
-
-      if (!prop.isOptional) {
-        requiredFields.push(propName);
-      }
+      schemaProperties[propName] = prop.isOptional
+        ? Type.Optional(prop.schema)
+        : prop.schema;
     }
 
+    // additionalProperties 必须为 true：多余字段的处理交给 filterProperties。
+    // 若按 `!whitelist` 设置，extra 字段会在校验阶段直接失败，
+    // 使 whitelist 的语义从「移除」变成「禁止」，forbidNonWhitelisted 也就失去意义。
     const objectSchema = Type.Object(schemaProperties, {
-      required: requiredFields,
-      additionalProperties: !this.options.whitelist,
+      additionalProperties: true,
     });
 
     // 使用 TypeBox 进行验证
@@ -127,6 +131,32 @@ export class ValidationPipe {
             field,
             error.value,
             String(error.type || "validation")
+          )
+        );
+      }
+    }
+
+    // 自定义断言：TypeBox 无法表达的规则在这里兜底
+    for (const prop of metadata.properties) {
+      if (!prop.validate) {
+        continue;
+      }
+
+      const field = String(prop.propertyKey);
+      const value = (object as Record<string, unknown>)[field];
+
+      // 缺省交给 required 规则处理，断言只管「有值时是否合法」
+      if (value === undefined || value === null) {
+        continue;
+      }
+
+      if (!prop.validate(value)) {
+        errors.push(
+          new ValidationError(
+            prop.message || `${field} 校验失败`,
+            field,
+            value,
+            'custom'
           )
         );
       }

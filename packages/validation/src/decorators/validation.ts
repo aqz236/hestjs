@@ -22,6 +22,12 @@ export interface PropertyValidationMetadata {
   schema: TSchema;
   isOptional?: boolean;
   message?: string;
+  /**
+   * 自定义断言。用于 TypeBox 无法表达、或表达起来很别扭的规则
+   * （例如「必须是合法 JSON」）。返回 false 即视为校验失败。
+   * 仅在属性值不为 undefined 时执行，缺省仍交由 required 规则处理。
+   */
+  validate?: (value: unknown) => boolean;
 }
 
 /**
@@ -167,7 +173,13 @@ export function IsEnum(enumValues: any[], options: { message?: string } = {}) {
  * 日期验证装饰器
  */
 export function IsDate(options: { message?: string } = {}) {
-  const schema = Type.String({ format: 'date-time' });
+  // 注意：这里必须用 pattern 而不是 `format: 'date-time'`。
+  // TypeBox 的 Value.Check 默认不校验 JSON Schema 的 format 关键字，
+  // 用 format 会让该装饰器实际接受任意字符串。
+  const schema = Type.String({
+    pattern:
+      '^\\d{4}-\\d{2}-\\d{2}(?:[Tt]\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:[Zz]|[+-]\\d{2}:\\d{2})?)?$',
+  });
   return createPropertyValidator(schema, { message: options.message || 'Must be a valid date' });
 }
 
