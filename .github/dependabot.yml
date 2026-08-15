@@ -11,5 +11,16 @@ updates:
       interval: weekly
       day: monday
     open-pull-requests-limit: 5
+    labels:
+      - dependencies
+      - ci
     commit-message:
       prefix: "chore(ci)"
+    groups:
+      # 同类 action 合成一个 PR，避免一周刷出四五条互不相干的更新
+      github-actions:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
