@@ -16,7 +16,7 @@ import {
   ISaga,
   SagaType,
 } from "./interfaces";
-import { ObservableBus } from "./utils";
+import { ObservableBus, resolveTypeName } from "./utils";
 
 @Injectable()
 export class EventBus<EventBase extends IEvent = IEvent>
@@ -168,8 +168,8 @@ export class EventBus<EventBase extends IEvent = IEvent>
     this._publisher = new DefaultEventPubSub<EventBase>();
   }
 
-  private getEventName(event: any): string {
-    const { constructor } = Object.getPrototypeOf(event);
-    return constructor.name;
+  private getEventName(value: any): string {
+    // 入参可能是类（注册时）或实例（执行时），必须得到同一个名字
+    return resolveTypeName(value);
   }
 }

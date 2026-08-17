@@ -16,7 +16,7 @@ import {
   IQueryResult,
   QueryHandlerType,
 } from "./interfaces";
-import { ObservableBus } from "./utils";
+import { ObservableBus, resolveTypeName } from "./utils";
 
 @Injectable()
 export class QueryBus<QueryBase extends IQuery = IQuery>
@@ -114,8 +114,8 @@ export class QueryBus<QueryBase extends IQuery = IQuery>
     this._publisher = new DefaultQueryPubSub<QueryBase>();
   }
 
-  private getQueryName(query: any): string {
-    const { constructor } = Object.getPrototypeOf(query);
-    return constructor.name;
+  private getQueryName(value: any): string {
+    // 入参可能是类（注册时）或实例（执行时），必须得到同一个名字
+    return resolveTypeName(value);
   }
 }
