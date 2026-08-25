@@ -1,3 +1,4 @@
+import { OpenAPIGenerator } from '../openapi-generator';
 /**
  * 生成基础 OpenAPI 文档结构
  */
@@ -34,7 +35,9 @@ export function generateBaseOpenApiSpec(config: {
  * 从类元数据生成 OpenAPI schema
  */
 export function generateSchemaFromClass(target: any): object {
-  const properties = Reflect.getMetadata('api:properties', target) || {};
+  // key 必须与 @ApiProperty 的写入一致（'openapi:properties'）。
+  // 早先读的是重构前的 'api:properties'，没有任何装饰器写它，函数恒返回空 schema。
+  const properties = Reflect.getMetadata('openapi:properties', target) || {};
   const schema: any = {
     type: 'object',
     properties: {},
@@ -44,17 +47,19 @@ export function generateSchemaFromClass(target: any): object {
 
   for (const [propertyKey, metadata] of Object.entries(properties)) {
     const propMetadata = metadata as any;
-    schema.properties[propertyKey] = {
-      type: getTypeString(propMetadata.type),
-      description: propMetadata.description,
-      example: propMetadata.example,
-    };
+
+    // @ApiProperty 存进来的本就是一个 OpenAPI SchemaObject，
+    // 直接透传即可。早先这里用 getTypeString() 把它当成构造函数再推导一次，
+    // 而 SchemaObject.type 是字符串（'string'/'number'），推导结果恒为 'object'，
+    // 导致所有属性类型都错。
+    const { required: isRequired, ...rest } = propMetadata;
+    schema.properties[propertyKey] = { ...rest };
 
     if (propMetadata.enum) {
       schema.properties[propertyKey].enum = propMetadata.enum;
     }
 
-    if (propMetadata.required) {
+    if (isRequired) {
       required.push(propertyKey);
     }
   }
@@ -68,120 +73,28 @@ export function generateSchemaFromClass(target: any): object {
 
 /**
  * 从控制器生成 OpenAPI 路径
+ *
+ * 直接委托给 OpenAPIGenerator，避免重复实现一套元数据读取逻辑。
+ * 原实现读取的是重构前的 'api:*' 与 'route' 键，与装饰器写入的
+ * 'openapi:*' 以及 core 的路由元数据完全对不上，实际恒返回空对象。
  */
-export function generatePathsFromController(controller: any, basePath: string = ''): object {
-  const paths: any = {};
-  const controllerTags = Reflect.getMetadata('api:tags', controller) || [];
-  
-  // 获取控制器的所有方法
-  const prototype = controller.prototype;
-  const methodNames = Object.getOwnPropertyNames(prototype).filter(
-    name => name !== 'constructor' && typeof prototype[name] === 'function'
-  );
+export function generatePathsFromController(
+  controller: any,
+  basePath?: string
+): object {
+  // 未显式传入时读取 @Controller 的路径，与 setupScalarWithControllers 一致
+  const resolvedBasePath =
+    basePath ??
+    Reflect.getMetadata(Symbol.for('hest:controller'), controller)?.path ??
+    '';
 
-  for (const methodName of methodNames) {
-    const routeMetadata = Reflect.getMetadata('route', prototype, methodName);
-    if (!routeMetadata) continue;
+  const generator = new OpenAPIGenerator({
+    info: { title: 'Generated API', version: '0.0.0' },
+  });
 
-    const { method, path } = routeMetadata;
-    const fullPath = `${basePath}${path}`;
-    
-    if (!paths[fullPath]) {
-      paths[fullPath] = {};
-    }
+  generator.addController(controller, resolvedBasePath);
 
-    const operation = generateOperationFromMethod(controller, methodName, controllerTags);
-    paths[fullPath][method.toLowerCase()] = operation;
-  }
-
-  return paths;
-}
-
-/**
- * 从方法生成 OpenAPI 操作
- */
-function generateOperationFromMethod(controller: any, methodName: string, tags: string[]): object {
-  const prototype = controller.prototype;
-  const operation: any = {
-    tags,
-  };
-
-  // 获取操作元数据
-  const operationMetadata = Reflect.getMetadata('api:operation', prototype, methodName);
-  if (operationMetadata) {
-    operation.summary = operationMetadata.summary;
-    operation.description = operationMetadata.description;
-    operation.operationId = operationMetadata.operationId || `${controller.name}_${methodName}`;
-  }
-
-  // 获取参数元数据
-  const parametersMetadata = Reflect.getMetadata('api:parameters', controller) || {};
-  if (parametersMetadata[methodName]) {
-    operation.parameters = parametersMetadata[methodName].map((param: any) => ({
-      name: param.name,
-      in: param.in,
-      description: param.description,
-      required: param.required || param.in === 'path',
-      schema: {
-        type: getTypeString(param.type),
-        example: param.example,
-      },
-    }));
-  }
-
-  // 获取请求体元数据
-  const bodyMetadata = Reflect.getMetadata('api:body', prototype, methodName);
-  if (bodyMetadata) {
-    operation.requestBody = {
-      description: bodyMetadata.description,
-      required: bodyMetadata.required,
-      content: {
-        'application/json': {
-          schema: bodyMetadata.type ? generateSchemaFromClass(bodyMetadata.type) : {},
-        },
-      },
-    };
-  }
-
-  // 获取响应元数据
-  const responsesMetadata = Reflect.getMetadata('api:responses', controller) || {};
-  if (responsesMetadata[methodName]) {
-    operation.responses = {};
-    for (const response of responsesMetadata[methodName]) {
-      operation.responses[response.status] = {
-        description: response.description,
-        content: response.type ? {
-          'application/json': {
-            schema: response.schema || generateSchemaFromClass(response.type),
-          },
-        } : undefined,
-      };
-    }
-  } else {
-    // 默认响应
-    operation.responses = {
-      200: {
-        description: 'Success',
-      },
-    };
-  }
-
-  return operation;
-}
-
-/**
- * 获取类型字符串
- */
-function getTypeString(type: any): string {
-  if (!type) return 'string';
-  
-  if (type === String) return 'string';
-  if (type === Number) return 'number';
-  if (type === Boolean) return 'boolean';
-  if (type === Date) return 'string';
-  if (Array.isArray(type)) return 'array';
-  
-  return 'object';
+  return (generator.generateDocument() as any).paths ?? {};
 }
 
 /**
