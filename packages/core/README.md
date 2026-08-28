@@ -202,15 +202,17 @@ HestJS Core 包含以下主要模块：
 
 ### 🏭 应用工厂
 
-#### `HestFactory.create(moduleClass)`
+#### `HestFactory.create(honoInstance, moduleClass)`
 
 创建应用实例的静态方法。
 
 ```typescript
+import { Hono } from "hono";
 import { HestFactory } from "@hestjs/core";
 import { AppModule } from "./app.module";
 
-const app = await HestFactory.create(AppModule);
+const hono = new Hono();
+const app = await HestFactory.create(hono, AppModule);
 ```
 
 ### 🎮 控制器装饰器
@@ -343,13 +345,144 @@ export class UsersService {
 }
 ```
 
+### 🔄 拦截器
+
+拦截器是**面向 controller 方法**的横切能力。它比 Hono 中间件多知道一件事：
+**即将执行的是哪个方法**，因此可以依据方法上的装饰器元数据工作。
+
+#### 接口
+
+```typescript
+interface Interceptor<T = any, R = any> {
+  intercept(
+    context: ExecutionContext,
+    next: CallHandler<T>,
+  ): Observable<R> | Promise<Observable<R>> | Promise<R>;
+}
+
+interface ExecutionContext {
+  /** 控制器类本身 */
+  getClass(): any;
+  /** 当前方法信息 */
+  getHandler(): any;
+  /** 方法参数（当前恒为空数组，见下方注意事项） */
+  getArgs(): any[];
+  getArgByIndex<T = any>(index: number): T;
+  /** 切到 HTTP 视图，拿到原始 Hono Context / Request */
+  switchToHttp(): HttpArgumentsHost;
+}
+
+interface CallHandler<T = any> {
+  /** 调用链的下一环；最后一环会去解析参数并执行 controller 方法 */
+  handle(): Observable<T> | Promise<T>;
+}
+```
+
+#### 示例
+
+```typescript
+import type {
+  CallHandler,
+  ExecutionContext,
+  Interceptor,
+} from '@hestjs/core';
+import { Injectable } from '@hestjs/core';
+
+@Injectable()
+export class LoggingInterceptor implements Interceptor {
+  async intercept(context: ExecutionContext, next: CallHandler) {
+    const request = context.switchToHttp().getRequest();
+    const started = Date.now();
+
+    try {
+      return await next.handle();
+    } finally {
+      console.log(`${request.method} ${request.url} - ${Date.now() - started}ms`);
+    }
+  }
+}
+
+// 注册（全局生效）
+app.useGlobalInterceptors(new LoggingInterceptor());
+```
+
+#### 执行顺序
+
+```
+Hono 中间件（app.getHonoInstance().use(...)）
+└─ 拦截器 1 前半
+   └─ 拦截器 2 前半
+      └─ 参数解析（@Body / @Param / @Query / @Context）
+         └─ controller 方法
+      ┌─ 拦截器 2 后半（next.handle() 返回后）
+   ┌─ 拦截器 1 后半
+└─ 返回值处理
+```
+
+按注册顺序**先进后出**；`next.handle()` 内部才去做参数解析，
+因此拦截器可以包住参数解析与控制器调用（也可以选择不调用它）。
+
+⚠️ 尚无 `@UseInterceptors()` 这类方法级装饰器，目前**只能全局注册**。
+
+#### 注意事项
+
+- `getHandler()` 返回的是 `{ name: '<方法名>' }` 形式的描述对象，
+  **不是**真实的方法引用
+- `getArgs()` 目前恒为空数组；需要方法参数时请在方法内部读取，
+  或使用 Hono 原生中间件
+- 返回 HTTP 响应时，请直接 `return`（或返回 `Response`），
+  拦截器包装过的返回值会走与普通返回值相同的序列化流程
+
+### 🚨 异常过滤器
+
+异常过滤器捕获 handler 中的任何抛出物：拦截器、参数解析、controller 方法。
+
+#### 接口
+
+```typescript
+interface ExceptionFilter<T = any> {
+  catch(exception: T, host: ArgumentsHost): any;
+}
+
+interface ArgumentsHost {
+  getContext(): Context;   // 原始 Hono Context
+  getRequest(): any;
+  getResponse(): any;
+}
+```
+
+#### 示例
+
+```typescript
+import type { ArgumentsHost, ExceptionFilter } from '@hestjs/core';
+import { HttpException } from '@hestjs/core';
+
+export class HttpExceptionFilter implements ExceptionFilter<HttpException> {
+  catch(exception: HttpException, host: ArgumentsHost) {
+    const c = host.getContext();
+    return c.json(exception.getResponse(), exception.status);
+  }
+}
+
+app.useGlobalFilters(new HttpExceptionFilter());
+```
+
+#### 匹配规则
+
+按注册顺序依次尝试，**第一个不抛错的结果胜出**；
+全部未命中时回退到 `DefaultExceptionFilter`（`HttpException` 用其 `status`，
+其余一律 500）。
+
+⚠️ 目前**只有全局过滤器**，没有控制器级/方法级过滤器，
+也不会按异常类型自动筛选 —— 需要自行在 `catch` 里判断类型。
+
 ### 🌐 直接访问 Hono
 
 HestJS 不会封装 Hono，你可以直接使用所有 Hono 功能：
 
 ```typescript
-const app = await HestFactory.create(AppModule);
-const honoApp = app.hono();
+const app = await HestFactory.create(hono, AppModule);
+const honoApp = app.getHonoInstance();
 
 // 使用 Hono 原生中间件
 honoApp.use(cors());

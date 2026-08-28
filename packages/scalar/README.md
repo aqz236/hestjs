@@ -16,20 +16,21 @@ import { ScalarModule } from '@hestjs/scalar';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await HestFactory.create(AppModule);
+  const hono = new Hono();
+  const app = await HestFactory.create(hono, AppModule);
   
   // Configure Scalar API Reference
   app.useScalar({
     path: '/docs',           // Documentation path
     spec: '/openapi.json',   // OpenAPI spec endpoint
-    theme: 'hest',          // Custom HestJS theme
+    theme: 'elysia',         // 可选：elysia | default | alternate | moon | purple | solarized | none
     title: 'My API Documentation'
   });
 
   // Start server
   Bun.serve({
     port: 3000,
-    fetch: app.hono().fetch,
+    fetch: app.getHonoInstance().fetch,
   });
 }
 
