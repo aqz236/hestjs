@@ -44,5 +44,10 @@ jobs:
       - name: Build
         run: bun run build
 
+      - name: Check changeset
+        if: github.event_name == 'pull_request'
+        run: node scripts/check-changeset.mjs
+        env:
+          CHANGESET_BASE_REF: origin/${{ github.base_ref }}
       - name: Test
         run: bun run test
