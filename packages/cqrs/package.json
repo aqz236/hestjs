@@ -39,6 +39,7 @@
   "devDependencies": {
     "@hestjs/core": "workspace:*",
     "@types/node": "^24.1.0",
+    "hono": "^4.8.9",
     "typescript": "5.8.3"
   },
   "peerDependencies": {

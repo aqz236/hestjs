@@ -3,200 +3,107 @@ import { createLogger } from "@hestjs/logger";
 import { CommandBus } from "./command-bus";
 import { QueryBus } from "./query-bus";
 import { EventBus } from "./event-bus";
-import { ExplorerService } from "./services/explorer.service";
 import {
   COMMAND_HANDLER_METADATA,
   EVENT_HANDLER_METADATA,
   QUERY_HANDLER_METADATA,
+  SAGA_METADATA,
 } from "./constants";
 
 const logger = createLogger("CqrsAutoInit");
 
 /**
+ * 从容器取已有实例；不存在则新建并注册进去
+ */
+function resolveOrCreate<T>(container: Container, token: new () => T): T {
+  const existing = container.tryResolve<T>(token);
+  if (existing) {
+    return existing;
+  }
+
+  const created = new token();
+  container.registerInstance(token, created);
+  return created;
+}
+
+/**
+ * 按装饰器元数据从逻辑容器中归类出各处理器
+ */
+function collectHandlers(container: Container) {
+  const handlers = {
+    commands: [] as any[],
+    queries: [] as any[],
+    events: [] as any[],
+    sagas: [] as any[],
+  };
+
+  for (const item of container.getItemsByType('provider')) {
+    const candidate = item.provider as any;
+
+    if (Reflect.hasMetadata(COMMAND_HANDLER_METADATA, candidate)) {
+      handlers.commands.push(candidate);
+    }
+    if (Reflect.hasMetadata(QUERY_HANDLER_METADATA, candidate)) {
+      handlers.queries.push(candidate);
+    }
+    if (Reflect.hasMetadata(EVENT_HANDLER_METADATA, candidate)) {
+      handlers.events.push(candidate);
+    }
+    if (Reflect.hasMetadata(SAGA_METADATA, candidate)) {
+      handlers.sagas.push(candidate);
+    }
+  }
+
+  return handlers;
+}
+
+/**
  * CQRS 自动初始化扩展
- * 
- * 通过 core 包的钩子系统自动注册 CQRS 相关的处理器
- * 这样避免了 core 包与 CQRS 包的直接耦合
+ *
+ * 通过 core 的钩子系统在应用引导阶段拿到 HestJS 的 `Container`，
+ * 然后：
+ *
+ * 1. 取出（或创建）三条总线，并把容器注入它们 —— 总线据此解析 handler，
+ *    从而受模块 `imports` / `exports` 约束
+ * 2. 从逻辑容器中发现处理器，交给总线**公开的** `register()` 完成注册
+ *
+ * 早先的实现绕过了第 1、2 步：它手工读 `design:paramtypes` 自行 new 出实例，
+ * 再直接写总线的私有 map。这带来两个问题：
+ *
+ * - handler 的构造函数依赖由本文件自行解析，不受模块作用域约束（issue #19）
+ * - 事件处理器写的是 `eventBus.handlers`，而 EventBus 的实际字段是
+ *   `eventHandlers`，导致事件处理器**从未注册成功**，且不报错
  */
 export function initializeCqrsAutoDiscovery() {
-  // 注册应用启动钩子
   ApplicationHooks.getInstance().registerHook(async (container: Container) => {
     try {
       logger.info("🔄 Auto-discovering CQRS handlers...");
-      
-      // 尝试从容器中获取已存在的CQRS服务实例，如果没有则创建新的
-      let commandBus: CommandBus;
-      let queryBus: QueryBus;
-      let eventBus: EventBus;
-      
-      try {
-        commandBus = container.resolve(CommandBus);
-        queryBus = container.resolve(QueryBus);
-        eventBus = container.resolve(EventBus);
-        logger.info("🔗 Using existing CQRS service instances from container");
-      } catch {
-        // 如果容器中没有，则创建新的实例
-        commandBus = new CommandBus();
-        queryBus = new QueryBus();
-        eventBus = new EventBus();
-        logger.info("🆕 Created new CQRS service instances");
-        
-        // 将新实例注册到容器中
-        container.registerInstance(CommandBus, commandBus);
-        container.registerInstance(QueryBus, queryBus);
-        container.registerInstance(EventBus, eventBus);
-      }
-      
-      // 从逻辑容器中发现处理器
-      const providerItems = container.getItemsByType('provider');
-      const handlers = {
-        commands: [] as any[],
-        queries: [] as any[],
-        events: [] as any[],
-        sagas: [] as any[]
-      };
-      
-      for (const item of providerItems) {
-        const handlerClass = item.provider;
-        
-        // 检查命令处理器
-        if (Reflect.hasMetadata(COMMAND_HANDLER_METADATA, handlerClass)) {
-          handlers.commands.push(handlerClass);
-          // logger.debug(`Found command handler: ${handlerClass.name}`);
-        }
-        
-        // 检查查询处理器
-        if (Reflect.hasMetadata(QUERY_HANDLER_METADATA, handlerClass)) {
-          handlers.queries.push(handlerClass);
-          // logger.debug(`Found query handler: ${handlerClass.name}`);
-        }
-        
-        // 检查事件处理器
-        if (Reflect.hasMetadata(EVENT_HANDLER_METADATA, handlerClass)) {
-          handlers.events.push(handlerClass);
-          // logger.debug(`Found event handler: ${handlerClass.name}`);
-        }
-      }
-      
-      // 手动注册处理器到总线（避免容器解析问题）
-      registerHandlersManually(commandBus, queryBus, eventBus, handlers, container);
-      
-      logger.info(`✅ CQRS handlers auto-discovery completed: ${handlers.commands.length} commands, ${handlers.queries.length} queries, ${handlers.events.length} events`);
-      
+
+      const commandBus = resolveOrCreate(container, CommandBus);
+      const queryBus = resolveOrCreate(container, QueryBus);
+      const eventBus = resolveOrCreate(container, EventBus);
+
+      // 把 HestJS 容器注入总线，使其解析 handler 时受模块作用域约束
+      commandBus.setContainer(container);
+      queryBus.setContainer(container);
+      eventBus.setContainer(container);
+
+      const handlers = collectHandlers(container);
+
+      commandBus.register(handlers.commands);
+      queryBus.register(handlers.queries);
+      eventBus.register(handlers.events);
+      eventBus.registerSagas(handlers.sagas);
+
+      logger.info(
+        `✅ CQRS handlers auto-discovery completed: ` +
+          `${handlers.commands.length} commands, ${handlers.queries.length} queries, ` +
+          `${handlers.events.length} events, ${handlers.sagas.length} sagas`
+      );
     } catch (error) {
       logger.error("❌ Failed to auto-discover CQRS handlers:", error);
     }
   });
-}
-
-/**
- * 手动注册处理器到总线，避免容器解析问题
- */
-function registerHandlersManually(
-  commandBus: CommandBus,
-  queryBus: QueryBus,
-  eventBus: EventBus,
-  handlers: any,
-  container: Container
-): void {
-  // 注册命令处理器
-  for (const HandlerClass of handlers.commands) {
-    try {
-      const commandType = Reflect.getMetadata(COMMAND_HANDLER_METADATA, HandlerClass);
-      if (commandType) {
-        // 手动解析构造函数依赖并创建实例
-        const handlerInstance = createHandlerInstance(HandlerClass, container);
-        const commandName = commandType.name;
-        
-        // 直接设置到 commandBus 的内部映射
-        (commandBus as any).handlers.set(commandName, (command: any) => 
-          (handlerInstance as any).execute(command)
-        );
-        
-        // logger.info(`Manually registered command handler for "${commandName}"`);
-      }
-    } catch (error) {
-      logger.error(`Failed to register command handler ${HandlerClass.name}:`, error);
-    }
-  }
-  
-  // 注册查询处理器
-  for (const HandlerClass of handlers.queries) {
-    try {
-      const queryType = Reflect.getMetadata(QUERY_HANDLER_METADATA, HandlerClass);
-      if (queryType) {
-        // 手动解析构造函数依赖并创建实例
-        const handlerInstance = createHandlerInstance(HandlerClass, container);
-        const queryName = queryType.name;
-        
-        // 直接设置到 queryBus 的内部映射
-        (queryBus as any).handlers.set(queryName, (query: any) => 
-          (handlerInstance as any).execute(query)
-        );
-        
-        // logger.info(`Manually registered query handler for "${queryName}"`);
-      }
-    } catch (error) {
-      logger.warn(`Failed to register query handler ${HandlerClass.name}:`, error);
-    }
-  }
-  
-  // 注册事件处理器
-  for (const HandlerClass of handlers.events) {
-    try {
-      const eventTypes = Reflect.getMetadata(EVENT_HANDLER_METADATA, HandlerClass);
-      if (eventTypes) {
-        // 手动解析构造函数依赖并创建实例
-        const handlerInstance = createHandlerInstance(HandlerClass, container);
-        
-        // 处理可能有多个事件类型的情况
-        const eventTypeArray = Array.isArray(eventTypes) ? eventTypes : [eventTypes];
-        
-        for (const eventType of eventTypeArray) {
-          const eventName = eventType.name;
-          
-          // 直接设置到 eventBus 的内部映射  
-          if (!(eventBus as any).handlers) {
-            (eventBus as any).handlers = new Map();
-          }
-          
-          if (!(eventBus as any).handlers.has(eventName)) {
-            (eventBus as any).handlers.set(eventName, []);
-          }
-          
-          (eventBus as any).handlers.get(eventName).push((event: any) => 
-            (handlerInstance as any).handle(event)
-          );
-          
-          logger.info(`Manually registered event handler for "${eventName}"`);
-        }
-      }
-    } catch (error) {
-      logger.warn(`Failed to register event handler ${HandlerClass.name}:`, error);
-    }
-  }
-}
-
-/**
- * 手动创建处理器实例并解析依赖
- */
-function createHandlerInstance(HandlerClass: any, container: Container): any {
-  // 获取构造函数参数类型
-  const paramTypes = Reflect.getMetadata('design:paramtypes', HandlerClass) || [];
-  
-  // 解析每个依赖
-  const dependencies = paramTypes.map((paramType: any) => {
-    try {
-      // 尝试从容器中解析依赖
-      return container.resolve(paramType);
-    } catch (error) {
-      logger.warn(`Failed to resolve dependency ${paramType?.name || 'unknown'} for ${HandlerClass.name}, using null`);
-      return null;
-    }
-  });
-  
-  // 创建实例
-  return new HandlerClass(...dependencies);
 }
 
 // 自动初始化

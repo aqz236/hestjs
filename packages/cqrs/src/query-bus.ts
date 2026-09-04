@@ -1,6 +1,5 @@
 import { Injectable, logger } from "@hestjs/core";
 import "reflect-metadata";
-import { container } from "tsyringe";
 import { Query } from "./classes";
 import { QUERY_HANDLER_METADATA } from "./constants";
 import {
@@ -98,10 +97,8 @@ export class QueryBus<QueryBase extends IQuery = IQuery>
       );
     }
 
-    // Get handler instance from container
-    const handlerInstance = container.resolve(
-      target
-    ) as IQueryHandler<QueryBase>;
+    // 通过 HestJS 容器解析，确保 handler 受模块作用域约束（见 issue #19）
+    const handlerInstance = this.resolveType<IQueryHandler<QueryBase>>(target);
 
     this.handlers.set(queryName, (query: QueryBase) =>
       handlerInstance.execute(query)
