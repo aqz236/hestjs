@@ -54,11 +54,8 @@ export class EventBus<EventBase extends IEvent = IEvent>
     this.publishToSubject(event);
 
     try {
-      // Handle event handlers
-      const handlers = this.eventHandlers.get(eventName) || [];
-      await Promise.all(
-        handlers.map((handler) => Promise.resolve(handler.handle(event)))
-      );
+      // 经 publisher 分发给事件处理器
+      await this.publisher.publish(event);
 
       // Handle sagas
       const eventSagas = this.sagas.get(eventName) || [];
@@ -118,11 +115,15 @@ export class EventBus<EventBase extends IEvent = IEvent>
     events.forEach((eventType: any) => {
       const eventName = this.getEventName(eventType);
 
+      const dispatch = (event: EventBase) => handlerInstance.handle(event);
+
       if (!this.eventHandlers.has(eventName)) {
         this.eventHandlers.set(eventName, []);
       }
 
+      // 本地映射用于内省，实际分发交给 publisher
       this.eventHandlers.get(eventName)!.push(handlerInstance);
+      this.publisher.addHandler(eventName, dispatch);
       logger.info(`Registered event handler for "${eventName}"`);
     });
   }

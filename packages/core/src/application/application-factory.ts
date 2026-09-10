@@ -108,6 +108,11 @@ export class HestFactory {
     const moduleContainer = parentContainer.createChild();
     bootstrap.containers.set(moduleClass, moduleContainer);
 
+    // 让 Container 本身可被注入（等价于 NestJS 的 ModuleRef）。
+    // 需要枚举容器内容的 provider 会依赖它，例如 @hestjs/cqrs 的 ExplorerService。
+    // 注册的是根容器，因为「枚举全部已注册项」是应用级需求。
+    moduleContainer.registerInstance(Container, parentContainer);
+
     // 注册模块自身
     moduleContainer.register(moduleClass, moduleClass, 'module');
 

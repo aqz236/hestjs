@@ -65,7 +65,7 @@ export class QueryBus<QueryBase extends IQuery = IQuery>
     this.publishToSubject(query);
 
     try {
-      return await handler(query);
+      return await this.publisher.publish(query);
     } catch (error) {
       logger.error(`Error executing query "${queryName}":`, String(error));
       throw error;
@@ -100,9 +100,10 @@ export class QueryBus<QueryBase extends IQuery = IQuery>
     // 通过 HestJS 容器解析，确保 handler 受模块作用域约束（见 issue #19）
     const handlerInstance = this.resolveType<IQueryHandler<QueryBase>>(target);
 
-    this.handlers.set(queryName, (query: QueryBase) =>
-      handlerInstance.execute(query)
-    );
+    const dispatch = (query: QueryBase) => handlerInstance.execute(query);
+
+    this.handlers.set(queryName, dispatch);
+    this.publisher.setHandler(queryName, dispatch);
 
     logger.info(`Registered query handler for "${queryName}"`);
   }
