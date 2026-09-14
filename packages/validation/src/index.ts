@@ -17,3 +17,4 @@ export * from './utils/validation.utils';
 // TypeBox 相关导出
 export { Type, type TSchema, type Static } from '@sinclair/typebox';
 export { Value } from '@sinclair/typebox/value';
+export * from './utils/normalize';
