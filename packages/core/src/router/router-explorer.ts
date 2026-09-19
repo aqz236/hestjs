@@ -151,6 +151,13 @@ export class RouterExplorer {
       route.methodName
     );
 
+    // 该路由生效的中间件（类级在前，方法级在后）。
+    // 它们注册在 Hono 层，因此执行顺序为：中间件 → 拦截器 → controller 方法
+    const middlewares = MetadataScanner.scanMiddlewares(
+      controllerInstance.constructor as ControllerConstructor,
+      route.methodName
+    );
+
     // 创建增强的路由处理器（支持拦截器和异常处理）
     const handler: RouteHandler = async (c: HestContext) => {
       try {
@@ -206,34 +213,40 @@ export class RouterExplorer {
       }
     };
 
-    // 注册到 Hono
+    // 注册到 Hono：中间件在前，handler 在最后。
+    // Hono 的重载签名无法接受「运行期长度不定」的 handler 数组，
+    // 因此这里退化为 any 调用；受控范围仅限本段。
+    const chain = [...middlewares, handler];
+    const hono = this.app as any;
+
     switch (method) {
       case "get":
-        this.app.get(fullPath, handler);
+        hono.get(fullPath, ...chain);
         break;
       case "post":
-        this.app.post(fullPath, handler);
+        hono.post(fullPath, ...chain);
         break;
       case "put":
-        this.app.put(fullPath, handler);
+        hono.put(fullPath, ...chain);
         break;
       case "delete":
-        this.app.delete(fullPath, handler);
+        hono.delete(fullPath, ...chain);
         break;
       case "patch":
-        this.app.patch(fullPath, handler);
+        hono.patch(fullPath, ...chain);
         break;
       case "options":
-        this.app.options(fullPath, handler);
+        hono.options(fullPath, ...chain);
         break;
       case "head":
-        this.app.on(method.toUpperCase(), fullPath, handler);
+        hono.on(method.toUpperCase(), fullPath, ...chain);
         break;
       default:
         throw new Error(`Unsupported HTTP method: ${method}`);
     }
     logger.info(
-      `${getRouteEmoji(route.method, fullPath)} Mapped {${fullPath}, ${route.method}}`
+      `${getRouteEmoji(route.method, fullPath)} Mapped {${fullPath}, ${route.method}}` +
+        (middlewares.length > 0 ? ` (+${middlewares.length} middleware)` : "")
     );
   }
 

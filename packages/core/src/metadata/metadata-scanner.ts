@@ -58,6 +58,31 @@ export class MetadataScanner {
   }
 
   /**
+   * 扫描类级中间件
+   */
+  static scanClassMiddlewares(target: any): any[] {
+    return Reflect.getMetadata(METADATA_KEYS.MIDDLEWARE, target) ?? [];
+  }
+
+  /**
+   * 扫描方法级中间件
+   */
+  static scanMethodMiddlewares(target: any, methodName: string): any[] {
+    const key = `${METADATA_KEYS.MIDDLEWARE.toString()}_${methodName}`;
+    return Reflect.getMetadata(key, target) ?? [];
+  }
+
+  /**
+   * 扫描某个方法实际生效的中间件（类级在前，方法级在后）
+   */
+  static scanMiddlewares(target: any, methodName: string): any[] {
+    return [
+      ...MetadataScanner.scanClassMiddlewares(target),
+      ...MetadataScanner.scanMethodMiddlewares(target, methodName),
+    ];
+  }
+
+  /**
    * 获取构造函数参数类型
    */
   static getConstructorParameters(target: any): any[] {
