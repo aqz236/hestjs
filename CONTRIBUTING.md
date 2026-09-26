@@ -74,6 +74,16 @@ bun run changeset
 - PR 描述里说明动机、改动范围与验证方式
 - 行为变更请补充测试；仓库目前测试覆盖不足（见 issue #2），欢迎一并补齐
 
+## 测试与评审
+
+- 新增行为请配单元测试，测试文件与被测源码同目录，命名为 `*.test.ts`
+- 修缺陷时优先写一个能复现的测试，再改实现；这样回归时能立刻发现
+- 测试配置见仓库根目录的 `vitest.shared.mts`，说明见
+  `docs/2. gitbook/techniques/testing.md`
+- PR 上的 `Check changeset` 步骤会拦住「改了 `packages/*` 但没写 changeset」
+  的情况，本地可以先跑 `node scripts/check-changeset.mjs` 自查
+- 评审只要求两件事：行为变化有测试覆盖，公开 API 的变化有 changeset 与文档
+
 ## 报告问题
 
 请使用 [Issue](https://github.com/aqz236/hestjs/issues)，并尽量附上：
