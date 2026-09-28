@@ -469,11 +469,16 @@ bun run changeset          # 为本次改动记录 changeset
 - `Interceptor` / `ExecutionContext` / `CallHandler` - 拦截器
 - `ValidationInterceptor` - 验证拦截器
 
+## 📐 原始设计稿
+
+2025 年的原始设计稿保留在 [docs/](./docs)：
+
+- [`docs/1. hest框架设计/`](./docs/1.%20hest框架设计) —— 框架设计稿
+- [`docs/2. gitbook/`](./docs/2.%20gitbook) —— 概念文档体系
+
 ## 🤝 贡献
 
 欢迎贡献代码！请查看 [CONTRIBUTING.md](./CONTRIBUTING.md)。
-
-仓库从 13 个分散仓库合并而来，迁移过程与遗留问题记录在 [MIGRATION.md](./MIGRATION.md)。
 
 ## 📄 许可证
 
