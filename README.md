@@ -107,7 +107,7 @@ packages/
 
 apps/
 ├── hestjs-demo/              # 完整功能演示
-├── playground/               # CQRS 示例
+├── cqrs-demo/                # CQRS 示例
 ├── docs/                     # Docusaurus 文档站
 └── create-hest-app/          # 脚手架
 

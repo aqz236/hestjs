@@ -14,7 +14,7 @@ import { QueryBus } from './query-bus';
  */
 
 describe('CQRS 自动发现：总线复用模块容器中的实例', () => {
-  // 复现 playground 的结构：控制器注入的总线由 CqrsModule 提供，
+  // 复现 cqrs-demo 的结构：控制器注入的总线由 CqrsModule 提供，
   // 而 auto-discovery 拿到的是根容器。若不在子容器中查找已有实例，
   // 会另建一套总线，导致控制器注入的那套永远没有 handler。
   class ReuseQuery extends Query<{ ok: boolean }> {}
