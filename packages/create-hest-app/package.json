@@ -47,5 +47,17 @@
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aqz236/hestjs.git",
+    "directory": "packages/create-hest-app"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "homepage": "https://github.com/aqz236/hestjs/tree/main/packages/create-hest-app#readme",
+  "bugs": {
+    "url": "https://github.com/aqz236/hestjs/issues"
   }
 }

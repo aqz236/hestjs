@@ -49,7 +49,7 @@
 | [`@hestjs/logger`](./packages/logger) | 基于 pino 的日志模块 |
 | [`@hestjs/typescript-config`](./packages/typescript-config) | 共享 tsconfig |
 | [`@hestjs/eslint-config`](./packages/eslint-config) | 共享 ESLint 配置 |
-| [`create-hest-app`](./apps/create-hest-app) | 项目脚手架 |
+| [`create-hest-app`](./packages/create-hest-app) | 项目脚手架 |
 
 ## 🚀 快速开始
 
@@ -102,19 +102,17 @@ packages/
 ├── cqrs/                     # CQRS 模块
 ├── scalar/                   # OpenAPI / Scalar 文档
 ├── logger/                   # 日志模块
+├── create-hest-app/          # 项目脚手架
 ├── typescript-config/        # 共享 tsconfig
 └── eslint-config/            # 共享 ESLint 配置
 
 apps/
 ├── hestjs-demo/              # 完整功能演示
 ├── cqrs-demo/                # CQRS 示例
-├── docs/                     # Docusaurus 文档站
-└── create-hest-app/          # 脚手架
+└── docs/                     # Docusaurus 文档站
 
 docs/                         # 框架设计文档
 ```
-
-各包的提交历史自分散仓库合并而来，完整保留。
 
 ## 🎯 核心概念
 
