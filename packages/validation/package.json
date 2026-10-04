@@ -18,17 +18,18 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@hestjs/core": "workspace:*",
     "@sinclair/typebox": "^0.32.15",
     "reflect-metadata": "^0.2.2"
   },
   "devDependencies": {
     "@hestjs/typescript-config": "workspace:*",
     "@types/node": "^20.0.0",
-    "typescript": "5.8.3"
+    "typescript": "5.8.3",
+    "@hestjs/core": "workspace:*"
   },
   "peerDependencies": {
-    "typescript": ">=5.0.0"
+    "typescript": ">=5.0.0",
+    "@hestjs/core": "workspace:^"
   },
   "exports": {
     ".": {
