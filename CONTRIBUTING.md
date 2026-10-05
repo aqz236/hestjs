@@ -73,6 +73,36 @@ class UserService {
 }
 ```
 
+### 模块边界
+
+一个模块一个容器。`imports` 变成 alias，`exports` 是唯一能借出去的东西：
+
+- 需要别人用的 provider，**必须**写进 `exports`
+- 只在本模块用，就别 export——这样别人想误用会立刻报错
+- 不要靠 `imports` 去拿别人的内部实现；拿不到是设计如此
+
+图校验全部前置到 `createApp()`，下面这些会在启动前直接抛错：
+重复 provider、与 import 撞名、`exports` 了不存在的东西、模块成环、路由撞车。
+
+### 生命周期
+
+不要往模块上挂钩子。资源类实现 `OnStart` / `OnStop`：
+
+```ts
+@Injectable()
+class Redis implements OnStart, OnStop {
+  onStart(): void { this.connect() }
+  onStop(): void { this.disconnect() }
+}
+```
+
+`app.start()` 先构造全部单例，再按依赖顺序跑 `onStart()`；`stop()` 逆序。
+
+### 测试
+
+用 `bun test`，测试文件与被测源码同目录，命名 `*.test.ts`。
+不需要容器也能测 HTTP：`createApp()` 之后直接 `app.hono.request('/path')`。
+
 ## 提交前检查
 
 ```bash

@@ -69,6 +69,64 @@ bun install
 bun run --filter @hestjs/example dev
 ```
 
+## 模块作用域是真的
+
+`imports` 会变成指向对方容器的 alias，`exports` 是唯一能借出去的东西。
+
+```ts
+@Module({ providers: [UserRepository], exports: [UserRepository] })
+class DataModule {}
+
+@Module({ imports: [DataModule], providers: [UserService], controllers: [UserController] })
+class UsersModule {}
+```
+
+`UserService` 看得见 `UserRepository`，因为 `DataModule` 把它 export 了。
+把 `exports: [UserRepository]` 删掉，`createApp()` 会在启动前直接抛
+`ProviderNotFoundError`——不是运行时某个请求才炸。
+
+**这是隔离，不是覆盖。** 两个模块各自提供同名 token 互不干扰；一个模块
+既 import 又自己提供同一个 token，直接报 `AmbiguousProviderError`。
+
+以下问题全部在**启动前**报错，不会漏到运行期：
+
+| 情况 | 错误 |
+| --- | --- |
+| 同一个模块里 provider 写了两遍 | `DuplicateProviderError` |
+| 自己提供的 token 与 import 撞名 | `AmbiguousProviderError` |
+| `exports` 了不存在的东西 | `UnresolvedExportError` |
+| 模块 import 成环 | `ModuleCycleError` |
+| 两条路由撞在一起 | `DuplicateRouteError` |
+
+## 生命周期
+
+模块是纯声明，钩子挂在**有资源的东西**上：
+
+```ts
+@Injectable()
+class Postgres implements OnStart, OnStop {
+  async onStart() { await this.pool.connect() }
+  async onStop() { await this.pool.end() }
+}
+```
+
+`app.start()` 会先构造**全部**单例（构造错误在这一步集中暴露），
+再按依赖顺序执行 `onStart()`；`app.stop()` 逆序执行 `onStop()`。
+
+## 路由类型
+
+动态注册拿不到 Hono 的路径推导。把完整路径写成类型参数就能找回来：
+
+```ts
+@Get('/:id')
+detail(c: RouteContext<'/users/:id'>): Response {
+  const id = c.req.param('id');  // string
+  return c.json({ id });
+}
+```
+
+`createApp<Env>()` 也带泛型，`c.set()` / `c.get()` 的类型跟着走。
+
 ## 仓库结构
 
 ```
@@ -102,7 +160,7 @@ TypeScript 源码，没有构建步骤，改完即生效。
 | 自己的路由匹配 | `hono.on()` / `hono.all()`，注册完你就能在 `app.hono.routes` 里看到 |
 | 自己的校验 | Hono 的 `validator()`，或任何 Standard Schema 实现 |
 | 自己的日志 | 任何中间件；`apps/example` 里用的是 `hono/logger` |
-| 模块作用域隔离 | 一个容器，谁依赖谁由你在模块里写清楚 |
+| 全局注册表 | 元数据直接挂在类上：`SomeController[ROUTES_META]` |
 | `emitDecoratorMetadata` | `static inject` |
 | 发布到 npm | `workspace:*` 直接引源码 |
 
