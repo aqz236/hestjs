@@ -1,0 +1,23 @@
+{
+  "name": "@hestjs/queue",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "后台任务：processor 声明 + 可替换 driver",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "test": "bun test",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@hestjs/core": "workspace:*",
+    "p-queue": "^9.3.3"
+  },
+  "devDependencies": {
+    "@hestjs/typescript-config": "workspace:*",
+    "@types/bun": "latest"
+  }
+}
