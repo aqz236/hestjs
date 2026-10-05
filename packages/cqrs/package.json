@@ -1,0 +1,22 @@
+{
+  "name": "@hestjs/cqrs",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "纯 TypeScript 的 CQRS 三总线，不依赖任何 web 层",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "test": "bun test",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@hestjs/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@hestjs/typescript-config": "workspace:*",
+    "@types/bun": "latest"
+  }
+}
