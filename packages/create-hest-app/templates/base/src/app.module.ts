@@ -17,7 +17,9 @@ class GreetingService {
 class GreetingController {
   constructor(@Inject(GreetingService) private readonly greeting: GreetingService) {}
 
-  say(c: Context<Env, '/greet/:name'>): Response {
+  // 刻意不标注返回类型：标了 `: Response` 会把 c.json() 的类型信息擦掉，
+  // 前端 hc<AppType> 就只能拿到 unknown。让 TS 自己推导。
+  say(c: Context<Env, '/greet/:name'>) {
     return c.json({ message: this.greeting.greet(c.req.param('name')) });
   }
 }

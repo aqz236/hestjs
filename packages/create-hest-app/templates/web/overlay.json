@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "dev": "bun run scripts/dev.ts",
+    "dev:api": "bun run --watch src/main.ts",
+    "dev:web": "vite",
+    "build": "vite build",
+    "start": "bun run src/main.ts",
+    "check-types": "tsc --noEmit && tsc -p tsconfig.web.json"
+  },
+  "devDependencies": {
+    "vite": "^8.3.2"
+  }
+}

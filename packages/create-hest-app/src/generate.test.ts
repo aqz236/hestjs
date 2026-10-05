@@ -3,7 +3,14 @@ import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, it } from 'bun:test';
-import { generate, InvalidNameError, NAME_PATTERN, TargetExistsError } from './generate';
+import {
+  generate,
+  InvalidNameError,
+  mergeManifest,
+  NAME_PATTERN,
+  overlay,
+  TargetExistsError,
+} from './generate';
 
 const TEMPLATE_DIR = path.join(import.meta.dir, '../templates/base');
 const created: string[] = [];
@@ -92,5 +99,100 @@ describe('generate', () => {
   it('非法名字直接拒绝', async () => {
     const targetDir = await makeTarget('whatever');
     await expect(generate(options('Bad Name', targetDir))).rejects.toThrow(InvalidNameError);
+  });
+});
+
+// ─────────────────────────────────────────────────────────────
+// --with-web 的覆盖层
+// ─────────────────────────────────────────────────────────────
+
+const WEB_TEMPLATE_DIR = path.join(import.meta.dir, '../templates/web');
+
+describe('overlay', () => {
+  const shared = (name: string, targetDir: string) => ({
+    name,
+    targetDir,
+    templateDir: WEB_TEMPLATE_DIR,
+    tsconfigBase: '../../packages/typescript-config/base.json',
+    honoVersion: '^4.13.13',
+  });
+
+  it('叠在基础模板之上，同名文件覆盖', async () => {
+    const targetDir = await makeTarget('web-app');
+    await generate(options('web-app', targetDir));
+    const written = await overlay(shared('web-app', targetDir));
+
+    expect(written).toContain('vite.config.ts');
+    expect(written).toContain('tsconfig.web.json');
+    expect(written).toContain('src/web/index.html');
+    expect(written).toContain('src/web/main.ts');
+    expect(written).toContain('scripts/dev.ts');
+  });
+
+  it('清单文件不会被复制进目标目录', async () => {
+    const targetDir = await makeTarget('web-app');
+    await generate(options('web-app', targetDir));
+    const written = await overlay(shared('web-app', targetDir));
+
+    expect(written).not.toContain('overlay.json');
+    expect(existsSync(path.join(targetDir, 'overlay.json'))).toBe(false);
+  });
+
+  it('服务端 tsconfig 排除 src/web（否则 DOM lib 会打架）', async () => {
+    const targetDir = await makeTarget('web-app');
+    await generate(options('web-app', targetDir));
+    await overlay(shared('web-app', targetDir));
+
+    const tsconfig = JSON.parse(
+      (await readFile(path.join(targetDir, 'tsconfig.json'), 'utf8'))
+        .replace(/\/\/.*$/gm, '')
+        .replace(/,(?=\s*[}\]])/g, ''),
+    ) as { exclude: string[] };
+    expect(tsconfig.exclude).toContain('src/web');
+  });
+
+  it('前端 tsconfig 继承同一份预设（需要 experimentalDecorators）', async () => {
+    const targetDir = await makeTarget('web-app');
+    await generate(options('web-app', targetDir));
+    await overlay(shared('web-app', targetDir));
+
+    const web = await readFile(path.join(targetDir, 'tsconfig.web.json'), 'utf8');
+    expect(web).toContain('../../packages/typescript-config/base.json');
+    expect(web).toContain('DOM');
+  });
+});
+
+describe('mergeManifest', () => {
+  it('合并 scripts 与 devDependencies', async () => {
+    const targetDir = await makeTarget('web-app');
+    await generate(options('web-app', targetDir));
+    await overlay({
+      name: 'web-app',
+      targetDir,
+      templateDir: WEB_TEMPLATE_DIR,
+      tsconfigBase: '../../packages/typescript-config/base.json',
+      honoVersion: '^4.13.13',
+    });
+    await mergeManifest(
+      path.join(targetDir, 'package.json'),
+      path.join(WEB_TEMPLATE_DIR, 'overlay.json'),
+    );
+
+    const pkg = JSON.parse(await readFile(path.join(targetDir, 'package.json'), 'utf8')) as {
+      name: string;
+      scripts: Record<string, string>;
+      dependencies: Record<string, string>;
+      devDependencies: Record<string, string>;
+    };
+
+    // 基础模板的东西还在
+    expect(pkg.name).toBe('@hestjs/web-app');
+    expect(pkg.dependencies['@hestjs/core']).toBe('workspace:*');
+    expect(pkg.scripts.test).toBe('bun test');
+
+    // 覆盖层加的东西也在
+    expect(pkg.devDependencies.vite).toMatch(/^\^?\d/);
+    expect(pkg.scripts.build).toBe('vite build');
+    expect(pkg.scripts['check-types']).toContain('tsconfig.web.json');
   });
 });

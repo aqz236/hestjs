@@ -1,9 +1,10 @@
-export const USAGE = `用法：bun run new <name> [--dir <path>]
+export const USAGE = `用法：bun run new <name> [--dir <path>] [--with-web]
 
-在单仓里生成一个最小 HestJS 应用。默认落到 apps/<name>。
+在单仓里生成一个 HestJS 应用。默认落到 apps/<name>。
 
 选项：
   --dir <path>   指定生成位置
+  --with-web     同时生成 Vite 前端，并用 hc<AppType> 拿到端到端类型
   --force        目标已存在时先删掉
   -h, --help     看这段说明
 `;
@@ -13,6 +14,7 @@ export interface ParsedArgs {
   readonly name: string;
   readonly dir?: string;
   readonly force: boolean;
+  readonly web: boolean;
 }
 
 export type ParseResult =
@@ -59,5 +61,6 @@ export function parseArgs(argv: readonly string[]): ParseResult {
     name,
     ...(dirIndex === -1 ? {} : { dir: argv[dirIndex + 1]! }),
     force: argv.includes('--force'),
+    web: argv.includes('--with-web'),
   };
 }

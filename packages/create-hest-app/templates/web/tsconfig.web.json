@@ -1,0 +1,14 @@
+{
+  // 继承同一份预设：前端会 import type 服务端的 AppType，
+  // 于是服务端文件也会被这个项目检查到 —— 它用了 @Inject，
+  // 所以这里同样需要 experimentalDecorators。
+  "extends": "__TSCONFIG_BASE__",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "noEmit": true,
+    // 前端要 import type { AppType } from '../main'，而 main.ts 用了
+    // Bun.file 与 hono/bun。约定：只有 src/web/ 之外的文件可以碰 Bun API。
+    "types": ["bun"]
+  },
+  "include": ["src/web/**/*.ts", "vite.config.ts"]
+}

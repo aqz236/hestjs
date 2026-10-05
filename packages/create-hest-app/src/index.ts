@@ -2,7 +2,13 @@
 import { rm } from 'node:fs/promises';
 import path from 'node:path';
 import { parseArgs, USAGE } from './cli';
-import { generate, InvalidNameError, TargetExistsError } from './generate';
+import {
+  generate,
+  mergeManifest,
+  overlay,
+  InvalidNameError,
+  TargetExistsError,
+} from './generate';
 
 /** <repo>/packages/create-hest-app/src/index.ts → <repo> */
 function repoRoot(): string {
@@ -40,16 +46,26 @@ async function main(): Promise<number> {
   }
 
   try {
-    const written = await generate({
+    const shared = {
       name: parsed.name,
       targetDir,
-      templateDir: path.join(import.meta.dir, '../templates/base'),
       tsconfigBase: path.relative(targetDir, path.join(root, 'packages/typescript-config/base.json')),
       honoVersion: await honoVersion(root),
+    };
+
+    const written = await generate({
+      ...shared,
+      templateDir: path.join(import.meta.dir, '../templates/base'),
     });
 
-    console.log(`已生成 ${path.relative(root, targetDir)}：`);
-    for (const file of written) {
+    if (parsed.web) {
+      const overlayDir = path.join(import.meta.dir, '../templates/web');
+      written.push(...(await overlay({ ...shared, templateDir: overlayDir })));
+      await mergeManifest(path.join(targetDir, 'package.json'), path.join(overlayDir, 'overlay.json'));
+    }
+
+    console.log(`已生成 ${path.relative(root, targetDir)}${parsed.web ? '（含 Vite 前端）' : ''}：`);
+    for (const file of [...new Set(written)].sort()) {
       console.log(`  ${file}`);
     }
     console.log('\n下一步：');

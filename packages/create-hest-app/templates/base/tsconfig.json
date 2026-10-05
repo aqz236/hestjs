@@ -5,5 +5,8 @@
     "noEmit": true,
     "types": ["bun"]
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*"],
+  // 全栈应用里 src/web 由 tsconfig.web.json 单独检查（它需要 DOM lib），
+  // 不能让它落进服务端项目 —— 那样 document 会找不到。
+  "exclude": ["node_modules", "dist", "src/web"]
 }

@@ -29,6 +29,15 @@ export class TemplateMissingError extends Error {
   }
 }
 
+export interface OverlayOptions {
+  /** 覆盖层模板目录。里面的文件会被写进 targetDir，同名文件直接覆盖。 */
+  readonly templateDir: string;
+  readonly targetDir: string;
+  readonly name: string;
+  readonly tsconfigBase: string;
+  readonly honoVersion: string;
+}
+
 export interface GenerateOptions {
   /** 应用名，同时决定目录名。 */
   readonly name: string;
@@ -56,11 +65,61 @@ async function walk(dir: string, prefix = ''): Promise<string[]> {
   return files;
 }
 
-function render(source: string, options: GenerateOptions): string {
+function render(source: string, options: GenerateOptions | OverlayOptions): string {
   return source
     .replaceAll('__NAME__', options.name)
     .replaceAll('__TSCONFIG_BASE__', options.tsconfigBase)
     .replaceAll('__HONO__', options.honoVersion);
+}
+
+/**
+ * 把覆盖层的清单合并进生成出来的 package.json。
+ *
+ * 这样依赖版本与脚本只写在模板里一处，生成器不需要知道 Vite 是哪个版本。
+ */
+export async function mergeManifest(packageJsonPath: string, manifestPath: string): Promise<void> {
+  const pkg = (await readFile(packageJsonPath, 'utf8'));
+  const manifest = (await readFile(manifestPath, 'utf8'));
+
+  const target = JSON.parse(pkg) as Record<string, unknown>;
+  const extra = JSON.parse(manifest) as Record<string, Record<string, string>>;
+
+  for (const field of ['scripts', 'dependencies', 'devDependencies']) {
+    const additions = extra[field];
+    if (additions !== undefined) {
+      target[field] = { ...((target[field] as Record<string, string>) ?? {}), ...additions };
+    }
+  }
+
+  await writeFile(packageJsonPath, `${JSON.stringify(target, null, 2)}\n`);
+}
+
+/**
+ * 把一个「覆盖层」模板写进已存在的目录，同名文件覆盖。
+ *
+ * `--with-web` 用它：基础模板先铺一遍，Web 相关文件再叠上去。
+ * 这样 API 与全栈两种形态共用同一份基础代码，不会两边各改一遍。
+ */
+/** 覆盖层里不该被复制进目标目录的文件。 */
+const OVERLAY_SKIP = new Set(['overlay.json']);
+
+export async function overlay(options: OverlayOptions): Promise<string[]> {
+  const templateFiles = await walk(options.templateDir);
+  const written: string[] = [];
+
+  for (const relative of templateFiles) {
+    if (OVERLAY_SKIP.has(relative)) {
+      continue;
+    }
+    const source = await readFile(path.join(options.templateDir, relative), 'utf8');
+    const output = relative.replace(/\.tmpl$/, '');
+    const destination = path.join(options.targetDir, output);
+    await mkdir(path.dirname(destination), { recursive: true });
+    await writeFile(destination, render(source, options));
+    written.push(output);
+  }
+
+  return written.sort();
 }
 
 /**

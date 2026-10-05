@@ -3,11 +3,16 @@ import { parseArgs } from './cli';
 
 describe('parseArgs', () => {
   it('只给名字', () => {
-    expect(parseArgs(['api'])).toEqual({ kind: 'run', name: 'api', force: false });
+    expect(parseArgs(['api'])).toEqual({ kind: 'run', name: 'api', force: false, web: false });
   });
 
   it('名字 + 选项', () => {
-    expect(parseArgs(['api', '--force'])).toEqual({ kind: 'run', name: 'api', force: true });
+    expect(parseArgs(['api', '--force'])).toEqual({
+      kind: 'run',
+      name: 'api',
+      force: true,
+      web: false,
+    });
   });
 
   it('--dir 后面那一段不会被当成名字', () => {
@@ -16,6 +21,7 @@ describe('parseArgs', () => {
       name: 'api',
       dir: 'apps/nested',
       force: false,
+      web: false,
     });
   });
 
@@ -25,6 +31,7 @@ describe('parseArgs', () => {
       name: 'api',
       dir: 'apps/nested',
       force: false,
+      web: false,
     });
   });
 
@@ -40,6 +47,15 @@ describe('parseArgs', () => {
   it('多写一个位置参数时报错，而不是悄悄忽略', () => {
     const result = parseArgs(['api', 'extra']);
     expect(result.kind).toBe('error');
+  });
+
+  it('--with-web 会被识别', () => {
+    expect(parseArgs(['api', '--with-web'])).toEqual({
+      kind: 'run',
+      name: 'api',
+      force: false,
+      web: true,
+    });
   });
 
   it('-h / --help 优先', () => {
