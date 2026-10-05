@@ -46,6 +46,15 @@ const sidebars: SidebarsConfig = {
       ],
       collapsed: false,
     },
+    {
+      type: 'category',
+      label: '🧭 架构演进',
+      items: [
+        'architecture/evolution',
+        'migration/refactor-changes',
+      ],
+      collapsed: false,
+    },
     // {
     //   type: 'category',
     //   label: '🔧 高级技术',

@@ -469,6 +469,21 @@ bun run changeset          # 为本次改动记录 changeset
 - `Interceptor` / `ExecutionContext` / `CallHandler` - 拦截器
 - `ValidationInterceptor` - 验证拦截器
 
+## 🧭 架构演进
+
+框架的架构决策（为什么选 Hono + TSyringe、为什么拆过又合、拦截器为什么删了又恢复、
+模块作用域是怎么落地的）记录在 [docs/architecture/](./docs/architecture)：
+
+- [演进总览](./docs/architecture/README.md) —— 时间线与两次方向反转
+- [ADR 索引](./docs/architecture/README.md#adr-索引) —— 9 条决策记录，每条标注原始提交
+
+2025 年的原始设计稿保留在 [docs/](./docs)：
+
+- [`docs/1. hest框架设计/`](./docs/1.%20hest框架设计) —— 框架设计稿
+- [`docs/2. gitbook/`](./docs/2.%20gitbook) —— 概念文档体系
+
+> 设计稿写的是「打算怎么做」，ADR 记录的是「实际怎么演变、为什么改」。
+
 ## 🤝 贡献
 
 欢迎贡献代码！请查看 [CONTRIBUTING.md](./CONTRIBUTING.md)。
