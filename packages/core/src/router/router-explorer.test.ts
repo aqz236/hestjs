@@ -316,3 +316,52 @@ describe('RouterExplorer：结构化异常到达客户端', () => {
     });
   });
 });
+
+describe('RouterExplorer：控制器直接返回 Response', () => {
+  @Controller('/raw')
+  class RawResponseController {
+    @Get('/not-found')
+    notFound(@Context() c: HestContext) {
+      return c.json({ error: 'not found' }, 404);
+    }
+
+    @Get('/teapot')
+    teapot() {
+      return new Response('teapot', { status: 418 });
+    }
+
+    @Get('/plain')
+    plain() {
+      return { ok: true };
+    }
+  }
+
+  function build() {
+    const app = new Hono();
+    const container = new Container();
+    container.register(RawResponseController, RawResponseController, 'controller');
+    new RouterExplorer(app, container).explore([RawResponseController]);
+    return app;
+  }
+
+  it('c.json(data, status) 的状态码与响应体被保留', async () => {
+    const res = await build().request('/raw/not-found');
+
+    expect(res.status).toBe(404);
+    await expect(res.json()).resolves.toEqual({ error: 'not found' });
+  });
+
+  it('new Response(...) 被原样返回', async () => {
+    const res = await build().request('/raw/teapot');
+
+    expect(res.status).toBe(418);
+    await expect(res.text()).resolves.toBe('teapot');
+  });
+
+  it('返回普通对象时仍按 JSON 处理', async () => {
+    const res = await build().request('/raw/plain');
+
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toEqual({ ok: true });
+  });
+});

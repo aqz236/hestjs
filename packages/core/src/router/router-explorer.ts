@@ -89,16 +89,30 @@ export class RouterExplorer {
   /**
    * 探索并注册控制器路由
    */
-  explore(controllers: ControllerConstructor[]): void {
+  /**
+   * 探索并注册控制器路由
+   *
+   * @param controllers 待注册的控制器
+   * @param moduleContainers 控制器所属模块的容器。模块系统下每个控制器由
+   *   自己的模块容器解析（才能看到该模块 import 进来的 provider），
+   *   未提供时回退到构造时传入的容器。
+   */
+  explore(
+    controllers: ControllerConstructor[],
+    moduleContainers?: Map<any, Container>
+  ): void {
     controllers.forEach((controller) => {
-      this.exploreController(controller);
+      this.exploreController(controller, moduleContainers);
     });
   }
 
   /**
    * 探索单个控制器
    */
-  private exploreController(controllerClass: ControllerConstructor): void {
+  private exploreController(
+    controllerClass: ControllerConstructor,
+    moduleContainers?: Map<any, Container>
+  ): void {
     const controllerMetadata: ControllerMetadata | undefined =
       MetadataScanner.scanController(controllerClass);
     if (!controllerMetadata) {
@@ -110,8 +124,9 @@ export class RouterExplorer {
     const routes: RouteMetadata[] = MetadataScanner.scanRoutes(controllerClass)
       .slice()
       .sort(compareRouteSpecificity);
+    const owningContainer = moduleContainers?.get(controllerClass) ?? this.container;
     const controllerInstance: ControllerInstance =
-      this.container.resolve(controllerClass);
+      owningContainer.resolve(controllerClass);
 
     routes.forEach((route) => {
       this.registerRoute(controllerInstance, controllerMetadata.path, route);
@@ -171,6 +186,13 @@ export class RouterExplorer {
         );
 
         // 返回结果
+        // 控制器可能直接返回 Hono 的 Response（例如 c.json(data, 404)、
+        // c.text(...)、new Response(...)），此时必须原样返回。
+        // Response 也是 object，若不单独判断就会被 c.json() 当成普通对象
+        // 序列化，变成 {} 并丢失状态码。
+        if (result instanceof Response) {
+          return result;
+        }
         if (typeof result === "object" && result !== null) {
           return c.json(result);
         } else if (typeof result === "string") {
