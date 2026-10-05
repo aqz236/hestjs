@@ -35,6 +35,19 @@ export interface ControllerContainerItem extends LogicalContainerItem<Controller
 }
 
 /**
+ * 把 token 格式化成可读名称，用于错误信息
+ */
+function formatToken(token: unknown): string {
+  if (typeof token === 'function') {
+    return (token as { name?: string }).name || 'anonymous class';
+  }
+  if (typeof token === 'symbol') {
+    return token.toString();
+  }
+  return String(token);
+}
+
+/**
  * HestJS DI 容器封装
  */
 export class Container {
@@ -94,9 +107,27 @@ export class Container {
 
   /**
    * 解析服务
+   *
+   * 只接受**已注册**的 token。tsyringe 的原始行为是：未注册的类会被直接构造，
+   * 因此 `Container` 实际上没有白名单语义——这与模块系统想要的可见性控制相冲突。
+   * 这里显式拒绝，让「解析到了本不该可见的东西」变成可发现的错误。
    */
   resolve<T>(token: InjectionToken<T>): T {
+    if (!this.isRegistered(token)) {
+      throw new Error(
+        `Cannot resolve unregistered token "${formatToken(token)}". ` +
+          `请确认它已通过 @Module({ providers: [...] }) 注册，` +
+          `或已被某个被 imports 的模块导出。`
+      );
+    }
     return this.container.resolve(token);
+  }
+
+  /**
+   * 尝试解析服务，不存在时返回 undefined（不抛错）
+   */
+  tryResolve<T>(token: InjectionToken<T>): T | undefined {
+    return this.isRegistered(token) ? this.container.resolve(token) : undefined;
   }
 
   /**
