@@ -11,10 +11,10 @@ export function jsonBody(body: unknown): RequestInit {
   };
 }
 
-export interface TestApp<E extends Env = Env> {
-  readonly app: App<E>;
-  /** 就是 Hono 实例。想绕过便利方法直接 `hono.request()` 也行。 */
-  readonly hono: Hono<E>;
+export interface TestApp<R extends Hono<any> = Hono<any>> {
+  readonly app: App<R>;
+  /** 就是链式注册之后的 Hono 实例。 */
+  readonly hono: R;
   readonly container: Container;
 
   request(path: string, init?: RequestInit): Promise<Response>;
@@ -31,22 +31,23 @@ export interface TestApp<E extends Env = Env> {
 /**
  * 测试用的 createApp：已经 start() 过，并带一批请求便利方法。
  *
- * 与 createApp 的唯一区别是 `overrides` —— 用来把真实依赖换成测试替身：
+ * 与 createApp 的唯一区别是它顺手帮你 start 了。`overrides` 用来把真实依赖换成替身：
  *
  * ```ts
  * const app = await createTestApp(AppModule, {
  *   overrides: [{ provide: Database, useValue: new FakeDatabase() }],
+ *   routes: (hono, resolve) => hono.get('/users', (c) => resolve(Users).list(c)),
  * });
  * ```
  *
  * `overrides` 只能替换本来就注册过的 token，写错名字会立刻抛
  * `UnknownOverrideError` —— 否则测试会在「其实没换掉」的情况下假装通过。
  */
-export async function createTestApp<E extends Env = Env>(
+export async function createTestApp<E extends Env = Env, R extends Hono<E> = Hono<E>>(
   root: Constructor,
-  options: Omit<CreateAppOptions<E>, 'hono'> = {},
-): Promise<TestApp<E>> {
-  const app = createApp<E>(root, options);
+  options: Omit<CreateAppOptions<E, R>, 'hono'> = {},
+): Promise<TestApp<R>> {
+  const app = createApp<E, R>(root, options);
   await app.start();
 
   const request = (path: string, init?: RequestInit): Promise<Response> =>
@@ -65,20 +66,14 @@ export async function createTestApp<E extends Env = Env>(
     },
 
     async text(path: string, init?: RequestInit): Promise<string> {
-      const response = await request(path, init);
-      return await response.text();
+      return await (await request(path, init)).text();
     },
 
     async status(path: string, init?: RequestInit): Promise<number> {
-      const response = await request(path, init);
-      return response.status;
+      return (await request(path, init)).status;
     },
 
-    async postJson<T = unknown>(
-      path: string,
-      body: unknown,
-      init?: RequestInit,
-    ): Promise<T> {
+    async postJson<T = unknown>(path: string, body: unknown, init?: RequestInit): Promise<T> {
       const response = await request(path, { ...jsonBody(body), ...init });
       return (await response.json()) as T;
     },

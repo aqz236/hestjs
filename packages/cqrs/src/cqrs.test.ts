@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'bun:test';
-import { Injectable, Module, createApp } from '@hestjs/core';
+import { Inject, Module, createApp } from '@hestjs/core';
 import { CommandBus, EventBus, QueryBus } from './bus';
 import { MissingHandlerDecoratorError, WrongHandlerKindError } from './errors';
 import { CommandHandler, EventHandler, QueryHandler, readHandled } from './handlers';
@@ -26,18 +26,15 @@ class UserCreated extends Event {
 }
 
 // ── provider ─────────────────────────────────────────────────
-@Injectable()
 class Users {
   readonly store = new Map<string, string>();
   readonly audit: string[] = [];
 }
 
 // ── handler ──────────────────────────────────────────────────
-@Injectable()
 @CommandHandler(CreateUser)
 class CreateUserHandler {
-  static readonly inject = [Users] as const;
-  constructor(private readonly users: Users) {}
+  constructor(@Inject(Users) private readonly users: Users) {}
 
   execute(command: CreateUser): string {
     const id = String(this.users.store.size + 1);
@@ -46,11 +43,9 @@ class CreateUserHandler {
   }
 }
 
-@Injectable()
 @QueryHandler(GetUser)
 class GetUserHandler {
-  static readonly inject = [Users] as const;
-  constructor(private readonly users: Users) {}
+  constructor(@Inject(Users) private readonly users: Users) {}
 
   execute(query: GetUser): string {
     const name = this.users.store.get(query.id);
@@ -59,22 +54,18 @@ class GetUserHandler {
   }
 }
 
-@Injectable()
 @EventHandler(UserCreated)
 class NotifyOnUserCreated {
-  static readonly inject = [Users] as const;
-  constructor(private readonly users: Users) {}
+  constructor(@Inject(Users) private readonly users: Users) {}
 
   handle(event: UserCreated): void {
     this.users.audit.push(`notify:${event.id}`);
   }
 }
 
-@Injectable()
 @EventHandler(UserCreated)
 class AuditOnUserCreated {
-  static readonly inject = [Users] as const;
-  constructor(private readonly users: Users) {}
+  constructor(@Inject(Users) private readonly users: Users) {}
 
   handle(event: UserCreated): void {
     this.users.audit.push(`audit:${event.id}`);
