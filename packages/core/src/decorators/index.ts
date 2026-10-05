@@ -1,5 +1,4 @@
-export * from "./controller";
-export * from "./injectable";
-export * from "./module";
-export * from "./route";
-export * from "./middleware";
+export { Controller } from './controller';
+export { Injectable, type InjectableOptions } from './injectable';
+export { Module } from './module';
+export { All, Delete, Get, Head, Options, Patch, Post, Put, Route } from './route';

@@ -1,74 +1,23 @@
 {
   "name": "@hestjs/core",
-  "version": "0.2.0",
-  "description": "HestJS Core Framework - A TypeScript framework built on Hono with dependency injection and decorators",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "files": [
-    "dist",
-    "README.md"
-  ],
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "HestJS 核心：模块声明、零反射依赖注入、Hono 接线",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
-    "build": "tsc",
     "check-types": "tsc --noEmit",
-    "clean": "rm -rf dist",
-    "dev": "tsc --watch",
-    "prepublishOnly": "npm run clean && npm run build",
-    "publish:npm": "npm publish --access public",
-    "test": "vitest run",
-    "test:coverage": "vitest run --coverage",
-    "test:watch": "vitest"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/aqz236/hestjs.git",
-    "directory": "packages/core"
-  },
-  "homepage": "https://github.com/aqz236/hestjs/tree/main/packages/core#readme",
-  "bugs": {
-    "url": "https://github.com/aqz236/hestjs/issues"
-  },
-  "author": "aqz236",
-  "license": "MIT",
-  "dependencies": {
-    "@hestjs/logger": "workspace:*",
-    "hono": "^4.8.9",
-    "pino": "^9.7.0",
-    "pino-pretty": "^13.0.0",
-    "reflect-metadata": "^0.2.2",
-    "tsyringe": "^4.10.0",
-    "untyped": "^2.0.0"
-  },
-  "devDependencies": {
-    "@types/node": "^24.1.0",
-    "typescript": "5.8.3"
+    "test": "bun test",
+    "clean": "rm -rf dist"
   },
   "peerDependencies": {
-    "typescript": ">=5.0.0"
+    "hono": "^4.13.13"
   },
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    }
-  },
-  "keywords": [
-    "hestjs",
-    "framework",
-    "hono",
-    "typescript",
-    "dependency-injection",
-    "decorators",
-    "web-framework",
-    "backend",
-    "api"
-  ],
-  "publishConfig": {
-    "access": "public"
-  },
-  "engines": {
-    "node": ">=18"
-  },
-  "sideEffects": false
+  "devDependencies": {
+    "@hestjs/typescript-config": "workspace:*",
+    "@types/bun": "latest",
+    "hono": "^4.13.13"
+  }
 }

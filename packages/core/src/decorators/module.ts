@@ -1,26 +1,13 @@
-import 'reflect-metadata';
-import { METADATA_KEYS } from '../utils/constants';
-import type { ModuleMetadata } from '../interfaces/metadata';
-
-// 声明 Reflect 扩展
-declare global {
-  namespace Reflect {
-    function defineMetadata(key: any, value: any, target: any, propertyKey?: string | symbol): void;
-    function hasMetadata(key: any, target: any, propertyKey?: string | symbol): boolean;
-  }
-}
+import { defineModule, type ModuleMetadata } from '../metadata';
+import type { Constructor } from '../types';
 
 /**
- * 模块装饰器
- * @param metadata 模块元数据
+ * 声明一个模块。只登记元数据，不做任何执行。
+ *
+ * `imports` 只表达依赖关系：被导入模块的 providers 会一起并入同一个容器。
  */
 export function Module(metadata: ModuleMetadata): ClassDecorator {
-  return (target: any) => {
-    Reflect.defineMetadata(METADATA_KEYS.MODULE, metadata, target);
-    
-    // 确保模块可以被注入
-    if (!Reflect.hasMetadata(METADATA_KEYS.INJECTABLE, target)) {
-      Reflect.defineMetadata(METADATA_KEYS.INJECTABLE, { scope: 'singleton' }, target);
-    }
+  return (target) => {
+    defineModule(target as unknown as Constructor, metadata);
   };
 }
