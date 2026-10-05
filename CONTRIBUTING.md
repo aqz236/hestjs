@@ -1,52 +1,82 @@
 # 贡献指南
 
-感谢你对 HestJS 的兴趣。本仓库是 Turborepo 单仓多包结构，贡献前请先阅读以下约定。
-
 ## 环境准备
 
 ```bash
 git clone https://github.com/aqz236/hestjs.git
 cd hestjs
 bun install
-bun run build
+bun run check-types
+bun run --filter @hestjs/example dev
 ```
 
-需要 [Bun](https://bun.sh/) >= 1.2。
+需要 [Bun](https://bun.sh/) >= 1.2。这是本仓库唯一的运行时与包管理器。
 
 ## 仓库结构
 
-- `packages/*` —— 会发布到 npm 的包（库与 CLI，`@hestjs/*` 或无 scope 的包名）
-- `apps/*` —— 私有应用，一律 `private: true`，不发布
-- `docs/` —— 框架设计文档
+- `packages/*` —— 框架本体与共享配置，**全部 `private`，不发布到 npm**
+- `apps/*` —— 可运行的示例与站点
+- `docs/` —— 设计稿
 
-判断标准只有一条：**会不会发布到 npm**。会发布的放 `packages/`，不发布的放 `apps/`。
+## 包与模块规则
 
-### 依赖声明规则
+### 不发布，直接引源码
 
-| 场景 | 写在哪 | 版本写法 |
-| --- | --- | --- |
-| 宿主框架 `@hestjs/core`（插件/扩展包） | `peerDependencies` | `workspace:^` |
-| 同上一项，仅为本地开发与测试 | `devDependencies` | `workspace:*` |
-| 其他内部包 | `dependencies` | `workspace:*` |
-| 纯 tsconfig 预设（通过 `extends` 使用） | `devDependencies` | `workspace:*` |
+所有 `package.json` 都是 `"private": true`，没有 `version` 语义、没有 `build` 步骤：
 
-`@hestjs/core` 绝不能进 `dependencies`：它由使用方提供，写进 `dependencies` 会装出第二份容器实例，
-导致装饰器注册的 provider 与业务代码解析到的容器不是同一个。
+```json
+{
+  "exports": { ".": "./src/index.ts" },
+  "scripts": { "check-types": "tsc --noEmit", "test": "bun test" }
+}
+```
 
-### 新增包检查清单
+改完源码立即生效，没有 `dist` 需要同步。
 
-- `package.json` 的 `repository` 带 `directory` 字段
-- `publishConfig.access` 为 `public`
-- `files` 字段包含实际产物（`dist` 等）与 `README.md`
-- 涉及 `apps/` 的包一律补 `private: true`
+### tsconfig
+
+两条必须遵守：
+
+1. **`experimentalDecorators: true`**，同时**不要**开 `emitDecoratorMetadata`
+2. **`extends` 用相对路径**，不要用包名
+
+```json
+{
+  "extends": "../../packages/typescript-config/base.json"
+}
+```
+
+原因：Bun 的转译器不解析包名形式的 `extends`。写成 `@hestjs/typescript-config/base.json`
+时它读不到 `experimentalDecorators`，`@Get()` 会被当成 stage-3 标准装饰器，
+签名不同，结果是一条路由都注册不上。`createApp()` 检测到这种情况会直接抛错。
+
+### 依赖
+
+| 场景 | 写法 |
+| --- | --- |
+| 依赖 `@hestjs/core` | `dependencies: { "@hestjs/core": "workspace:*" }` |
+| 依赖 `hono` | `peerDependencies` 声明意图 + `devDependencies` 供本地开发 |
+
+### 依赖注入
+
+用 `static inject` 声明构造参数，不要引入反射：
+
+```ts
+@Injectable()
+class UserService {
+  static readonly inject = [Database, LOGGER] as const;
+
+  constructor(
+    private readonly db: Database,
+    private readonly log: Logger,
+  ) {}
+}
+```
 
 ## 提交前检查
 
-以下命令必须全部通过，CI 会执行同样的检查：
-
 ```bash
 bun run check-types
-bun run build
 bun run test
 ```
 
@@ -55,56 +85,31 @@ bun run test
 遵循 [Conventional Commits](https://www.conventionalcommits.org/)：
 
 ```
-feat(core): 新增 @UseMiddleware 装饰器
-fix(validation): 修正 UUID 校验对 nil UUID 的处理
-docs(core): 补充拦截器执行顺序说明
-chore(deps): 升级 hono 到 4.9
+feat(core): 容器支持 transient 作用域
+fix(core): 修正 joinPath 对 '/:id' 的处理
+docs: 补充中间件的执行顺序说明
 ```
 
 `type` 常用值：`feat` / `fix` / `docs` / `refactor` / `perf` / `test` / `chore`。
-`scope` 用包名（`core`、`cqrs`、`validation`、`scalar`、`logger`）或 `ci`、`deps`、`monorepo`。
-
-## 发布流程
-
-本仓库用 [Changesets](https://github.com/changesets/changesets) 管理版本。
-
-改动影响到 `packages/*` 的行为时，**必须**附带一个 changeset：
-
-```bash
-bun run changeset
-```
-
-选择受影响的包与语义化版本级别（`patch` / `minor` / `major`），写一段面向使用者的说明。
-生成的 `.changeset/*.md` 需要一并提交。
-
-合入 `main` 后，Release workflow 会：
-
-1. 自动创建/更新「chore(release): 发布新版本」的 PR，汇总所有 changeset
-2. 该 PR 合并后构建并发布新版本到 npm
+`scope` 用包名（`core`、`example`）或 `repo`、`ci`、`deps`。
 
 ## 分支与 PR
 
-- 从 `main` 拉分支，命名如 `feat/use-middleware`、`fix/uuid-validation`
+- 从 `main` 拉分支，命名如 `feat/transient-scope`
 - PR 描述里说明动机、改动范围与验证方式
-- 行为变更请补充测试；仓库目前测试覆盖不足（见 issue #2），欢迎一并补齐
+- 破坏性改动请写清迁移方式
 
-## 测试与评审
+## 设计红线
 
-- 新增行为请配单元测试，测试文件与被测源码同目录，命名为 `*.test.ts`
-- 修缺陷时优先写一个能复现的测试，再改实现；这样回归时能立刻发现
-- 测试配置见仓库根目录的 `vitest.shared.mts`，说明见
-  `docs/2. gitbook/techniques/testing.md`
-- PR 上的 `Check changeset` 步骤会拦住「改了 `packages/*` 但没写 changeset」
-  的情况，本地可以先跑 `node scripts/check-changeset.mjs` 自查
-- 评审只要求两件事：行为变化有测试覆盖，公开 API 的变化有 changeset 与文档
+改动前请先确认没有踩到这三条：
+
+1. **不要把 Hono 实例藏起来。** 任何让用户拿不到 `app.hono` 的设计都不接受。
+2. **不要引入反射。** 不引入 `reflect-metadata`，不开 `emitDecoratorMetadata`。
+3. **不要新增运行时抽象层。** 能直接用 Hono 的 `Context` 就不要再包一层。
 
 ## 报告问题
 
-请使用 [Issue](https://github.com/aqz236/hestjs/issues)，并尽量附上：
-
-- 最小可复现示例
-- 期望行为与实际行为
-- `bun --version` 与复现所用版本
+请用 [Issue](https://github.com/aqz236/hestjs/issues)，附最小复现、期望与实际行为、`bun --version`。
 
 ## 许可证
 
