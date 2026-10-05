@@ -320,6 +320,10 @@ app.useGlobalInterceptors(new LoggingInterceptor());
 因此可以读取方法上的参数装饰器元数据 —— 这正是 `@Body(UserDto)`
 参数级校验的实现基础，也是 Hono 中间件无法替代的部分。
 
+完整说明见文档站：
+[拦截器](https://aqz236.github.io/hestjs/docs/fundamentals/interceptors) ·
+[异常过滤器](https://aqz236.github.io/hestjs/docs/fundamentals/exception-filters)
+
 **职责边界与执行顺序：**
 
 ```

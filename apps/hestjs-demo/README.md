@@ -96,10 +96,11 @@ import { cors } from 'hono/cors';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await HestFactory.create(AppModule);
+  // Hono 实例由调用方创建并传入
+  const app = await HestFactory.create(new Hono(), AppModule);
 
-  // 直接访问原生 Hono app 实例
-  const honoApp = app.hono();
+  // 取回原生 Hono app 实例
+  const honoApp = app.getHonoInstance();
 
   // 使用 Hono 原生中间件
   honoApp.use(cors());

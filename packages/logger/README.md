@@ -69,7 +69,8 @@ import { HestFactory, logger } from '@hest/core';
 async function bootstrap() {
   logger.info('🚀 Starting HestJS application...');
   
-  const app = await HestFactory.create(AppModule);
+  const hono = new Hono();
+  const app = await HestFactory.create(hono, AppModule);
   
   logger.info('✅ Application ready!');
 }
