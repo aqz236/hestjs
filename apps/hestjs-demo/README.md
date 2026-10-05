@@ -13,13 +13,13 @@
 
 ### ⚡ 极速构建 - 仅需 54ms，产物仅 0.52MB
 
-![HestJS 极速构建](assets/20250729_155156_image.png)
+![HestJS 极速构建](../../assets/build-speed.png)
 
 **突破性的构建速度**：得益于 Bun 的强大性能，HestJS 实现了业界领先的 54ms 构建速度，让开发体验更加流畅，你甚至可以边开发边构建！
 
 ### 🎨 精美的 API 文档界面
 
-![精美的 Swagger 文档](assets/20250729_155429_image.png)
+![精美的 Swagger 文档](../../assets/swagger-ui.png)
 
 **专业级文档体验**：集成现代化的 Scalar 文档系统，提供精美、直观的 Swagger 文档界面，让 API 探索变得优雅高效。
 
