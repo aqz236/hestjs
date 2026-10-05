@@ -1,8 +1,10 @@
-import type { ResolvedGraph } from '@hestjs/core';
-import { readController } from '@hestjs/core';
-import { readRoutes } from '@hestjs/core';
-import { readSchemas, type JsonSchema, type ValidationEntry } from '@hestjs/validation';
-import { readDocumentation, type RouteDocumentation } from './describe';
+import type { Hono } from 'hono';
+import {
+  readRouteMeta,
+  type DocumentationRouteMeta,
+  type RouteMetaEntry,
+  type ValidationRouteMeta,
+} from '@hestjs/core';
 
 export interface OpenApiInfo {
   readonly title: string;
@@ -27,6 +29,11 @@ export interface OpenApiDocument {
   readonly paths: Record<string, Record<string, unknown>>;
 }
 
+interface SchemaProperties {
+  readonly properties?: Record<string, Record<string, unknown>>;
+  readonly required?: readonly string[];
+}
+
 /** `/users/:id` → `/users/{id}`，并取出参数名。 */
 function toOpenApiPath(path: string): { path: string; params: string[] } {
   const params: string[] = [];
@@ -37,12 +44,10 @@ function toOpenApiPath(path: string): { path: string; params: string[] } {
   return { path: converted, params };
 }
 
-interface SchemaProperties {
-  readonly properties?: Record<string, JsonSchema>;
-  readonly required?: readonly string[];
-}
-
-function expandParameters(entry: ValidationEntry, location: 'query' | 'path' | 'header'): unknown[] {
+function expandParameters(
+  entry: ValidationRouteMeta,
+  location: 'query' | 'path' | 'header',
+): unknown[] {
   const schema = (entry.jsonSchema ?? {}) as SchemaProperties;
   const required = new Set(schema.required ?? []);
 
@@ -60,33 +65,19 @@ function expandParameters(entry: ValidationEntry, location: 'query' | 'path' | '
 }
 
 function buildOperation(
-  documentation: RouteDocumentation | undefined,
-  entries: readonly ValidationEntry[],
+  documentation: DocumentationRouteMeta | undefined,
+  validations: readonly ValidationRouteMeta[],
   pathParams: readonly string[],
 ): Record<string, unknown> {
   const parameters: unknown[] = [];
-  const requestBody: Record<string, unknown> | undefined = (() => {
-    const body = entries.find((entry) => entry.source === 'json');
-    const form = entries.find((entry) => entry.source === 'form');
-    const entry = body ?? form;
-    if (entry === undefined) return undefined;
-    return {
-      required: true,
-      content: {
-        [body === undefined ? 'application/x-www-form-urlencoded' : 'application/json']: {
-          schema: entry.jsonSchema ?? {},
-        },
-      },
-    };
-  })();
+  const bodyEntry = validations.find((entry) => entry.source === 'json');
 
-  for (const entry of entries) {
+  for (const entry of validations) {
     if (entry.source === 'query') parameters.push(...expandParameters(entry, 'query'));
     if (entry.source === 'header') parameters.push(...expandParameters(entry, 'header'));
     if (entry.source === 'param') parameters.push(...expandParameters(entry, 'path'));
   }
 
-  // 路径里出现但 schema 没覆盖的参数，补一条最朴素的声明
   const covered = new Set(
     parameters
       .filter((item): item is { name: string } => typeof item === 'object' && item !== null)
@@ -120,33 +111,59 @@ function buildOperation(
     ...(documentation?.operationId === undefined ? {} : { operationId: documentation.operationId }),
     ...(documentation?.deprecated === undefined ? {} : { deprecated: documentation.deprecated }),
     ...(parameters.length === 0 ? {} : { parameters }),
-    ...(requestBody === undefined ? {} : { requestBody }),
+    ...(bodyEntry === undefined
+      ? {}
+      : {
+          requestBody: {
+            required: true,
+            content: { 'application/json': { schema: bodyEntry.jsonSchema ?? {} } },
+          },
+        }),
     responses,
   };
 }
 
 /**
- * 把模块图编译成一份 OpenAPI 3.1 文档。
+ * 从 Hono 实例生成一份 OpenAPI 3.1 文档。
  *
- * 能自动读到的只有两样：路由表和被校验装饰器登记过的 schema。
- * 其余（summary、响应结构）靠 `@Describe` 补，猜不出来就不写。
+ * 路由表直接读 `hono.routes`，说明和 schema 从 handler 上挂的元数据读 ——
+ * 所以**不用把任何东西写两遍**，也不需要在 createApp 里传模块图。
+ *
+ * 能自动读到的只有路由本身；其余（summary、响应结构、请求体 schema）
+ * 靠 `documented()` 与 `validate({ jsonSchema })` 补。猜不出来就不写。
  */
-export function buildOpenApiDocument(
-  graph: ResolvedGraph,
-  config: OpenApiConfig,
-): OpenApiDocument {
+export function buildOpenApiDocument(hono: Hono<any>, config: OpenApiConfig): OpenApiDocument {
   const paths: Record<string, Record<string, unknown>> = {};
 
-  for (const binding of graph.controllers) {
-    const base = readController(binding.controller)?.path ?? '';
-    for (const route of readRoutes(binding.controller.prototype)) {
-      const { path, params } = toOpenApiPath(`${base}${route.path === '/' ? '' : route.path}`);
-      const entries = readSchemas(binding.controller.prototype, route.propertyKey);
-      const documentation = readDocumentation(binding.controller.prototype, route.propertyKey);
+  // 同一条路由会有多条 entries：中间件一条、最终 handler 一条。
+  // 元数据可能挂在其中任何一个上，所以要按 (method, path) 聚合。
+  const buckets = new Map<string, { method: string; path: string; metas: RouteMetaEntry[] }>();
 
-      const operations = (paths[path] ??= {});
-      operations[route.method.toLowerCase()] = buildOperation(documentation, entries, params);
+  for (const route of hono.routes) {
+    // 中间件注册出来的通配条目不是真实路由
+    if (route.method.toLowerCase() === 'all' || route.path.includes('*')) {
+      continue;
     }
+    const key = `${route.method} ${route.path}`;
+    const bucket = buckets.get(key) ?? { method: route.method, path: route.path, metas: [] };
+    bucket.metas.push(...readRouteMeta(route.handler));
+    buckets.set(key, bucket);
+  }
+
+  for (const bucket of buckets.values()) {
+    const { path, params } = toOpenApiPath(bucket.path);
+    const documentation = bucket.metas.find(
+      (entry): entry is DocumentationRouteMeta => entry.kind === 'documentation',
+    );
+    const validations = bucket.metas.filter(
+      (entry): entry is ValidationRouteMeta => entry.kind === 'validation',
+    );
+
+    (paths[path] ??= {})[bucket.method.toLowerCase()] = buildOperation(
+      documentation,
+      validations,
+      params,
+    );
   }
 
   return {

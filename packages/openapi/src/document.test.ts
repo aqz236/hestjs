@@ -1,90 +1,98 @@
 import type { Context } from 'hono';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import { describe, expect, it } from 'bun:test';
-import { Controller, Get, Module, Post, createApp, resolveModuleGraph } from '@hestjs/core';
-import { Body, Param } from '@hestjs/validation';
-import { Describe } from './describe';
+import { Module, createApp } from '@hestjs/core';
+import { validate } from '@hestjs/validation';
+import { documented } from './documented';
 import { buildOpenApiDocument } from './document';
 import { openApiRoutes } from './ui';
 
-/** 一个最小的 JSON Schema 载体，模拟 zod 的 z.toJSONSchema() 产物。 */
 const CreateUserJson = {
   type: 'object',
   properties: { name: { type: 'string' }, age: { type: 'integer' } },
   required: ['name'],
 };
-
-const IdJson = {
-  type: 'object',
-  properties: { id: { type: 'string' } },
-  required: ['id'],
-};
+const IdJson = { type: 'object', properties: { id: { type: 'string' } }, required: ['id'] };
 
 const passthrough = <T,>(): StandardSchemaV1<unknown, T> => ({
   '~standard': { version: 1, vendor: 'test', validate: (value) => ({ value: value as T }) },
 });
-
 const CreateUser = passthrough<{ name: string }>();
 const IdParam = passthrough<{ id: string }>();
 
-@Controller('/users')
-class UserController {
-  @Get('/')
-  @Describe({
-    summary: '列出用户',
-    tags: ['users'],
-    responses: { '200': { description: '用户列表', jsonSchema: { type: 'array' } } },
-  })
+class Users {
   list(c: Context): Response {
     return c.json([]);
   }
-
-  @Get('/:id')
-  @Param(IdParam, { jsonSchema: IdJson })
-  @Describe({ summary: '查单个用户', tags: ['users'] })
   detail(c: Context): Response {
     return c.json({});
   }
-
-  @Post('/')
-  @Body(CreateUser, { jsonSchema: CreateUserJson })
-  @Describe({ summary: '创建用户', tags: ['users'], deprecated: true })
   create(c: Context): Response {
     return c.json({}, 201);
   }
 }
 
-@Module({ controllers: [UserController] })
+@Module({ providers: [Users] })
 class AppModule {}
 
+const app = createApp(AppModule, {
+  routes: (hono, resolve) =>
+    hono
+      .get(
+        '/users',
+        documented({
+          summary: '列出用户',
+          tags: ['users'],
+          responses: { '200': { description: '用户列表', jsonSchema: { type: 'array' } } },
+        }),
+        (c) => resolve(Users).list(c),
+      )
+      .get(
+        '/users/:id',
+        validate({ params: IdParam, jsonSchema: { params: IdJson } }),
+        documented({ summary: '查单个用户', tags: ['users'] }),
+        (c) => resolve(Users).detail(c),
+      )
+      .post(
+        '/users',
+        validate({ body: CreateUser, jsonSchema: { body: CreateUserJson } }),
+        documented({ summary: '创建用户', tags: ['users'], deprecated: true }),
+        (c) => resolve(Users).create(c),
+      ),
+});
+
 describe('buildOpenApiDocument', () => {
-  const graph = resolveModuleGraph(AppModule);
-  const document = buildOpenApiDocument(graph, { info: { title: 'HestJS API', version: '1.0.0' } });
+  const document = buildOpenApiDocument(app.hono, {
+    info: { title: 'HestJS API', version: '1.0.0' },
+  });
 
   it('是 OpenAPI 3.1', () => {
     expect(document.openapi).toBe('3.1.0');
     expect(document.info.title).toBe('HestJS API');
   });
 
-  it('路由被翻译成 OpenAPI 路径', () => {
+  it('路由表直接来自 hono.routes，不用传模块图', () => {
     expect(Object.keys(document.paths).sort()).toEqual(['/users', '/users/{id}']);
     expect(Object.keys(document.paths['/users']!)).toEqual(['get', 'post']);
   });
 
-  it('summary 与 tags 来自 @Describe', () => {
+  it('summary 与 tags 来自 documented()', () => {
     const operation = document.paths['/users']!.get as Record<string, unknown>;
     expect(operation.summary).toBe('列出用户');
     expect(operation.tags).toEqual(['users']);
   });
 
-  it('响应结构来自 @Describe', () => {
+  it('响应结构来自 documented()', () => {
     const operation = document.paths['/users']!.get as Record<string, unknown>;
     expect(operation.responses).toEqual({
-      '200': { description: '用户列表', content: { 'application/json': { schema: { type: 'array' } } } },
+      '200': {
+        description: '用户列表',
+        content: { 'application/json': { schema: { type: 'array' } } },
+      },
     });
   });
 
-  it('JSON 请求体来自校验装饰器的 jsonSchema', () => {
+  it('请求体 schema 来自 validate() 挂上的元数据', () => {
     const operation = document.paths['/users']!.post as Record<string, unknown>;
     expect(operation.requestBody).toEqual({
       required: true,
@@ -103,43 +111,46 @@ describe('buildOpenApiDocument', () => {
     expect((document.paths['/users']!.post as Record<string, unknown>).deprecated).toBe(true);
   });
 
-  it('没有 @Describe 的路由不编造 summary', () => {
-    @Controller('/plain')
-    class PlainController {
-      @Get('/')
-      ping(c: Context): Response {
-        return c.text('pong');
-      }
-    }
-    @Module({ controllers: [PlainController] })
-    class PlainModule {}
-
-    const plain = buildOpenApiDocument(resolveModuleGraph(PlainModule), {
-      info: { title: 't', version: '1' },
+  it('中间件注册出来的通配条目不会混进文档', () => {
+    const withMiddleware = createApp(AppModule, {
+      middleware: [async (_c, next) => next()],
+      routes: (hono, resolve) => hono.get('/ping', (c) => resolve(Users).list(c)),
     });
-    const operation = plain.paths['/plain']!.get as Record<string, unknown>;
+    const doc = buildOpenApiDocument(withMiddleware.hono, { info: { title: 't', version: '1' } });
+    expect(Object.keys(doc.paths)).toEqual(['/ping']);
+  });
+
+  it('没有 documented() 就不编造 summary', () => {
+    const bare = createApp(AppModule, {
+      routes: (hono, resolve) => hono.get('/ping', (c) => resolve(Users).list(c)),
+    });
+    const doc = buildOpenApiDocument(bare.hono, { info: { title: 't', version: '1' } });
+    const operation = doc.paths['/ping']!.get as Record<string, unknown>;
     expect(operation.summary).toBeUndefined();
     expect(operation.responses).toEqual({ '200': { description: 'OK' } });
   });
 });
 
 describe('openApiRoutes', () => {
-  const app = createApp(AppModule);
-  app.hono.route('/', openApiRoutes({ graph: app.graph, info: { title: 'HestJS API', version: '1.0.0' } }));
+  const withDocs = createApp(AppModule, {
+    routes: (hono, resolve) => hono.get('/users', (c) => resolve(Users).list(c)),
+  });
+  withDocs.hono.route(
+    '/',
+    openApiRoutes({ hono: withDocs.hono, info: { title: 'HestJS API', version: '1.0.0' } }),
+  );
 
   it('暴露 JSON 文档', async () => {
-    const response = await app.hono.request('/openapi.json');
-    expect(response.status).toBe(200);
+    const response = await withDocs.hono.request('/openapi.json');
     const body = (await response.json()) as { openapi: string };
     expect(body.openapi).toBe('3.1.0');
   });
 
   it('暴露 Scalar UI 页面', async () => {
-    const response = await app.hono.request('/docs');
-    expect(await response.text()).toContain('@scalar/api-reference');
+    expect(await (await withDocs.hono.request('/docs')).text()).toContain('@scalar/api-reference');
   });
 
-  it('文档路由不干扰原有控制器', async () => {
-    expect((await app.hono.request('/users')).status).toBe(200);
+  it('文档路由不干扰原有路由', async () => {
+    expect((await withDocs.hono.request('/users')).status).toBe(200);
   });
 });

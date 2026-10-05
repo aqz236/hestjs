@@ -1,4 +1,8 @@
-export { Describe, readDocumentation, DOCS_META, type ResponseDocumentation, type RouteDocumentation } from './describe';
+export {
+  documented,
+  type ResponseDocumentation,
+  type RouteDocumentation,
+} from './documented';
 export {
   buildOpenApiDocument,
   type OpenApiConfig,
