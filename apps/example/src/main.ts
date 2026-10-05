@@ -1,11 +1,10 @@
-import type { Context } from 'hono';
+import type { Context, Env } from 'hono';
 import { logger } from 'hono/logger';
 import { z } from 'zod';
+import { Inject, Module, createApp } from '@hestjs/core';
 import type { OnStart, OnStop } from '@hestjs/core';
-import { Controller, Get, Injectable, Module, Post, createApp } from '@hestjs/core';
-import type { RouteContext } from '@hestjs/core';
-import { Describe, openApiRoutes } from '@hestjs/openapi';
-import { Body, type InferInput, type ValidatedBody } from '@hestjs/validation';
+import { documented, openApiRoutes } from '@hestjs/openapi';
+import { validate } from '@hestjs/validation';
 
 // ─────────────────────────────────────────────────────────────
 // 校验用 zod，但框架不认识 zod —— 只认 Standard Schema。
@@ -15,8 +14,6 @@ import { Body, type InferInput, type ValidatedBody } from '@hestjs/validation';
 export const CreateUserSchema = z.object({
   name: z.string().min(1).max(50),
 });
-
-type CreateUserInput = InferInput<typeof CreateUserSchema>;
 
 // ─────────────────────────────────────────────────────────────
 // 基础设施模块：只把 token 借出去，不导出实现
@@ -39,7 +36,6 @@ export interface User {
   readonly name: string;
 }
 
-@Injectable()
 class UserRepository implements OnStart, OnStop {
   readonly #users = new Map<string, User>();
 
@@ -73,16 +69,13 @@ class UserRepository implements OnStart, OnStop {
 class DataModule {}
 
 // ─────────────────────────────────────────────────────────────
-// 业务模块：只看得见 DataModule 与 CoreModule export 的东西
+// 业务层：只看得见 DataModule 与 CoreModule export 的东西
 // ─────────────────────────────────────────────────────────────
 
-@Injectable()
 class UserService {
-  static readonly inject = [UserRepository, CLOCK] as const;
-
   constructor(
-    private readonly repository: UserRepository,
-    private readonly now: () => string,
+    @Inject(UserRepository) private readonly repository: UserRepository,
+    @Inject(CLOCK) private readonly now: () => string,
   ) {}
 
   list(): User[] {
@@ -102,66 +95,81 @@ class UserService {
   }
 }
 
-@Controller('/users')
+/**
+ * 控制器就是普通 provider。
+ *
+ * 它不声明路径 —— 路径属于路由，路由是 Hono 的事。
+ * 方法第一个参数永远是 Hono 的 Context。
+ */
 class UserController {
-  static readonly inject = [UserService] as const;
+  constructor(@Inject(UserService) private readonly users: UserService) {}
 
-  constructor(private readonly users: UserService) {}
-
-  @Get('/')
-  @Describe({
-    summary: '列出全部用户',
-    tags: ['users'],
-    responses: { '200': { description: '用户列表' } },
-  })
   list(c: Context): Response {
     return c.json({ data: this.users.list(), at: this.users.timestamp() });
   }
 
-  @Get('/:id')
-  @Describe({ summary: '按 id 查用户', tags: ['users'] })
-  detail(c: RouteContext<'/users/:id'>): Response {
+  detail(c: Context<Env, '/users/:id'>): Response {
     const user = this.users.get(c.req.param('id'));
     return user === undefined ? c.json({ message: 'not found' }, 404) : c.json({ data: user });
   }
 
-  @Post('/')
-  @Body(CreateUserSchema, { jsonSchema: z.toJSONSchema(CreateUserSchema) })
-  @Describe({
-    summary: '创建用户',
-    tags: ['users'],
-    responses: { '201': { description: '创建成功' } },
-  })
-  create(c: RouteContext<'/users', ValidatedBody<CreateUserInput>>): Response {
-    const input = c.req.valid('json');
+  create(c: Context): Response {
+    const input = c.req.valid('json' as never) as { name: string };
     return c.json({ data: this.users.create(input.name) }, 201);
   }
 }
 
 @Module({
   imports: [DataModule, CoreModule],
-  providers: [UserService],
-  controllers: [UserController],
+  providers: [UserService, UserController],
 })
-class UsersFeatureModule {}
-
-@Module({ imports: [UsersFeatureModule] })
 class AppModule {}
 
 // ─────────────────────────────────────────────────────────────
-// 组装：configure 在控制器之前跑，中间件才能包住它们
+// 组装：middleware 在路由之前，routes 用 Hono 自己的 API
 // ─────────────────────────────────────────────────────────────
 
 const app = createApp(AppModule, {
-  configure(hono) {
-    hono.use(logger());
-    hono.use('*', async (c, next) => {
+  middleware: [
+    logger(),
+    async (c, next) => {
       c.header('x-powered-by', 'hestjs');
       await next();
-    });
+    },
+  ],
 
-    // 原生 Hono 路由和控制器共存，没有边界
-    hono.get('/health', (c) => c.text('ok'));
+  routes: (hono, resolve) => {
+    const users = resolve(UserController);
+
+    return hono
+      .get('/health', (c) => c.text('ok'))
+      .get(
+        '/users',
+        documented({
+          summary: '列出全部用户',
+          tags: ['users'],
+          responses: { '200': { description: '用户列表' } },
+        }),
+        (c) => users.list(c),
+      )
+      .get(
+        '/users/:id',
+        documented({ summary: '按 id 查用户', tags: ['users'] }),
+        (c) => users.detail(c),
+      )
+      .post(
+        '/users',
+        validate({
+          body: CreateUserSchema,
+          jsonSchema: { body: z.toJSONSchema(CreateUserSchema) },
+        }),
+        documented({
+          summary: '创建用户',
+          tags: ['users'],
+          responses: { '201': { description: '创建成功' } },
+        }),
+        (c) => users.create(c),
+      );
   },
 });
 
@@ -169,7 +177,7 @@ const app = createApp(AppModule, {
 app.hono.route(
   '/',
   openApiRoutes({
-    graph: app.graph,
+    hono: app.hono,
     info: { title: 'HestJS Example', version: '0.0.0', description: '最小可运行示例' },
   }),
 );
@@ -178,6 +186,9 @@ app.hono.route(
 app.hono.notFound((c) => c.json({ message: 'not found', path: c.req.path }, 404));
 
 await app.start();
+
+/** 给客户端用：`hc<AppType>` 能拿到完整的 RPC 类型。 */
+export type AppType = typeof app.hono;
 
 export { app };
 export default { port: Number(process.env.PORT ?? 3000), fetch: app.hono.fetch };

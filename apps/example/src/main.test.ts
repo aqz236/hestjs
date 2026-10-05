@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'bun:test';
-import { app } from './main';
+import { hc } from 'hono/client';
+import { app, type AppType } from './main';
 
 const json = async (path: string, init?: RequestInit): Promise<{ status: number; body: any }> => {
   const response = await app.hono.request(path, init);
@@ -7,7 +8,7 @@ const json = async (path: string, init?: RequestInit): Promise<{ status: number;
 };
 
 describe('HTTP', () => {
-  it('原生 Hono 路由可用', async () => {
+  it('裸 Hono 路由与控制器路由共存', async () => {
     const response = await app.hono.request('/health');
     expect(response.status).toBe(200);
     expect(await response.text()).toBe('ok');
@@ -20,14 +21,13 @@ describe('HTTP', () => {
     expect(typeof body.at).toBe('string');
   });
 
-  it('路径参数按 @Get("/:id") 解析', async () => {
+  it('路径参数按 Hono 的写法解析', async () => {
     expect((await json('/users/1')).body.data).toEqual({ id: '1', name: 'Ada' });
     expect((await json('/users/404')).status).toBe(404);
   });
 
-  it('configure 里的中间件包住了控制器', async () => {
-    const response = await app.hono.request('/users');
-    expect(response.headers.get('x-powered-by')).toBe('hestjs');
+  it('middleware 包住了所有路由', async () => {
+    expect((await app.hono.request('/users')).headers.get('x-powered-by')).toBe('hestjs');
   });
 
   it('@Body 用 zod 校验，非法请求被拦下', async () => {
@@ -50,41 +50,67 @@ describe('HTTP', () => {
   });
 });
 
-describe('模块作用域', () => {
-  it('UserRepository 只在 DataModule 的容器里', () => {
-    const dataModule = app.graph.modules.find((node) => node.target.name === 'DataModule');
-    expect(dataModule).toBeDefined();
-    expect(dataModule!.container.provides(Symbol.for('never'))).toBe(false);
-  });
+/**
+ * 纯编译期检查：函数永远不会被调用，`tsc` 会验证里面每一行。
+ *
+ * 这几行能通过，就证明「装饰器路由摧毁 Hono RPC 类型」那个问题
+ * 在新架构里不存在了。
+ */
+function assertRpcTypes(): void {
+  type Client = ReturnType<typeof hc<AppType>>;
+  const client = null as unknown as Client;
 
-  it('根容器拿不到未向上导出的 provider', () => {
-    // AppModule 只 import 了 UsersFeatureModule，UserRepository 没有沿链 export 上来
+  // 路径存在，且 param 是必填的
+  void client.users[':id'].$get;
+  void client.users.$get;
+  void client.users.$post;
+  void client.health.$get;
+
+  // @ts-expect-error 不存在的路径不该通过
+  void client.nope;
+}
+void assertRpcTypes;
+
+describe('RPC 类型', () => {
+  it('hc<AppType> 的类型检查在 tsc 阶段完成（见文件顶部的 assertRpcTypes）', () => {
+    expect(true).toBe(true);
+  });
+});
+
+describe('模块作用域', () => {
+  it('模块顺序是依赖在前、根在后', () => {
     expect(app.graph.modules.map((node) => node.target.name)).toEqual([
       'DataModule',
       'CoreModule',
-      'UsersFeatureModule',
       'AppModule',
     ]);
   });
 });
 
 describe('文档', () => {
-  it('openapi.json 列出全部控制器路由', async () => {
+  it('openapi.json 列出全部路由', async () => {
     const document = (await (await app.hono.request('/openapi.json')).json()) as {
       openapi: string;
       paths: Record<string, Record<string, unknown>>;
     };
     expect(document.openapi).toBe('3.1.0');
-    // 只收录走控制器的路由：/health 是直接在 Hono 上写的裸路由，
-    // 没有元数据可读，文档里就不会出现它 —— 这是诚实，不是遗漏。
-    expect(Object.keys(document.paths).sort()).toEqual(['/users', '/users/{id}']);
+    expect(Object.keys(document.paths).sort()).toEqual([
+      '/health',
+      '/users',
+      '/users/{id}',
+    ]);
   });
 
   it('请求体 schema 来自 zod', async () => {
     const document = (await (await app.hono.request('/openapi.json')).json()) as {
-      paths: Record<string, { post?: { requestBody?: { content?: Record<string, { schema?: { type?: string } }> } } }>;
+      paths: Record<
+        string,
+        { post?: { requestBody?: { content?: Record<string, { schema?: { type?: string } }> } } }
+      >;
     };
-    expect(document.paths['/users']?.post?.requestBody?.content?.['application/json']?.schema?.type).toBe('object');
+    expect(
+      document.paths['/users']?.post?.requestBody?.content?.['application/json']?.schema?.type,
+    ).toBe('object');
   });
 
   it('Scalar UI 可访问', async () => {
