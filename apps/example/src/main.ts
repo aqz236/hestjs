@@ -4,6 +4,8 @@ import { z } from 'zod';
 import { Inject, Module, createApp, dynamicModule, token } from '@hestjs/core';
 import type { DynamicModule, OnStart, OnStop } from '@hestjs/core';
 import { documented, openApiRoutes } from '@hestjs/openapi';
+import { Process, Processor, Queue, queue, type QueuedJob } from '@hestjs/queue';
+import { Interval, schedule } from '@hestjs/schedule';
 import { validate } from '@hestjs/validation';
 
 // ─────────────────────────────────────────────────────────────
@@ -118,7 +120,10 @@ class UserService {
  * 方法第一个参数永远是 Hono 的 Context。
  */
 class UserController {
-  constructor(@Inject(UserService) private readonly users: UserService) {}
+  constructor(
+    @Inject(UserService) private readonly users: UserService,
+    @Inject(Queue) private readonly queue: Queue,
+  ) {}
 
   list(c: Context): Response {
     return c.json({ data: this.users.list(), at: this.users.timestamp() });
@@ -129,15 +134,56 @@ class UserController {
     return user === undefined ? c.json({ message: 'not found' }, 404) : c.json({ data: user });
   }
 
-  create(c: Context): Response {
+  async create(c: Context): Promise<Response> {
     const input = c.req.valid('json' as never) as { name: string };
-    return c.json({ data: this.users.create(input.name) }, 201);
+    const user = this.users.create(input.name);
+
+    // 后台任务：这里只是投递，处理在 AuditProcessor 里
+    await this.queue.enqueue('audit', 'user-created', { id: user.id });
+
+    return c.json({ data: user }, 201);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// 后台任务：投递走 Queue，处理走 @Processor
+// ─────────────────────────────────────────────────────────────
+
+export const AUDIT = token<string[]>('audit');
+
+@Processor('audit')
+class AuditProcessor {
+  constructor(@Inject(AUDIT) private readonly log: string[]) {}
+
+  @Process('user-created')
+  record(job: QueuedJob): void {
+    const { id } = job.payload as { id: string };
+    this.log.push(`created ${id}`);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// 定时任务：装饰器声明，Scheduler 在 onStart 里建好、onStop 里停掉
+// ─────────────────────────────────────────────────────────────
+
+class HousekeepingTask {
+  constructor(@Inject(UserRepository) private readonly repository: UserRepository) {}
+
+  @Interval(60_000, { name: 'housekeeping.sweep' })
+  sweep(): void {
+    console.log(`[housekeeping] 当前 ${this.repository.list().length} 个用户`);
   }
 }
 
 @Module({
   imports: [DataModule.forRoot({ url: 'memory://users' }), CoreModule],
-  providers: [UserService, UserController],
+  providers: [
+    UserService,
+    UserController,
+    { provide: AUDIT, useValue: [] },
+    ...queue([AuditProcessor]),
+    ...schedule([HousekeepingTask]),
+  ],
 })
 class AppModule {}
 

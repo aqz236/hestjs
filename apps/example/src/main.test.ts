@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'bun:test';
 import { hc } from 'hono/client';
-import { app, type AppType } from './main';
+import { app, AUDIT, type AppType } from './main';
 
 const json = async (path: string, init?: RequestInit): Promise<{ status: number; body: any }> => {
   const response = await app.hono.request(path, init);
@@ -74,6 +74,32 @@ void assertRpcTypes;
 describe('RPC 类型', () => {
   it('hc<AppType> 的类型检查在 tsc 阶段完成（见文件顶部的 assertRpcTypes）', () => {
     expect(true).toBe(true);
+  });
+});
+
+describe('后台任务', () => {
+  it('创建用户会投递一条审计任务，并被 processor 消费', async () => {
+    const before = app.container.resolve<string[]>(AUDIT).length;
+
+    const { status, body } = await json('/users', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ name: 'Grace' }),
+    });
+    expect(status).toBe(201);
+
+    // 消费是异步的，等它跑完
+    await new Promise((resolve) => setTimeout(resolve, 30));
+    const log = app.container.resolve<string[]>(AUDIT);
+    expect(log.length).toBe(before + 1);
+    expect(log.at(-1)).toBe(`created ${body.data.id}`);
+  });
+});
+
+describe('定时任务', () => {
+  it('Scheduler 在 onStart 里注册了任务', async () => {
+    const { Scheduler } = await import('@hestjs/schedule');
+    expect(app.container.resolve(Scheduler).names).toEqual(['housekeeping.sweep']);
   });
 });
 

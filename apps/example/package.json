@@ -16,7 +16,9 @@
     "hono": "^4.13.13",
     "@hestjs/openapi": "workspace:*",
     "@hestjs/validation": "workspace:*",
-    "zod": "^4.6.5"
+    "zod": "^4.6.5",
+    "@hestjs/queue": "workspace:*",
+    "@hestjs/schedule": "workspace:*"
   },
   "devDependencies": {
     "@hestjs/typescript-config": "workspace:*",
