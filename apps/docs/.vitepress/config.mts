@@ -53,6 +53,8 @@ export default defineConfig({
           { text: '校验', link: '/plugins/validation' },
           { text: 'OpenAPI 文档', link: '/plugins/openapi' },
           { text: 'CQRS', link: '/plugins/cqrs' },
+          { text: '定时任务', link: '/plugins/schedule' },
+          { text: '后台任务', link: '/plugins/queue' },
         ],
       },
       {

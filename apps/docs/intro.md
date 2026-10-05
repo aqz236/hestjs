@@ -59,6 +59,8 @@ export type AppType = typeof app.hono;   // hc<AppType> 类型完整
 | `@hestjs/validation` | Standard Schema 请求校验 | 否 |
 | `@hestjs/openapi` | OpenAPI 3.1 + Scalar UI | 否 |
 | `@hestjs/cqrs` | 三总线，纯 TS 不碰 web | 否 |
+| `@hestjs/schedule` | 声明式定时任务（cron / interval / timeout） | 否 |
+| `@hestjs/queue` | 后台任务：processor 声明 + 可替换 driver | 否 |
 | `@hestjs/testing` | 启动应用、替换 provider、发请求 | 否 |
 
 插件之间互不依赖，都只依赖 `core`。`openapi` 读的是 core 定义的元数据契约，

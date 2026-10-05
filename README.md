@@ -185,6 +185,8 @@ class Postgres implements OnStart, OnStop {
 | [`@hestjs/validation`](./packages/validation) | Standard Schema 请求校验 | 否 |
 | [`@hestjs/openapi`](./packages/openapi) | OpenAPI 3.1 + Scalar UI | 否 |
 | [`@hestjs/cqrs`](./packages/cqrs) | 三总线，纯 TS 不碰 web | 否 |
+| [`@hestjs/schedule`](./packages/schedule) | 声明式定时任务 | 否 |
+| [`@hestjs/queue`](./packages/queue) | 后台任务，可替换 driver | 否 |
 | [`@hestjs/testing`](./packages/testing) | 启动应用、替换 provider、发请求 | 否 |
 | [`create-hest-app`](./packages/create-hest-app) | 最小生成器 | 否 |
 
@@ -237,6 +239,8 @@ packages/
 ├── validation/               # Standard Schema 校验
 ├── openapi/                  # OpenAPI 3.1 + Scalar UI
 ├── cqrs/                     # 三总线，纯 TS
+├── schedule/                 # 定时任务
+├── queue/                    # 后台任务
 ├── testing/                  # 测试工具
 ├── create-hest-app/          # 最小生成器
 ├── typescript-config/        # 共享 tsconfig
