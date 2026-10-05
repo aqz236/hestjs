@@ -1,0 +1,104 @@
+{
+  "name": "@hestjs/eslint-config",
+  "version": "0.1.1",
+  "description": "ESLint configuration",
+  "type": "module",
+  "main": "dist/eslint.config.js",
+  "types": "dist/eslint.config.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/eslint.config.d.ts",
+      "import": "./dist/eslint.config.js"
+    },
+    "./react": {
+      "types": "./dist/react.config.d.ts",
+      "import": "./dist/react.config.js"
+    },
+    "./vue": {
+      "types": "./dist/vue.config.d.ts",
+      "import": "./dist/vue.config.js"
+    },
+    "./base": {
+      "types": "./dist/base.config.d.ts",
+      "import": "./dist/base.config.js"
+    },
+    "./source": {
+      "types": "./eslint.config.ts",
+      "import": "./eslint.config.ts"
+    },
+    "./react/source": {
+      "types": "./react.config.ts",
+      "import": "./react.config.ts"
+    },
+    "./vue/source": {
+      "types": "./vue.config.ts",
+      "import": "./vue.config.ts"
+    },
+    "./base/source": {
+      "types": "./base.config.ts",
+      "import": "./base.config.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "type-check": "tsc --project tsconfig.check.json",
+    "test": "node --test",
+    "clean": "rm -rf dist",
+    "check-types": "tsc --project tsconfig.check.json"
+  },
+  "dependencies": {
+    "@eslint/js": "^9.31.0",
+    "typescript-eslint": "^8.36.0",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-promise": "^7.2.1",
+    "eslint-plugin-unicorn": "^59.0.1",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-react-refresh": "^0.4.16",
+    "eslint-plugin-vue": "^9.32.0"
+  },
+  "devDependencies": {
+    "@hestjs/typescript-config": "workspace:*",
+    "@types/node": "^24.1.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.8.3"
+  },
+  "peerDependencies": {
+    "eslint": "^9.0.0",
+    "typescript": ">=5.0.0"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
+  "keywords": [
+    "eve",
+    "eslint",
+    "config",
+    "typescript",
+    "javascript"
+  ],
+  "author": "Hest Team",
+  "license": "MIT",
+  "homepage": "https://github.com/aqz236/hestjs/tree/main/packages/eslint-config#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aqz236/hestjs.git",
+    "directory": "packages/eslint-config"
+  },
+  "bugs": {
+    "url": "https://github.com/aqz236/hestjs/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "sideEffects": false
+}

@@ -1,0 +1,56 @@
+# Source files
+src/
+*.ts
+!dist/**/*.d.ts
+
+# Development files
+test/
+tests/
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+
+# Assets (for GitHub only, not npm)
+assets/
+docs/
+examples/
+
+# Build tools
+tsconfig.json
+.eslintrc*
+.prettierrc*
+jest.config*
+vitest.config*
+
+# Development dependencies
+node_modules/
+.nyc_output/
+coverage/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git files
+.git/
+.gitignore
+
+# CI/CD
+.github/
+.travis.yml
+.circleci/
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/

@@ -1,0 +1,59 @@
+{
+  "name": "@hestjs/cqrs",
+  "version": "0.1.5",
+  "description": "HestJS CQRS - Command Query Responsibility Segregation module for HestJS",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "check-types": "tsc --noEmit",
+    "prepublishOnly": "npm run clean && npm run build",
+    "publish:npm": "npm publish --access public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aqz236/hestjs.git",
+    "directory": "packages/cqrs"
+  },
+  "homepage": "https://github.com/aqz236/hestjs/tree/main/packages/cqrs#readme",
+  "bugs": {
+    "url": "https://github.com/aqz236/hestjs/issues"
+  },
+  "author": "aqz236",
+  "license": "MIT",
+  "dependencies": {
+    "@hestjs/logger": "workspace:*",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1",
+    "tsyringe": "^4.10.0"
+  },
+  "devDependencies": {
+    "@hestjs/core": "workspace:*",
+    "@types/node": "^24.1.0",
+    "typescript": "5.8.3"
+  },
+  "peerDependencies": {
+    "@hestjs/core": "workspace:^",
+    "typescript": ">=5.0.0"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "sideEffects": false
+}

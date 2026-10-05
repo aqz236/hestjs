@@ -1,0 +1,36 @@
+{
+  "name": "@hestjs/typescript-config",
+  "version": "0.1.0",
+  "description": "TypeScript configuration for Hest Framework",
+  "files": [
+    "base.json",
+    "react.json"
+  ],
+  "keywords": [
+    "hest",
+    "typescript",
+    "config"
+  ],
+  "author": "Hest Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aqz236/hestjs.git",
+    "directory": "packages/typescript-config"
+  },
+  "homepage": "https://github.com/aqz236/hestjs/tree/main/packages/typescript-config#readme",
+  "bugs": {
+    "url": "https://github.com/aqz236/hestjs/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "sideEffects": false,
+  "exports": {
+    "./base.json": "./base.json",
+    "./react.json": "./react.json"
+  }
+}
