@@ -1,0 +1,26 @@
+{
+  "name": "@hestjs/testing",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "HestJS 测试工具：启动应用、替换 provider、发请求",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "test": "bun test",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@hestjs/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "hono": "^4.13.13"
+  },
+  "devDependencies": {
+    "@hestjs/typescript-config": "workspace:*",
+    "@types/bun": "latest",
+    "hono": "^4.13.13"
+  }
+}
