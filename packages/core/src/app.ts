@@ -2,10 +2,12 @@ import type { Env, Hono } from 'hono';
 import { Hono as HonoApp } from 'hono';
 import type { Container } from './container';
 import { hasOnStart, hasOnStop } from './lifecycle';
+import { UnknownOverrideError } from './errors';
+import { normalizeProvider } from './metadata';
 import { resolveModuleGraph } from './module-graph';
 import type { ResolvedGraph } from './module-graph';
 import { mountControllers } from './router';
-import type { Constructor } from './types';
+import type { Constructor, ProviderEntry } from './types';
 
 export interface CreateAppOptions<E extends Env> {
   /** 复用已有的 Hono 实例，例如把 HestJS 挂进一个已经存在的应用。 */
@@ -19,6 +21,13 @@ export interface CreateAppOptions<E extends Env> {
   readonly prefix?: string;
   /** 关掉自动挂载，自己决定什么时候挂。 */
   readonly mountControllers?: boolean;
+  /**
+   * 替换已有的 provider。主要给测试用。
+   *
+   * 只能替换本来注册过的 token：写错一个名字会立刻报错，
+   * 而不是让测试在「其实没换掉」的情况下假装通过。
+   */
+  readonly overrides?: readonly ProviderEntry[];
 }
 
 export interface App<E extends Env = Env> {
@@ -48,6 +57,15 @@ export function createApp<E extends Env = Env>(
   options: CreateAppOptions<E> = {},
 ): App<E> {
   const graph = resolveModuleGraph(root);
+
+  for (const entry of options.overrides ?? []) {
+    const token = normalizeProvider(entry).provide;
+    const replaced = graph.modules.some((node) => node.container.override(entry));
+    if (!replaced) {
+      throw new UnknownOverrideError(token);
+    }
+  }
+
   const hono = options.hono ?? (new HonoApp() as Hono<E>);
 
   options.configure?.(hono, graph.container);

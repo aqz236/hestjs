@@ -98,3 +98,13 @@ export class NoRoutesRegisteredError extends HestError {
     );
   }
 }
+
+export class UnknownOverrideError extends HestError {
+  constructor(token: Token) {
+    super(
+      `测试替身 ${describeToken(token)} 没有对应的真实 provider。\n` +
+        `overrides 只能替换「本来就注册过」的 token，不能凭空新增 —— \n` +
+        `否则测试会通过，线上却少一个依赖。`,
+    );
+  }
+}

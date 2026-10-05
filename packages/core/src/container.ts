@@ -50,6 +50,23 @@ export class Container {
     return this;
   }
 
+  /**
+   * 替换已登记的 provider，并丢掉缓存实例。
+   *
+   * 只替换、不新增：找不到就返回 false，由调用方决定怎么报错。
+   * 这是测试替身的唯一入口 —— 不给「运行时偷偷换实现」留后门。
+   */
+  override(entry: ProviderEntry): boolean {
+    const provider = normalizeProvider(entry);
+    const { provide: token } = provider;
+    if (!this.#providers.has(token)) {
+      return false;
+    }
+    this.#providers.set(token, toRegistration(provider));
+    this.#instances.delete(token);
+    return true;
+  }
+
   alias(token: Token, source: Container): this {
     if (this.#providers.has(token)) {
       throw new AmbiguousProviderError('container', token);

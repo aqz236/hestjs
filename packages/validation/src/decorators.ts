@@ -1,10 +1,10 @@
 import type { Context, Handler } from 'hono';
-import { validator } from 'hono/validator';
+import { sValidator } from '@hono/standard-validator';
 import { addRouteMiddleware } from '@hestjs/core';
 import type { StandardSchemaV1 } from '@standard-schema/spec';
 import {
   rememberSchema,
-  validateSchema,
+  toIssues,
   type JsonSchema,
   type ValidationIssue,
   type ValidationSource,
@@ -34,15 +34,15 @@ function middleware(
   schema: StandardSchemaV1,
   options: ValidateOptions,
 ): Handler {
-  const hook = async (value: unknown, context: Context): Promise<unknown> => {
-    const result = await validateSchema(schema, value);
-    if (!result.ok) {
-      return options.onInvalid?.(result.issues, context) ?? defaultInvalid(context, result.issues);
+  // 校验本身交给 Hono 官方的 Standard Schema 中间件。
+  // 我们只负责两件事：把它挂到装饰器标记的方法上，以及记下 schema 供文档生成读取。
+  return sValidator(source, schema, (result, context) => {
+    if (result.success) {
+      return;
     }
-    return result.value;
-  };
-
-  return validator(source as never, hook as never) as unknown as Handler;
+    const issues = toIssues(result.error);
+    return options.onInvalid?.(issues, context) ?? defaultInvalid(context, issues);
+  }) as unknown as Handler;
 }
 
 function decorator(source: ValidationSource) {
