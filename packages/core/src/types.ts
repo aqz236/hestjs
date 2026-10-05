@@ -1,4 +1,4 @@
-import type { Context, Env } from 'hono';
+import type { Context, Env, Input } from 'hono';
 import type { Container } from './container';
 
 /** 能被 new 的类型。参数用 any[] 是为了让容器把解析结果原样透传。 */
@@ -64,8 +64,14 @@ export type RouteMethod = HttpMethod | 'ALL';
  * detail(c: RouteContext<'/users/:id'>) { c.req.param('id') }  // string
  * ```
  */
-export type RouteContext<TPath extends string, E extends Env = Env> = Context<E, TPath>;
+export type RouteContext<
+  TPath extends string,
+  TInput extends Input = {},
+  E extends Env = Env,
+> = Context<E, TPath, TInput>;
 
-export type RouteHandler<TPath extends string, E extends Env = Env> = (
-  context: RouteContext<TPath, E>,
-) => Response | Promise<Response>;
+export type RouteHandler<
+  TPath extends string,
+  TInput extends Input = {},
+  E extends Env = Env,
+> = (context: RouteContext<TPath, TInput, E>) => Response | Promise<Response>;

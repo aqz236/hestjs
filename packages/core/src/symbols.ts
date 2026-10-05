@@ -9,3 +9,4 @@ export const MODULE_META = Symbol.for('hestjs:module');
 export const CONTROLLER_META = Symbol.for('hestjs:controller');
 export const ROUTES_META = Symbol.for('hestjs:routes');
 export const INJECTABLE_META = Symbol.for('hestjs:injectable');
+export const MIDDLEWARE_META = Symbol.for('hestjs:middlewares');

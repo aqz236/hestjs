@@ -3,6 +3,7 @@ export {
   CONTROLLER_META,
   ROUTES_META,
   INJECTABLE_META,
+  MIDDLEWARE_META,
 } from './symbols';
 export type * from './types';
 export * from './errors';
@@ -10,6 +11,7 @@ export { Container } from './container';
 export { hasOnStart, hasOnStop, type OnStart, type OnStop } from './lifecycle';
 export {
   addRoute,
+  addRouteMiddleware,
   defineController,
   defineInjectable,
   defineModule,
@@ -17,6 +19,7 @@ export {
   readController,
   readInjectableScope,
   readModule,
+  readRouteMiddlewares,
   readRoutes,
   type ControllerMetadata,
   type InjectableMetadata,

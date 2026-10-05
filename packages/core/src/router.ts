@@ -1,13 +1,13 @@
 import type { Env, Handler, Hono, Next } from 'hono';
 import { DuplicateRouteError, MissingRouteHandlerError, NoRoutesRegisteredError } from './errors';
-import { readRoutes } from './metadata';
+import { readRouteMiddlewares, readRoutes } from './metadata';
 import type { ResolvedGraph } from './module-graph';
 import { joinPath } from './path';
 
 /** Hono 对动态注册的类型支持有限，这里只取我们真正用到的两个方法。 */
 interface Registrable {
-  on(method: string, path: string, handler: Handler): void;
-  all(path: string, handler: Handler): void;
+  on(method: string, path: string, ...handlers: Handler[]): void;
+  all(path: string, ...handlers: Handler[]): void;
 }
 
 export interface MountOptions {
@@ -58,10 +58,12 @@ export function mountControllers<E extends Env>(
         return (fn as (c: unknown, n: Next) => unknown).call(instance, context, next);
       };
 
+      const middlewares = readRouteMiddlewares(binding.controller.prototype, route.propertyKey);
+
       if (route.method === 'ALL') {
-        router.all(path, handler as Handler);
+        router.all(path, ...middlewares, handler as Handler);
       } else {
-        router.on(route.method, path, handler as Handler);
+        router.on(route.method, path, ...middlewares, handler as Handler);
       }
     }
   }

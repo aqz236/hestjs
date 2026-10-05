@@ -1,4 +1,11 @@
-import { CONTROLLER_META, INJECTABLE_META, MODULE_META, ROUTES_META } from './symbols';
+import type { Handler } from 'hono';
+import {
+  CONTROLLER_META,
+  INJECTABLE_META,
+  MIDDLEWARE_META,
+  MODULE_META,
+  ROUTES_META,
+} from './symbols';
 import type { Constructor, Provider, ProviderEntry, RouteMethod, Scope, Token } from './types';
 
 export interface RouteDefinition {
@@ -25,6 +32,7 @@ export interface ModuleMetadata {
 }
 
 interface Carriers {
+  [MIDDLEWARE_META]?: Map<string | symbol, Handler[]>;
   [MODULE_META]?: ModuleMetadata;
   [CONTROLLER_META]?: ControllerMetadata;
   [INJECTABLE_META]?: InjectableMetadata;
@@ -78,6 +86,36 @@ export function addRoute(prototype: object, route: RouteDefinition): void {
 
 export function readRoutes(prototype: object): readonly RouteDefinition[] {
   return carrier(prototype)[ROUTES_META] ?? [];
+}
+
+/**
+ * 往某个方法上挂路由级中间件，它会在控制器方法之前执行。
+ *
+ * 这是 core 给上层留的唯一扩展点：校验、鉴权、限流都靠它，
+ * core 自己不需要知道有这些东西存在。
+ */
+export function addRouteMiddleware(
+  prototype: object,
+  propertyKey: string | symbol,
+  ...handlers: readonly Handler[]
+): void {
+  if (!Object.hasOwn(prototype, MIDDLEWARE_META)) {
+    Object.defineProperty(prototype, MIDDLEWARE_META, {
+      value: new Map<string | symbol, Handler[]>(),
+      enumerable: false,
+      writable: true,
+      configurable: true,
+    });
+  }
+  const map = carrier(prototype)[MIDDLEWARE_META]!;
+  map.set(propertyKey, [...(map.get(propertyKey) ?? []), ...handlers]);
+}
+
+export function readRouteMiddlewares(
+  prototype: object,
+  propertyKey: string | symbol,
+): readonly Handler[] {
+  return carrier(prototype)[MIDDLEWARE_META]?.get(propertyKey) ?? [];
 }
 
 /** 模块里可以直接写类名，这里统一成 Provider 对象。 */
