@@ -79,11 +79,17 @@ describe('RPC 类型', () => {
 
 describe('模块作用域', () => {
   it('模块顺序是依赖在前、根在后', () => {
-    expect(app.graph.modules.map((node) => node.target.name)).toEqual([
+    expect(app.graph.modules.map((node) => node.module.name)).toEqual([
       'DataModule',
       'CoreModule',
       'AppModule',
     ]);
+  });
+
+  it('动态模块的 ref 是 forRoot() 返回的对象，不是类', () => {
+    const data = app.graph.modules.find((node) => node.module.name === 'DataModule')!;
+    expect(typeof data.ref).toBe('object');
+    expect(data.ref).not.toBe(app.graph.modules[0]!.module);
   });
 });
 

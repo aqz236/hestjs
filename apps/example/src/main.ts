@@ -1,8 +1,8 @@
 import type { Context, Env } from 'hono';
 import { logger } from 'hono/logger';
 import { z } from 'zod';
-import { Inject, Module, createApp } from '@hestjs/core';
-import type { OnStart, OnStop } from '@hestjs/core';
+import { Inject, Module, createApp, dynamicModule, token } from '@hestjs/core';
+import type { DynamicModule, OnStart, OnStop } from '@hestjs/core';
 import { documented, openApiRoutes } from '@hestjs/openapi';
 import { validate } from '@hestjs/validation';
 
@@ -19,7 +19,7 @@ export const CreateUserSchema = z.object({
 // 基础设施模块：只把 token 借出去，不导出实现
 // ─────────────────────────────────────────────────────────────
 
-export const CLOCK = Symbol('clock');
+export const CLOCK = token<() => string>('clock');
 
 @Module({
   providers: [{ provide: CLOCK, useFactory: () => () => new Date().toISOString() }],
@@ -36,12 +36,16 @@ export interface User {
   readonly name: string;
 }
 
+const DB_URL = token<string>('dbUrl');
+
 class UserRepository implements OnStart, OnStop {
   readonly #users = new Map<string, User>();
 
+  constructor(@Inject(DB_URL) private readonly url: string) {}
+
   onStart(): void {
     this.#users.set('1', { id: '1', name: 'Ada' });
-    console.log('[repo] 已就绪');
+    console.log(`[repo] 已就绪 → ${this.url}`);
   }
 
   onStop(): void {
@@ -65,8 +69,20 @@ class UserRepository implements OnStart, OnStop {
   }
 }
 
-@Module({ providers: [UserRepository], exports: [UserRepository] })
-class DataModule {}
+/**
+ * 动态模块：类只是工厂方法的命名空间，没有 @Module()。
+ *
+ * 每次 `forRoot()` 返回一个新对象，所以可以配置出多个互不干扰的实例
+ * （比如主库 + 只读副本），各自有独立的容器与单例。
+ */
+class DataModule {
+  static forRoot(options: { url: string }): DynamicModule {
+    return dynamicModule(DataModule, {
+      providers: [{ provide: DB_URL, useValue: options.url }, UserRepository],
+      exports: [UserRepository],
+    });
+  }
+}
 
 // ─────────────────────────────────────────────────────────────
 // 业务层：只看得见 DataModule 与 CoreModule export 的东西
@@ -120,7 +136,7 @@ class UserController {
 }
 
 @Module({
-  imports: [DataModule, CoreModule],
+  imports: [DataModule.forRoot({ url: 'memory://users' }), CoreModule],
   providers: [UserService, UserController],
 })
 class AppModule {}
