@@ -41,9 +41,6 @@ jobs:
       - name: Check types
         run: bun run check-types
 
-      - name: Build
-        run: bun run build
-
       - name: Check changeset
         if: github.event_name == 'pull_request'
         run: node scripts/check-changeset.mjs

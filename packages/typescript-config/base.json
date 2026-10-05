@@ -3,7 +3,9 @@
   "display": "Base",
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["ES2022"],
+    "lib": [
+      "ES2022"
+    ],
     "module": "ESNext",
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
@@ -16,7 +18,15 @@
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
     "isolatedModules": true,
-    "useUnknownInCatchVariables": true
+    "useUnknownInCatchVariables": true,
+    "experimentalDecorators": true,
+    "verbatimModuleSyntax": true,
+    "noUncheckedIndexedAccess": true
   },
-  "exclude": ["node_modules", "dist", "build", "out"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "build",
+    "out"
+  ]
 }

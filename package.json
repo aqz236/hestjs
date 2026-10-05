@@ -2,11 +2,11 @@
   "name": "hestjs",
   "version": "0.0.0",
   "private": true,
-  "description": "HestJS — 基于 Hono + Bun + TSyringe 的现代化 TypeScript 后端框架",
+  "type": "module",
+  "description": "把 Hono 组织起来，而不是替掉它",
   "license": "MIT",
   "packageManager": "bun@1.4.2",
   "engines": {
-    "node": ">=18",
     "bun": ">=1.2.0"
   },
   "workspaces": [
@@ -14,29 +14,18 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev",
-    "lint": "turbo run lint",
-    "test": "turbo run test",
     "check-types": "turbo run check-types",
+    "test": "turbo run test",
+    "lint": "turbo run lint",
+    "dev": "turbo run dev",
     "clean": "turbo run clean",
     "format": "prettier --write \"**/*.{ts,tsx,js,json,md,yml,yaml}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md,yml,yaml}\"",
-    "changeset": "changeset",
-    "version-packages": "changeset version",
-    "release": "turbo run build && changeset publish"
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,json,md,yml,yaml}\""
   },
   "devDependencies": {
-    "@changesets/cli": "^2.27.9",
-    "@swc/core": "1.16.13",
-    "@vitest/coverage-v8": "5.0.3",
+    "@types/bun": "latest",
     "prettier": "^3.6.2",
     "turbo": "^2.5.5",
-    "typescript": "5.8.3",
-    "unplugin-swc": "2.0.0",
-    "vitest": "5.0.3"
-  },
-  "overrides": {
-    "webpackbar": "^7.0.0"
+    "typescript": "5.8.3"
   }
 }
