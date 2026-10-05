@@ -1,10 +1,23 @@
 import type { Context, Env } from 'hono';
 import { logger } from 'hono/logger';
 import { validator } from 'hono/validator';
+import type { OnStart, OnStop } from '@hestjs/core';
 import { Controller, Get, Injectable, Module, Post, createApp } from '@hestjs/core';
 
 // ─────────────────────────────────────────────────────────────
-// 1. 普通类就是普通类。依赖用 static inject 明写，不靠反射。
+// 基础设施模块：只把 token 借出去，不导出实现
+// ─────────────────────────────────────────────────────────────
+
+export const CLOCK = Symbol('clock');
+
+@Module({
+  providers: [{ provide: CLOCK, useFactory: () => () => new Date().toISOString() }],
+  exports: [CLOCK],
+})
+class CoreModule {}
+
+// ─────────────────────────────────────────────────────────────
+// 数据模块：自己有资源，所以实现 OnStart / OnStop
 // ─────────────────────────────────────────────────────────────
 
 export interface User {
@@ -13,8 +26,18 @@ export interface User {
 }
 
 @Injectable()
-class UserRepository {
-  readonly #users = new Map<string, User>([['1', { id: '1', name: 'Ada' }]]);
+class UserRepository implements OnStart, OnStop {
+  readonly #users = new Map<string, User>();
+
+  onStart(): void {
+    this.#users.set('1', { id: '1', name: 'Ada' });
+    console.log('[repo] 已就绪');
+  }
+
+  onStop(): void {
+    this.#users.clear();
+    console.log('[repo] 已释放');
+  }
 
   list(): User[] {
     return [...this.#users.values()];
@@ -32,11 +55,21 @@ class UserRepository {
   }
 }
 
+@Module({ providers: [UserRepository], exports: [UserRepository] })
+class DataModule {}
+
+// ─────────────────────────────────────────────────────────────
+// 业务模块：只看得见 DataModule 与 CoreModule export 的东西
+// ─────────────────────────────────────────────────────────────
+
 @Injectable()
 class UserService {
-  static readonly inject = [UserRepository] as const;
+  static readonly inject = [UserRepository, CLOCK] as const;
 
-  constructor(private readonly repository: UserRepository) {}
+  constructor(
+    private readonly repository: UserRepository,
+    private readonly now: () => string,
+  ) {}
 
   list(): User[] {
     return this.repository.list();
@@ -49,27 +82,21 @@ class UserService {
   create(name: string): User {
     return this.repository.add(name);
   }
+
+  timestamp(): string {
+    return this.now();
+  }
 }
-
-/** 接口类依赖用 token：容器不认识类型，只认识键。 */
-export const CLOCK = Symbol('clock');
-
-// ─────────────────────────────────────────────────────────────
-// 2. 控制器。方法第一个参数永远是 Hono 的 Context。
-// ─────────────────────────────────────────────────────────────
 
 @Controller('/users')
 class UserController {
-  static readonly inject = [UserService, CLOCK] as const;
+  static readonly inject = [UserService] as const;
 
-  constructor(
-    private readonly users: UserService,
-    private readonly now: () => string,
-  ) {}
+  constructor(private readonly users: UserService) {}
 
   @Get('/')
   list(c: Context): Response {
-    return c.json({ data: this.users.list(), at: this.now() });
+    return c.json({ data: this.users.list(), at: this.users.timestamp() });
   }
 
   @Get('/:id')
@@ -85,21 +112,18 @@ class UserController {
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-// 3. 模块：只声明，不执行
-// ─────────────────────────────────────────────────────────────
-
 @Module({
-  providers: [UserRepository, UserService, { provide: CLOCK, useFactory: () => () => new Date().toISOString() }],
+  imports: [DataModule, CoreModule],
+  providers: [UserService],
   controllers: [UserController],
-  onStart: (app) => {
-    console.log(`[hestjs] 已启动，Hono 实例上注册了 ${app.hono.routes.length} 条路由`);
-  },
 })
+class UsersFeatureModule {}
+
+@Module({ imports: [UsersFeatureModule] })
 class AppModule {}
 
 // ─────────────────────────────────────────────────────────────
-// 4. 组装：configure 在控制器之前跑，中间件才能包住它们
+// 组装：configure 在控制器之前跑，中间件才能包住它们
 // ─────────────────────────────────────────────────────────────
 
 const app = createApp(AppModule, {
@@ -110,14 +134,17 @@ const app = createApp(AppModule, {
       await next();
     });
 
-    // 中间件写在 configure 里就能包住控制器 —— 它比控制器先挂载。
+    // 中间件写在 configure 里就能包住控制器：它比控制器先挂载。
     // 这里直接用 Hono 自带的 validator，HestJS 不掺和校验这件事。
-    hono.post('/users', validator('json', (value, c) => {
-      if (typeof (value as { name?: unknown }).name !== 'string') {
-        return c.json({ message: 'name 必须是字符串' }, 400);
-      }
-      return value;
-    }));
+    hono.post(
+      '/users',
+      validator('json', (value, c) => {
+        if (typeof (value as { name?: unknown }).name !== 'string') {
+          return c.json({ message: 'name 必须是字符串' }, 400);
+        }
+        return value;
+      }),
+    );
 
     // 原生 Hono 路由和控制器共存，没有边界
     hono.get('/health', (c) => c.text('ok'));
@@ -130,8 +157,4 @@ app.hono.notFound((c) => c.json({ message: 'not found', path: c.req.path }, 404)
 await app.start();
 
 export { app };
-
-export default {
-  port: Number(process.env.PORT ?? 3000),
-  fetch: app.hono.fetch,
-};
+export default { port: Number(process.env.PORT ?? 3000), fetch: app.hono.fetch };
