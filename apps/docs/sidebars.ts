@@ -4,6 +4,7 @@ const sidebars: SidebarsConfig = {
   tutorialSidebar: [
     'intro',
     'getting-started',
+    'create-app',
     {
       type: 'category',
       label: '核心',
