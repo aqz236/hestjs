@@ -43,8 +43,9 @@ logs/
 *.local
 
 # Docusaurus
-apps/docs/.docusaurus/
-apps/docs/build/
+# VitePress 文档站
+apps/docs/.vitepress/dist/
+apps/docs/.vitepress/cache/
 
 # 本地数据
 *.sqlite
