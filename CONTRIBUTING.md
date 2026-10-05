@@ -14,9 +14,14 @@ bun run --filter @hestjs/example dev
 
 ## 仓库结构
 
-- `packages/*` —— 框架本体与共享配置，**全部 `private`，不发布到 npm**
+- `packages/*` —— 框架本体与可选插件，**全部 `private`，不发布到 npm**
+  - `core` 是唯一必装项
+  - `validation` / `openapi` / `cqrs` 是可选插件，只能依赖 `core`，彼此之间不要互相依赖
 - `apps/*` —— 可运行的示例与站点
 - `docs/` —— 设计稿
+
+新插件必须建立在 core 暴露的扩展点上（目前是 `addRouteMiddleware()`），
+不要让 `core` 反过来认识插件。
 
 ## 包与模块规则
 

@@ -132,6 +132,9 @@ detail(c: RouteContext<'/users/:id'>): Response {
 ```
 packages/
 ├── core/                     # 模块声明、依赖容器、Hono 接线
+├── validation/               # Standard Schema 校验（可选）
+├── openapi/                  # OpenAPI 3.1 + Scalar UI（可选）
+├── cqrs/                     # 三总线，纯 TS 不碰 web（可选）
 ├── typescript-config/        # 共享 tsconfig
 └── eslint-config/            # 共享 ESLint 配置
 
@@ -142,8 +145,68 @@ apps/
 docs/                         # 框架设计稿
 ```
 
+`core` 是唯一的必装项。另外三个都是可选插件，各自独立，互不依赖
+（`openapi` 会读 `validation` 登记的元数据，但也只有这一条边）。
+
 所有包都是 `private`，不发布到 npm：`@hestjs/core` 通过 `workspace:*` 直接引用
 TypeScript 源码，没有构建步骤，改完即生效。
+
+## 可选插件
+
+三个插件都建立在同一套扩展点上：**路由级中间件**。core 只提供
+`addRouteMiddleware()`，其余一律由插件自己实现，core 不知道它们存在。
+
+### `@hestjs/validation`
+
+只认 [Standard Schema](https://github.com/standard-schema/standard-schema)，
+不绑定任何校验库——zod / valibot / arktype 都能用：
+
+```ts
+import { z } from 'zod';
+import { Body, type InferInput, type ValidatedBody } from '@hestjs/validation';
+
+const CreateUser = z.object({ name: z.string().min(1) });
+type CreateUserInput = InferInput<typeof CreateUser>;
+
+@Post('/')
+@Body(CreateUser, { jsonSchema: z.toJSONSchema(CreateUser) })
+create(c: RouteContext<'/users', ValidatedBody<CreateUserInput>>): Response {
+  const input = c.req.valid('json');
+  return c.json({ name: input.name }, 201);
+}
+```
+
+底层就是 Hono 的 `validator()`，所以 `c.req.valid('json')` 是原生的那套。
+不做隐式类型转换：query 里全是字符串，要数字就自己写 `z.coerce.number()`。
+
+### `@hestjs/openapi`
+
+```ts
+const app = createApp(AppModule);
+app.hono.route('/', openApiRoutes({
+  graph: app.graph,
+  info: { title: 'HestJS API', version: '1.0.0' },
+}));
+// GET /openapi.json   GET /docs（Scalar UI）
+```
+
+只写它**真的知道**的东西：路由表、校验装饰器登记的 schema、`@Describe` 里的说明。
+裸的 `hono.get()` 路由没有元数据可读，文档里就不会出现它。
+
+### `@hestjs/cqrs`
+
+三总线 + 装饰器，不依赖 web 层。handler 必须显式列出来——不扫目录、不建全局注册表：
+
+```ts
+@Module({
+  providers: [...cqrs({
+    commands: [CreateUserHandler],
+    queries: [GetUserHandler],
+    events: [NotifyOnUserCreated, AuditOnUserCreated],
+  })],
+})
+class UserModule {}
+```
 
 ## 从 NestJS 借的是什么
 
