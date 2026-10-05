@@ -8,45 +8,51 @@
 
 ## 一个完整的应用
 
-```ts title="src/main.ts"
+```ts title="src/app.module.ts"
 import type { Context } from 'hono';
-import { logger } from 'hono/logger';
-import { Controller, Get, Injectable, Module, createApp } from '@hestjs/core';
+import { Inject, Module } from '@hestjs/core';
 
-@Injectable()
 class Greeting {
   hello(name: string): string {
     return `hello ${name}`;
   }
 }
 
-@Controller('/greet')
 class GreetingController {
-  static readonly inject = [Greeting] as const;
+  constructor(@Inject(Greeting) private readonly greeting: Greeting) {}
 
-  constructor(private readonly greeting: Greeting) {}
-
-  @Get('/:name')
-  say(c: Context): Response {
-    return c.json({ message: this.greeting.hello(c.req.param('name')!) });
+  say(c: Context<Env, '/greet/:name'>): Response {
+    return c.json({ message: this.greeting.hello(c.req.param('name')) });
   }
 }
 
-@Module({ providers: [Greeting], controllers: [GreetingController] })
-class AppModule {}
+@Module({ providers: [Greeting, GreetingController] })
+export class AppModule {}
+
+export { GreetingController };
+```
+
+```ts title="src/main.ts"
+import { logger } from 'hono/logger';
+import { createApp } from '@hestjs/core';
+import { AppModule, GreetingController } from './app.module';
 
 const app = createApp(AppModule, {
-  // configure 在控制器之前执行，中间件才能包住它们
-  configure(hono) {
-    hono.use(logger());
+  // middleware 在路由之前执行
+  middleware: [logger()],
+
+  // 路由就是 Hono 的路由
+  routes: (hono, resolve) => {
+    const greeting = resolve(GreetingController);
+    return hono
+      .get('/health', (c) => c.text('ok'))
+      .get('/greet/:name', (c) => greeting.say(c));
   },
 });
 
-// app.hono 就是 Hono，想加什么加什么
-app.hono.get('/health', (c) => c.text('ok'));
-
 await app.start();
 
+export type AppType = typeof app.hono;
 export default { port: Number(process.env.PORT ?? 3000), fetch: app.hono.fetch };
 ```
 
@@ -58,7 +64,7 @@ curl http://localhost:3000/health      # ok
 
 完整版本见仓库里的 `apps/example`。
 
-## tsconfig 的两条硬要求
+## tsconfig 的两条要求
 
 ```json title="tsconfig.json"
 {
@@ -71,23 +77,24 @@ curl http://localhost:3000/health      # ok
 
 **`extends` 必须用相对路径。** Bun 的转译器不解析包名形式的 `extends`
 （`@hestjs/typescript-config/base.json`），读不到 `experimentalDecorators`
-就会把 `@Get()` 当成 stage-3 标准装饰器，结果一条路由都注册不上。
+就会把装饰器当成 stage-3 标准装饰器处理，元数据写到别处去了。
 
-漏了的话 `createApp()` 会直接抛错告诉你怎么修，不会静默失败。
+> 不需要 `emitDecoratorMetadata`。Bun 支持它，但 HestJS 不用它——
+> 依赖由 `@Inject()` 显式声明，不靠编译产物里的类型信息。
 
 ## 目录建议
 
 ```
 src/
-├── main.ts                 # 组装 + 启动
+├── main.ts                 # 组装、注册路由、启动
 ├── app.module.ts           # 根模块
 ├── users/
 │   ├── users.module.ts
-│   ├── users.controller.ts
+│   ├── users.controller.ts # 普通 provider，方法收 Context
 │   ├── users.service.ts
 │   └── users.repository.ts
 └── shared/
     └── database.module.ts
 ```
 
-模块跟着业务切，一个目录一个模块。仓库里 `apps/example` 就是这么放的。
+模块跟着业务切，一个目录一个模块。`apps/example` 就是这么放的。

@@ -1,28 +1,21 @@
 # 排障
 
-## `NoRoutesRegisteredError`：控制器一个路由都没注册
+## `MissingInjectError`：构造参数少标了 `@Inject()`
 
 ```
-检测到 2 个控制器（UserController, HealthController），但一条路由都没注册。
+UserService 的第 1 个构造参数没有 @Inject()。
 ```
 
-这是最常见的一个，原因基本只有一个：
+每个构造参数都要标。忘了会**在启动时**报错，不会留到运行时。
 
-**tsconfig 缺 `experimentalDecorators`。** 没有它，`@Get()` 会被当成
-stage-3 标准装饰器处理，签名完全不同，元数据写到了别处。
+给参数一个默认值可以让它变成可选：
 
-而且有一个连锁坑：**Bun 的转译器不解析包名形式的 `extends`**。
-
-```json
-// ❌ Bun 读不到，experimentalDecorators 不生效
-{ "extends": "@hestjs/typescript-config/base.json" }
-
-// ✅ 用相对路径
-{ "extends": "../../packages/typescript-config/base.json" }
+```ts
+constructor(
+  @Inject(Repository) private readonly repository: Repository,
+  private readonly retries = 3,          // 有默认值，不用标
+) {}
 ```
-
-`tsc` 两种都能读，所以类型检查会通过、运行时却挂——这就是为什么
-`createApp()` 要专门为它准备一条错误信息。
 
 ## `ProviderNotFoundError`
 
@@ -57,47 +50,69 @@ NestJS 允许本地覆盖 import，这里直接报错——**provider 的顺序�
 通常意味着两个模块共享了不该共享的东西。把公共部分下沉到第三个模块，
 让 A 和 B 都 import 它。
 
-## `DuplicateRouteError`
+## `UnknownOverrideError`
 
 ```
-GET /users 被注册了两次。
+测试替身 'typo' 没有对应的真实 provider。
 ```
 
-两个控制器的完整路径撞了。注意 `@Controller('/users')` + `@Get('/')` 和
-`@Controller('/')` + `@Get('/users')` 是同一条路由。
+`overrides` 只能替换本来就注册过的 token，不能凭空新增——
+否则测试会通过，线上却少一个依赖。
 
-## `TS2377: Constructors for derived classes must contain a 'super' call`
+## `experimentalDecorators` 漏掉的症状
 
-继承 `Command` / `Query` / `Event` 的消息类，构造函数里要调 `super()`：
+装饰器元数据写不到表里，表现是**静默失效**：模块图是空的、
+依赖注入找不到 provider，或者 `hono.routes` 里少了东西。
+
+而且有一个连锁坑：**Bun 的转译器不解析包名形式的 `extends`**。
+
+```json
+// ❌ Bun 读不到，experimentalDecorators 不生效
+{ "extends": "@hestjs/typescript-config/base.json" }
+
+// ✅ 用相对路径
+{ "extends": "../../packages/typescript-config/base.json" }
+```
+
+`tsc` 两种都能读，所以类型检查会通过、运行时却挂。
+
+> 顺带澄清一个常见误解：**Bun 是支持 `emitDecoratorMetadata` 的**。
+> HestJS 不用它，是因为依赖用 `@Inject()` 显式声明更可靠（换打包器不会静默失效），
+> 不是因为 Bun 做不到。
+
+## 中间件没包住路由
+
+`middleware` 在 `routes` 之前执行。写在 `createApp` 之后的 `app.hono.use()`
+就包不住已经注册的路由了。中间件放 `middleware` 里。
+
+## `hc<AppType>` 拿到 `unknown`
+
+说明路由不是链式注册的。检查 `routes` 的返回值：
 
 ```ts
-class CreateUser extends Command<string> {
-  constructor(readonly name: string) {
-    super();
-  }
-}
+// ✅ 返回链式结果
+routes: (hono, resolve) => hono.get('/users', handler)
+
+// ❌ 忘了 return，或者用了动态注册
+routes: (hono) => { hono.on('GET', '/users', handler); }
 ```
 
-tsc 会拦住，不会留到运行时。
-
-## 中间件没包住控制器
-
-`configure()` 在控制器挂载**之前**跑。写在 `createApp()` 返回之后的
-`app.hono.use()` 就包不住已挂载的控制器路由了。中间件放 `configure` 里。
+`hc` 只能看到链式注册贡献的类型。
 
 ## 文档里少了几条路由
 
-`@hestjs/openapi` 只收录走控制器的路由。裸的 `hono.get()` 没有元数据可读，
-文档里就不会出现——这是诚实，不是遗漏。要收录就把它写成控制器方法。
+`@hestjs/openapi` 只收录真实路由。裸的 `app.hono.use()` 注册出来的通配条目
+（`ALL /*`）会被跳过——它们不是路由。
 
 ## 还是找不到原因
 
 把这三样贴进 issue：
 
 ```ts
-console.log(app.hono.routes);   // 实际注册了什么
-console.log(app.graph.modules); // 模块图长什么样
+console.log(app.hono.routes);      // 实际注册了什么
+console.log(app.graph.modules);    // 模块图长什么样
+console.log(app.container.tokens()); // 容器里有哪些 token
 ```
 
-`META` 常量也能直接读，例如 `UserController[ROUTES_META]`。
+元数据也能直接读，例如 `UserController[MODULE_META]`。
 框架没有藏起来的东西。

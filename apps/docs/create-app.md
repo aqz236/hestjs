@@ -32,7 +32,7 @@ bun run new my-app
 | 文件 | 内容 |
 | --- | --- |
 | `src/main.ts` | 组装与启动，20 行 |
-| `src/app.module.ts` | 一个 provider + 一个 controller |
+| `src/app.module.ts` | 一个 service + 一个 controller |
 | `src/app.module.test.ts` | 三条断言，保证 `bun test` 不会空跑 |
 
 需要更多东西的时候，看 `apps/example`——那是完整示例，
@@ -60,6 +60,9 @@ curl http://localhost:3000/greet/ada          # {"message":"hello ada"}
 `package.json` 里用的是 `workspace:*`，`tsconfig.json` 用的是**相对路径**
 `extends`——Bun 的转译器不解析包名形式的 extends，这一点在
 [排障](./troubleshooting.md) 里有详细说明。
+
+生成的应用已经带好 `export type AppType = typeof app.hono`，
+客户端直接 `hc<AppType>` 就能拿到完整 RPC 类型。
 
 ## 不用生成器也行
 

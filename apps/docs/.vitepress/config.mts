@@ -43,7 +43,7 @@ export default defineConfig({
         items: [
           { text: '模块', link: '/core/modules' },
           { text: '依赖注入', link: '/core/dependency-injection' },
-          { text: '控制器与路由', link: '/core/controllers' },
+          { text: '路由', link: '/core/routing' },
           { text: '生命周期', link: '/core/lifecycle' },
         ],
       },

@@ -7,7 +7,9 @@ import { describe, expect, it } from 'bun:test';
 import { createTestApp } from '@hestjs/testing';
 import { AppModule } from './app.module';
 
-const app = await createTestApp(AppModule);
+const app = await createTestApp(AppModule, {
+  routes: (hono, resolve) => hono.get('/users', (c) => resolve(Users).list(c)),
+});
 
 describe('用户接口', () => {
   it('健康检查', async () => {

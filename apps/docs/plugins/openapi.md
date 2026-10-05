@@ -1,12 +1,19 @@
 # OpenAPI 文档
 
 ```ts
-import { Describe, openApiRoutes } from '@hestjs/openapi';
+import { documented, openApiRoutes } from '@hestjs/openapi';
 
-const app = createApp(AppModule);
+const app = createApp(AppModule, {
+  routes: (hono, resolve) =>
+    hono.get(
+      '/users/:id',
+      documented({ summary: '查单个用户', tags: ['users'] }),
+      (c) => resolve(Users).detail(c),
+    ),
+});
 
 app.hono.route('/', openApiRoutes({
-  graph: app.graph,
+  hono: app.hono,
   info: { title: 'HestJS API', version: '1.0.0' },
 }));
 ```
@@ -18,43 +25,59 @@ app.hono.route('/', openApiRoutes({
 | `/openapi.json` | OpenAPI 3.1 文档 |
 | `/docs` | Scalar API 参考界面 |
 
-挂载是显式的，不藏在 `createApp()` 里——你随时能改路径、关掉 UI、
-或者拿 `buildOpenApiDocument()` 自己去处理。
+## documented 也是一段中间件
+
+它什么都不做，只把说明挂在自己身上。因为 `hono.routes` 会连中间件一起记下来，
+`buildOpenApiDocument` 就能按 `(method, path)` 把同一路由上的元数据聚合起来。
+
+和 `validate()` 一样，做成中间件是为了不碰 handler、不影响 RPC 类型。
 
 ## 它知道什么，不知道什么
 
 **自动读到的：**
 
-- 路由表（方法 + 路径，`:id` 会转成 `{id}`）
-- 路径参数（`required: true`）
-- 校验装饰器登记的 `jsonSchema` → `requestBody` / `parameters`
+- 路由表（直接来自 `hono.routes`，不用传模块图）
+- 路径参数（`:id` → `{id}`，`required: true`）
+- `validate({ jsonSchema })` 登记的请求体与查询参数
 
 **读不到、也不会编造的：**
 
-- 裸的 `hono.get()` 路由（没有元数据可看，文档里就不出现）
-- 响应结构（除非你写 `@Describe`）
-- 没有任何校验的请求体（文档里就没有 requestBody）
-
-```ts
-@Get('/:id')
-@Param(IdParam, { jsonSchema: IdJson })
-@Describe({
-  summary: '查单个用户',
-  tags: ['users'],
-  responses: { '200': { description: '用户详情', jsonSchema: UserJson } },
-})
-detail(c: RouteContext<'/users/:id'>): Response {
-  return c.json(this.users.get(c.req.param('id')));
-}
-```
+- 中间件注册出来的通配条目（`ALL /*` 之类）会被跳过
+- 响应结构（除非写 `documented({ responses })`）
+- 没有任何 schema 的请求体（文档里就没有 requestBody）
 
 **猜不出来就不写。** 一份撒谎的文档比没有文档更糟。
+
+## 完整例子
+
+```ts
+hono
+  .get(
+    '/users',
+    documented({
+      summary: '列出全部用户',
+      tags: ['users'],
+      responses: { '200': { description: '用户列表', jsonSchema: { type: 'array' } } },
+    }),
+    (c) => users.list(c),
+  )
+  .post(
+    '/users',
+    validate({ body: CreateUser, jsonSchema: { body: z.toJSONSchema(CreateUser) } }),
+    documented({
+      summary: '创建用户',
+      tags: ['users'],
+      responses: { '201': { description: '创建成功' } },
+    }),
+    (c) => users.create(c),
+  );
+```
 
 ## 配置项
 
 | 选项 | 默认 | 说明 |
 | --- | --- | --- |
-| `graph` | —— | `app.graph`，必填 |
+| `hono` | —— | 通常是 `app.hono`，必填 |
 | `info` | —— | OpenAPI 必填字段 |
 | `servers` | 无 | 服务地址列表 |
 | `jsonPath` | `/openapi.json` | 文档 JSON 路径 |
@@ -66,16 +89,18 @@ detail(c: RouteContext<'/users/:id'>): Response {
 ```ts
 import { buildOpenApiDocument } from '@hestjs/openapi';
 
-const document = buildOpenApiDocument(app.graph, {
+const document = buildOpenApiDocument(app.hono, {
   info: { title: 'HestJS API', version: '1.0.0' },
 });
 
 await Bun.write('./openapi.json', JSON.stringify(document, null, 2));
 ```
 
-适合在 CI 里导出契约、或者喂给别的工具（代码生成、契约测试）。
+适合在 CI 里导出契约、或者喂给别的工具。
 
-## UI 从 CDN 加载
+## 与 validation 的关系
 
-`/docs` 返回的是一张静态 HTML，从 jsDelivr 拉 `@scalar/api-reference`。
-没有构建步骤，也不需要额外的依赖。
+**没有关系。** `openapi` 只依赖 `core`，读的是 core 里定义的
+`ValidationRouteMeta` 形状，不是 `validation` 包的导出。
+
+这样没写校验的路由也能出文档，两个插件可以各装各的。

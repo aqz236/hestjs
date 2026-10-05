@@ -17,9 +17,9 @@ features:
   - title: Hono 实例是唯一真相
     details: "createApp() 返回的 app.hono 就是 Hono 本身。没有包装、没有代理，hono.route() / c.req.raw / c.var 全部照旧。"
   - title: 零反射依赖注入
-    details: 依赖写在 static inject 里，一眼可见。不引 reflect-metadata，不开 emitDecoratorMetadata，换任何打包器都不会静默失效。
-  - title: 装饰器只写元数据
-    details: "@Module / @Controller / @Get 只往几张表里写字，而那些表就直接挂在类上。组装全部发生在 createApp()。"
+    details: 依赖写在 @Inject() 里，一眼可见。不引 reflect-metadata，不开 emitDecoratorMetadata，换任何打包器都不会静默失效。
+  - title: 路由就是 Hono 的路由
+    details: 框架不替你定义路由。链式注册保住了 hc 的端到端 RPC 类型，也不用把路径写两遍。
   - title: 插件建立在同一套扩展点上
     details: core 只暴露一个 addRouteMiddleware()。校验、文档、CQRS 都挂在它上面，core 不需要认识它们。
   - title: 启动前把图校验干净

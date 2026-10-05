@@ -32,12 +32,9 @@ class UserCreated extends Event {
 ## Handler
 
 ```ts
-@Injectable()
 @CommandHandler(CreateUser)
 class CreateUserHandler {
-  static readonly inject = [Users] as const;
-
-  constructor(private readonly users: Users) {}
+  constructor(@Inject(Users) private readonly users: Users) {}
 
   execute(command: CreateUser): string {
     return this.users.add(command.name);
@@ -56,12 +53,14 @@ class CreateUserHandler {
 ```ts
 @Module({
   imports: [DataModule],
-  providers: [...cqrs({
-    commands: [CreateUserHandler],
-    queries: [GetUserHandler],
-    events: [NotifyOnUserCreated, AuditOnUserCreated],
-  })],
-  controllers: [UserController],
+  providers: [
+    UserController,
+    ...cqrs({
+      commands: [CreateUserHandler],
+      queries: [GetUserHandler],
+      events: [NotifyOnUserCreated, AuditOnUserCreated],
+    }),
+  ],
 })
 class UserModule {}
 ```
@@ -74,26 +73,21 @@ class UserModule {}
 ## 派发
 
 ```ts
-@Controller('/users')
 class UserController {
-  static readonly inject = [CommandBus, QueryBus, EventBus] as const;
-
   constructor(
-    private readonly commands: CommandBus,
-    private readonly queries: QueryBus,
-    private readonly events: EventBus,
+    @Inject(CommandBus) private readonly commands: CommandBus,
+    @Inject(QueryBus) private readonly queries: QueryBus,
+    @Inject(EventBus) private readonly events: EventBus,
   ) {}
 
-  @Post('/')
   async create(c: Context): Promise<Response> {
     const id = await this.commands.execute(new CreateUser('Ada'));
     await this.events.publish(new UserCreated(id));
     return c.json({ id }, 201);
   }
 
-  @Get('/:id')
-  async detail(c: Context): Promise<Response> {
-    return c.json(await this.queries.execute(new GetUser(c.req.param('id')!)));
+  async detail(c: Context<Env, '/users/:id'>): Promise<Response> {
+    return c.json(await this.queries.execute(new GetUser(c.req.param('id'))));
   }
 }
 ```

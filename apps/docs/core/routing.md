@@ -1,105 +1,115 @@
-# 控制器与路由
+# 路由
+
+**HestJS 没有自己的路由系统。** 路由就是 Hono 的路由。
 
 ```ts
-@Controller('/users')
-class UserController {
-  static readonly inject = [UserService] as const;
+const app = createApp(AppModule, {
+  routes: (hono, resolve) => {
+    const users = resolve(UserController);
 
-  constructor(private readonly users: UserService) {}
-
-  @Get('/')
-  list(c: Context): Response {
-    return c.json(this.users.list());
-  }
-
-  @Get('/:id')
-  detail(c: Context<Env, '/users/:id'>): Response {
-    return c.json(this.users.get(c.req.param('id')));
-  }
-
-  @Post('/')
-  create(c: Context): Response {
-    return c.json(this.users.create(c.req.valid('json')), 201);
-  }
-}
+    return hono
+      .get('/users', (c) => users.list(c))
+      .get('/users/:id', (c) => users.detail(c))
+      .post('/users', (c) => users.create(c));
+  },
+});
 ```
 
-控制器是单例，在挂载时构造一次。方法第一个参数永远是 Hono 的 `Context`。
+`routes` 收到两个东西：
 
-## 路径怎么拼
+- `hono` —— Hono 实例（已经装好 `middleware`）
+- `resolve` —— 容器解析函数，用它把 provider 拿进来
 
-```
-prefix（createApp 的选项）
-  + @Controller 上的路径
-    + 方法装饰器上的路径
-```
+返回的链式 Hono 决定了 `app.hono` 的类型。
 
-`@Controller('/users')` + `@Get('/:id')` → `/users/:id`。
-多余斜杠会被归一，`@Get('/')` 等价于 `@Get('')`。
+## 为什么这么设计
 
-## 找回路径参数的类型
-
-动态注册拿不到 Hono 的路径推导，把完整路径写成类型参数就能找回来：
+Hono 的类型推导是**链式**的：每次 `.get()` 返回一个新的、带路由信息的类型。
+动态注册（`hono.on(method, path, handler)`）不贡献任何类型信息。
 
 ```ts
-@Get('/:id')
-detail(c: RouteContext<'/users/:id'>): Response {
+// 链式：类型完整
+const a = new Hono().get('/users/:id', (c) => c.json({ id: c.req.param('id') }));
+hc<typeof a>('x').users[':id'].$get({ param: { id: '1' } });   // ✅
+
+// 动态：类型全丢
+const b = new Hono();
+b.on('GET', '/users/:id', (c) => c.json({ id: '' }));
+hc<typeof b>('x').users[':id'].$get(...);                      // ❌ unknown
+```
+
+装饰器路由（`@Get('/:id')`）必然是动态注册，所以**用它就必然丢掉 RPC 类型**。
+HestJS 选择保住类型。
+
+代价只有一个：路径写在 `routes` 里，而不是装饰器上。
+
+## 类型化客户端
+
+```ts title="src/main.ts"
+export type AppType = typeof app.hono;
+```
+
+```ts title="client.ts"
+import { hc } from 'hono/client';
+import type { AppType } from './server/main';
+
+const client = hc<AppType>('https://api.example.com');
+
+const res = await client.users[':id'].$get({ param: { id: '1' } });
+const user = await res.json();   // 类型自动推出来
+```
+
+不用写任何 schema、不用生成代码。
+
+## 路径参数的类型
+
+控制器方法要拿到 `c.req.param()` 的类型，把完整路径写成类型参数：
+
+```ts
+detail(c: Context<Env, '/users/:id'>): Response {
   const id = c.req.param('id');   // string，不是 string | undefined
 }
 ```
 
-配合校验插件还能一并带上请求体类型：
+**这里要写完整路径**（控制器前缀 + 相对路径），因为 TS 读不到
+`routes` 里那个字符串。写错了不会报错，只会退化成 `string | undefined`——
+所以如果你要参数类型，建议直接把路径写成常量：
 
 ```ts
-create(c: RouteContext<'/users', ValidatedBody<CreateUserInput>>): Response {
-  const input = c.req.valid('json');   // CreateUserInput
-}
+const USER_DETAIL = '/users/:id' as const;
+
+routes: (hono, resolve) => hono.get(USER_DETAIL, (c) => resolve(Users).detail(c))
+//                                          ↑ 和下面的类型参数同源，不会漂移
+detail(c: Context<Env, typeof USER_DETAIL>): Response { ... }
 ```
 
-## configure 的顺序
+## middleware 与 routes 的顺序
 
-`configure` 在**控制器挂载之前**执行。这是故意的：
+`middleware` 先执行，`routes` 后执行。这不是实现细节，是 Hono 的语义：
 
 ```ts
 createApp(AppModule, {
-  configure(hono) {
-    hono.use(logger());        // ✅ 会包住所有控制器
-  },
+  middleware: [logger()],   // ✅ 会包住下面所有路由
+  routes: (hono) => hono.get('/users', handler),
 });
 ```
 
-写在 `createApp()` 之后再加的中间件，就包不住已经挂上的控制器路由了。
+写成 `app.hono.use(...)`（在 `createApp` 之后）就包不住已经注册的路由了。
 
 ## 裸 Hono 路由随时可用
 
-没有任何边界：
+`app.hono` 就是 Hono，没有任何边界：
 
 ```ts
-const app = createApp(AppModule, {
-  configure(hono) {
-    hono.get('/health', (c) => c.text('ok'));
-  },
-});
-
 app.hono.get('/version', (c) => c.json({ version: '1.0.0' }));
 app.hono.notFound((c) => c.json({ message: 'not found' }, 404));
+app.hono.onError((err, c) => c.json({ message: err.message }, 500));
 ```
-
-这些路由和控制器路由地位完全相同，顺序就是注册顺序。
-
-## 相关选项
-
-| 选项 | 作用 |
-| --- | --- |
-| `hono` | 复用已有的 Hono 实例 |
-| `configure(hono, container)` | 控制器挂载前调用 |
-| `prefix` | 给所有控制器加一层前缀，例如 `/api/v1` |
-| `mountControllers: false` | 不自动挂载，自己决定什么时候挂 |
 
 ## 挂载后可以自己查
 
 ```ts
-app.hono.routes            // 全部路由，控制器和裸路由都在
-app.graph.controllers      // 控制器绑定关系
+app.hono.routes            // 全部路由，包括中间件注册出来的条目
 app.graph.modules          // 模块图，依赖在前
+app.container              // 依赖容器
 ```

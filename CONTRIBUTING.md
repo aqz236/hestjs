@@ -45,7 +45,7 @@ bun run --filter @hestjs/example dev
 
 两条必须遵守：
 
-1. **`experimentalDecorators: true`**，同时**不要**开 `emitDecoratorMetadata`
+1. **`experimentalDecorators: true`**（不需要 `emitDecoratorMetadata`）
 2. **`extends` 用相对路径**，不要用包名
 
 ```json
@@ -55,7 +55,7 @@ bun run --filter @hestjs/example dev
 ```
 
 原因：Bun 的转译器不解析包名形式的 `extends`。写成 `@hestjs/typescript-config/base.json`
-时它读不到 `experimentalDecorators`，`@Get()` 会被当成 stage-3 标准装饰器，
+时它读不到 `experimentalDecorators`，装饰器会被当成 stage-3 标准装饰器，
 签名不同，结果是一条路由都注册不上。`createApp()` 检测到这种情况会直接抛错。
 
 ### 依赖
@@ -67,19 +67,18 @@ bun run --filter @hestjs/example dev
 
 ### 依赖注入
 
-用 `static inject` 声明构造参数，不要引入反射：
+用 `@Inject()` 声明每个构造参数，不要引入反射：
 
 ```ts
-@Injectable()
 class UserService {
-  static readonly inject = [Database, LOGGER] as const;
-
   constructor(
-    private readonly db: Database,
-    private readonly log: Logger,
+    @Inject(Database) private readonly db: Database,
+    @Inject(LOGGER) private readonly log: Logger,
   ) {}
 }
 ```
+
+少标一个会在启动时抛 `MissingInjectError`。给参数一个默认值可以让它变成可选。
 
 ### 模块边界
 
@@ -142,8 +141,10 @@ docs: 补充中间件的执行顺序说明
 改动前请先确认没有踩到这三条：
 
 1. **不要把 Hono 实例藏起来。** 任何让用户拿不到 `app.hono` 的设计都不接受。
-2. **不要引入反射。** 不引入 `reflect-metadata`，不开 `emitDecoratorMetadata`。
+2. **不要引入反射。** 不引入 `reflect-metadata`，不开 `emitDecoratorMetadata`——依赖靠 `@Inject()` 显式声明。
 3. **不要新增运行时抽象层。** 能直接用 Hono 的 `Context` 就不要再包一层。
+4. **不要包装路由 handler。** 包装会让 Hono 的链式类型推导失效，
+   进而毁掉 `hc<typeof app.hono>`。需要横切逻辑就用中间件。
 
 ## 报告问题
 
