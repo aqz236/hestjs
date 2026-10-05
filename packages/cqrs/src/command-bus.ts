@@ -1,6 +1,5 @@
 import { Injectable, logger } from "@hestjs/core";
 import "reflect-metadata";
-import { container } from "tsyringe";
 import { Command } from "./classes";
 import { COMMAND_HANDLER_METADATA } from "./constants";
 import {
@@ -94,9 +93,8 @@ export class CommandBus<CommandBase extends ICommand = ICommand>
     }
 
     // Get handler instance from container
-    const handlerInstance = container.resolve(
-      target
-    ) as ICommandHandler<CommandBase>;
+    // 通过 HestJS 容器解析，确保 handler 受模块作用域约束（见 issue #19）
+    const handlerInstance = this.resolveType<ICommandHandler<CommandBase>>(target);
 
     this.handlers.set(commandName, (command: CommandBase) =>
       handlerInstance.execute(command)

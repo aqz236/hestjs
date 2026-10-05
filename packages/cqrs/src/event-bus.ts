@@ -1,6 +1,5 @@
 import { Injectable, logger } from "@hestjs/core";
 import "reflect-metadata";
-import { container } from "tsyringe";
 import { EVENT_HANDLER_METADATA, SAGA_METADATA } from "./constants";
 import {
   InvalidEventHandlerException,
@@ -114,9 +113,7 @@ export class EventBus<EventBase extends IEvent = IEvent>
     }
 
     // Get handler instance from container
-    const handlerInstance = container.resolve(
-      target
-    ) as IEventHandler<EventBase>;
+    const handlerInstance = this.resolveType<IEventHandler<EventBase>>(target);
 
     events.forEach((eventType: any) => {
       const eventName = this.getEventName(eventType);
@@ -141,7 +138,7 @@ export class EventBus<EventBase extends IEvent = IEvent>
     }
 
     // Get saga instance from container
-    const sagaInstance = container.resolve(target) as ISaga<EventBase>;
+    const sagaInstance = this.resolveType<ISaga<EventBase>>(target);
 
     // Find all methods that start with 'on' and register them as event handlers
     const prototype = Object.getPrototypeOf(sagaInstance);

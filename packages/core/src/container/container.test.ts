@@ -155,3 +155,55 @@ describe('Container', () => {
     expect(child.getContainer()).not.toBe(container.getContainer());
   });
 });
+
+describe('Container：作用域内解析', () => {
+  let root: Container;
+
+  beforeEach(() => {
+    root = new Container();
+  });
+
+  it('findContainerFor 能定位到注册了 token 的子容器', () => {
+    class ScopedService {}
+    const child = root.createChild();
+    child.register(ScopedService, ScopedService, 'provider');
+
+    expect(root.isRegistered(ScopedService)).toBe(false);
+    expect(root.findContainerFor(ScopedService)).toBe(child);
+  });
+
+  it('findContainerFor 对未注册 token 返回 undefined', () => {
+    class Missing {}
+
+    expect(root.findContainerFor(Missing)).toBeUndefined();
+  });
+
+  it('resolveScoped 由拥有者容器解析', () => {
+    class ScopedService {}
+    const child = root.createChild();
+    child.register(ScopedService, ScopedService, 'provider');
+
+    // 根容器直接 resolve 会失败（看不到子容器注册）
+    expect(() => root.resolve(ScopedService)).toThrow(/unregistered token/);
+
+    // resolveScoped 会向下找到拥有者
+    expect(root.resolveScoped(ScopedService)).toBeInstanceOf(ScopedService);
+    expect(root.resolveScoped(ScopedService)).toBe(child.resolve(ScopedService));
+  });
+
+  it('resolveScoped 对完全未注册的 token 抛错', () => {
+    class Missing {}
+
+    expect(() => root.resolveScoped(Missing)).toThrow(/unregistered token "Missing"/);
+  });
+
+  it('resolveScoped 会穿透多层子容器', () => {
+    class DeepService {}
+    const child = root.createChild();
+    const grandchild = child.createChild();
+    grandchild.register(DeepService, DeepService, 'provider');
+
+    expect(root.findContainerFor(DeepService)).toBe(grandchild);
+    expect(root.resolveScoped(DeepService)).toBeInstanceOf(DeepService);
+  });
+});

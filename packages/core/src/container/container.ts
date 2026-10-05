@@ -135,6 +135,50 @@ export class Container {
   }
 
   /**
+   * 找到注册了指定 token 的容器（含自身与所有后代）
+   *
+   * 模块系统下 provider 注册在各自的模块子容器里，而父容器的 isRegistered
+   * 看不到子容器的注册。需要「由拥有者解析」时使用本方法。
+   */
+  findContainerFor<T>(token: InjectionToken<T>): Container | undefined {
+    if (this.isRegistered(token)) {
+      return this;
+    }
+
+    for (const child of this.children) {
+      const found = child.findContainerFor(token);
+      if (found) {
+        return found;
+      }
+    }
+
+    return undefined;
+  }
+
+  /**
+   * 由拥有该 token 的容器解析
+   *
+   * 与 resolve 的区别：resolve 严格要求 token 注册在**当前**容器（或其祖先）；
+   * 本方法会向下查找拥有者，适用于从应用根容器解析模块内 provider 的场景
+   * （例如 cqrs 从模块容器解析 handler）。
+   *
+   * 注意：解析由拥有者容器执行，因此该 provider 的依赖仍受其模块作用域约束。
+   */
+  resolveScoped<T>(token: InjectionToken<T>): T {
+    const owner = this.findContainerFor(token);
+
+    if (!owner) {
+      throw new Error(
+        `Cannot resolve unregistered token "${formatToken(token)}". ` +
+          `请确认它已通过 @Module({ providers: [...] }) 注册，` +
+          `或已被某个被 imports 的模块导出。`
+      );
+    }
+
+    return owner.resolve(token);
+  }
+
+  /**
    * 检查是否已注册
    */
   isRegistered<T>(token: InjectionToken<T>): boolean {
