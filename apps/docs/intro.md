@@ -73,6 +73,7 @@ export type AppType = typeof app.hono;   // hc<AppType> 类型完整
 | 自己的校验 | Standard Schema（zod / valibot / arktype），底层是 `@hono/standard-validator` |
 | 自己的日志 | 任何 Hono 中间件，例如 `hono/logger` |
 | 全局注册表 | 元数据直接挂在类上 |
+| 扫描式动态模块 | `dynamicModule()`，显式、可组合、按引用去重 |
 | `emitDecoratorMetadata` | `@Inject()` |
 | 发布到 npm | `workspace:*` 直接引源码 |
 

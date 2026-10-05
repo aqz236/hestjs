@@ -139,6 +139,30 @@ class UsersModule {}
 | 构造参数少标 `@Inject()` | `MissingInjectError` |
 | `overrides` 替换了不存在的 token | `UnknownOverrideError` |
 
+## 动态模块
+
+需要把配置传进模块时用 `dynamicModule()`：
+
+```ts
+const DB_URL = token<string>('dbUrl');
+
+class DatabaseModule {
+  static forRoot(options: { url: string }): DynamicModule {
+    return dynamicModule(DatabaseModule, {
+      providers: [{ provide: DB_URL, useValue: options.url }, ConnectionPool],
+      exports: [ConnectionPool],
+    });
+  }
+}
+
+@Module({ imports: [DatabaseModule.forRoot({ url: 'postgres://main' })] })
+class AppModule {}
+```
+
+模块图按**引用**去重，不按类——所以同一个类可以配置出多个并存实例
+（主库 + 只读副本），各有独立的容器与单例。忘了调 `forRoot()` 直接写类名时，
+报错会点名可用的工厂方法。
+
 ## 生命周期
 
 模块是纯声明，钩子挂在**有资源的东西**上：

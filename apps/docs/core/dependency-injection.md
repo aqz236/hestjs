@@ -61,10 +61,23 @@ UserService 的第 1 个构造参数没有 @Inject()。
 | 场景 | token |
 | --- | --- |
 | 类 | 类本身 |
-| 接口、配置、第三方实例 | 字符串或 `Symbol` |
-| 想区分同名 | `Symbol('clock')` |
+| 接口、配置、第三方实例 | `token<T>()` |
 
-接口在运行时不存在，只能用字符串或 Symbol 当 token。
+接口在运行时不存在，只能用 symbol 当 token。而 `const CLOCK = Symbol('clock')`
+的类型是 `unique symbol`，容器推不出值类型，`resolve(CLOCK)` 会得到 `unknown`。
+用 `token<T>()` 把类型带上：
+
+```ts
+import { token } from '@hestjs/core';
+
+const CLOCK = token<() => string>('clock');
+const DB_URL = token<string>('dbUrl');
+
+container.resolve(CLOCK);    // () => string
+container.resolve(DB_URL);   // string
+```
+
+类作 token 时不需要它——类型天然就在。
 
 ## 作用域
 
@@ -87,9 +100,7 @@ class RequestMetrics {}
 
 ## 容器只认 token，不认类型
 
-```ts
-const CLOCK = Symbol('clock');
-```
-
 容器解析的是「键」，不是「类型」。所以同一个类可以用两个 token 注册两份实例，
 也可以把接口的实现换掉——这些都靠 token 区分。
+
+这也是[动态模块](./modules.md#动态模块)能用 `provide` 配置出多个并存实例的原因。

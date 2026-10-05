@@ -55,6 +55,72 @@ class UsersModule {}
 
 错误信息都写清了「哪两个东西撞了」和「怎么改」。
 
+## 动态模块
+
+需要把配置传进模块时，用 `dynamicModule()`：
+
+```ts
+const DB_URL = token<string>('dbUrl');
+
+class DatabaseModule {
+  static forRoot(options: { url: string; provide?: Token<Pool> }): DynamicModule {
+    const token = options.provide ?? Pool;
+    return dynamicModule(DatabaseModule, {
+      providers: [
+        { provide: DB_URL, useValue: options.url },
+        { provide: token, useClass: Pool },
+      ],
+      exports: [token],
+    });
+  }
+}
+
+@Module({ imports: [DatabaseModule.forRoot({ url: 'postgres://main' })] })
+class AppModule {}
+```
+
+工厂类**不需要** `@Module()` 装饰器——装饰器是给静态模块用的。
+忘了调用 `forRoot()` 直接写类名时，报错会点名可用的工厂方法：
+
+```
+DatabaseModule 不是一个模块。
+imports 里只能放两种东西：被 @Module() 标记的类，或者 forRoot() 之类返回的 DynamicModule。
+
+DatabaseModule 上有这些工厂方法，是不是忘了调用？
+  DatabaseModule.forRoot(...)
+```
+
+### 每次 forRoot 都是独立实例
+
+模块图按**引用**去重，不按类。所以同一个类可以配置出多个并存：
+
+```ts
+@Module({
+  imports: [
+    DatabaseModule.forRoot({ url: 'postgres://main', provide: PRIMARY }),
+    DatabaseModule.forRoot({ url: 'postgres://replica', provide: REPLICA }),
+  ],
+})
+class AppModule {}
+```
+
+两个节点、两个容器、两套单例。反过来，把**同一个对象**引到多处只会建一个节点，
+单例照旧共享。
+
+### 两条必须记住的规则
+
+**两个 import 导出同一个 token → 报 `AmbiguousImportError`。**
+
+```
+AppModule 从多个 import 里都拿到了 Pool。
+两个模块导出同一个 token 时容器不知道该用哪个 ——
+让它们用不同的 token（例如给动态模块传 provide），或者只 import 其中一个。
+```
+
+这就是上面例子里 `provide` 选项存在的原因：让调用方决定实例挂在哪个 token 上。
+
+**既 import 又本地提供同一个 token → 报 `AmbiguousProviderError`。** 见下一节。
+
 ## 为什么不做覆盖
 
 NestJS 允许本地 provider 覆盖 import 进来的同名 token。这里直接报错：
