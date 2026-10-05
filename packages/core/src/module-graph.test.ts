@@ -49,7 +49,7 @@ describe('resolveModuleGraph', () => {
     @Module({ imports: [DataModule], providers: [Service] })
     class FeatureModule {}
 
-    expect(resolveModuleGraph(FeatureModule).modules.map((node) => node.target)).toEqual([
+    expect(resolveModuleGraph(FeatureModule).modules.map((node) => node.module)).toEqual([
       DataModule,
       FeatureModule,
     ]);

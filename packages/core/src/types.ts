@@ -83,8 +83,25 @@ export interface App<R extends Hono<any> = Hono<any>> {
   stop(): Promise<void>;
 }
 
+/**
+ * 动态模块：`DatabaseModule.forRoot({ url })` 的返回值。
+ *
+ * 它是一个普通对象，不是类 —— 所以每次 `forRoot()` 调用都是**独立的模块实例**，
+ * 可以带不同的配置并存。模块图按对象标识去重，不按类。
+ */
+export interface DynamicModule extends ModuleMetadata {
+  /** 这个动态模块对应哪个类。用于报错信息、调试与 `graph` 展示。 */
+  readonly module: Constructor;
+}
+
+/** `imports` 里可以放的东西：静态模块类，或动态模块对象。 */
+export type ModuleRef = Constructor | DynamicModule;
+
 export interface ModuleNode {
-  readonly target: Constructor;
+  /** 模块标识。静态模块是类本身，动态模块是 `forRoot()` 返回的那个对象。 */
+  readonly ref: ModuleRef;
+  /** 展示与报错用的类。动态模块取 `dynamic.module`。 */
+  readonly module: Constructor;
   readonly metadata: ModuleMetadata;
   /** 本模块自己的容器：自己的 provider + 从 imports 借来的 token。 */
   readonly container: Container;
@@ -103,7 +120,7 @@ export interface ResolvedGraph {
 
 export interface ModuleMetadata {
   /** 本模块依赖的其他模块。它们 export 的东西才对本模块可见。 */
-  readonly imports?: readonly Constructor[];
+  readonly imports?: readonly ModuleRef[];
   readonly providers?: readonly ProviderEntry[];
   /** 本模块愿意借给别的模块的东西。只能导出自己提供的、或已从 imports 拿到的。 */
   readonly exports?: readonly Token[];

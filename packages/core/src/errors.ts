@@ -1,4 +1,4 @@
-import type { Token } from './types';
+import type { ModuleRef, Token } from './types';
 
 export class HestError extends Error {
   constructor(message: string) {
@@ -19,6 +19,14 @@ function nameOf(target: unknown): string {
     return target.name;
   }
   return String(target);
+}
+
+/** 类 → 类名；动态模块对象 → 它对应的类名。 */
+function moduleName(ref: ModuleRef): string {
+  if (typeof ref === 'function') {
+    return ref.name === '' ? '<匿名模块>' : ref.name;
+  }
+  return typeof ref.module === 'function' ? ref.module.name : '<未知模块>';
 }
 
 export class ProviderNotFoundError extends HestError {
@@ -55,6 +63,16 @@ export class AmbiguousProviderError extends HestError {
   }
 }
 
+export class AmbiguousImportError extends HestError {
+  constructor(module: unknown, token: Token) {
+    super(
+      `${nameOf(module)} 从多个 import 里都拿到了 ${describeToken(token)}。\n` +
+        `两个模块导出同一个 token 时容器不知道该用哪个 —— ` +
+        `让它们用不同的 token（例如给动态模块传 provide），或者只 import 其中一个。`,
+    );
+  }
+}
+
 export class UnresolvedExportError extends HestError {
   constructor(module: unknown, token: Token) {
     super(
@@ -65,14 +83,30 @@ export class UnresolvedExportError extends HestError {
 }
 
 export class ModuleCycleError extends HestError {
-  constructor(chain: readonly unknown[]) {
-    super(`模块 import 成环：${chain.map(nameOf).join(' → ')}。拆掉其中一条边。`);
+  constructor(chain: readonly ModuleRef[]) {
+    super(`模块 import 成环：${chain.map(moduleName).join(' → ')}。拆掉其中一条边。`);
   }
 }
 
 export class InvalidModuleError extends HestError {
-  constructor(target: unknown) {
-    super(`${nameOf(target)} 没有 @Module() 装饰器。imports 里只能放被 @Module() 标记的类。`);
+  constructor(ref: unknown) {
+    const factories =
+      typeof ref === 'function'
+        ? Object.getOwnPropertyNames(ref).filter(
+            (key) => typeof (ref as unknown as Record<string, unknown>)[key] === 'function'
+              && /^(for|register|with)/i.test(key),
+          )
+        : [];
+
+    super(
+      `${nameOf(ref)} 不是一个模块。\n` +
+        `imports 里只能放两种东西：被 @Module() 标记的类，` +
+        `或者 forRoot() 之类返回的 DynamicModule。` +
+        (factories.length === 0
+          ? ''
+          : `\n\n${nameOf(ref)} 上有这些工厂方法，是不是忘了调用？\n  ` +
+            factories.map((key) => `${nameOf(ref)}.${key}(...)`).join('\n  ')),
+    );
   }
 }
 

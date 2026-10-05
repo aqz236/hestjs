@@ -7,12 +7,16 @@
 
 // 应用组装
 export { createApp } from './app';
+export { dynamicModule } from './dynamic-module';
+export { token } from './token';
 export type {
   App,
   CreateAppOptions,
+  DynamicModule,
   Input,
   ModuleMetadata,
   ModuleNode,
+  ModuleRef,
   ResolvedGraph,
   Resolve,
 } from './types';
@@ -47,6 +51,7 @@ export type {
 
 // 错误：全部是公开 API，用户要 catch 它们
 export {
+  AmbiguousImportError,
   AmbiguousProviderError,
   CircularDependencyError,
   DuplicateProviderError,

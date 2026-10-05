@@ -2,10 +2,11 @@ import { describe, expect, it } from 'bun:test';
 import { Container } from './container';
 import { CircularDependencyError, MissingInjectError, ProviderNotFoundError } from './errors';
 import { Inject } from './decorators/inject';
+import { token } from './token';
 import { Injectable } from './decorators/injectable';
 import type { ProviderEntry } from './types';
 
-const CONFIG: unique symbol = Symbol('config');
+const CONFIG = token<{ dsn: string }>('config');
 
 class Repository {
   readonly name = 'repo';
@@ -34,7 +35,7 @@ describe('Container', () => {
 
   it('useValue 原样返回', () => {
     const container = new Container().provide({ provide: CONFIG, useValue: { dsn: 'x' } });
-    expect(container.resolve<{ dsn: string }>(CONFIG)).toEqual({ dsn: 'x' });
+    expect(container.resolve(CONFIG)).toEqual({ dsn: 'x' });
   });
 
   it('useFactory 拿到容器本身', () => {
@@ -42,7 +43,7 @@ describe('Container', () => {
       Repository,
       { provide: CONFIG, useFactory: (c) => ({ dsn: c.resolve(Repository).name }) },
     );
-    expect(container.resolve<{ dsn: string }>(CONFIG)).toEqual({ dsn: 'repo' });
+    expect(container.resolve(CONFIG)).toEqual({ dsn: 'repo' });
   });
 
   it('按 @Inject 的位置注入', () => {

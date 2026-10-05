@@ -4,7 +4,7 @@ import { UnknownOverrideError } from './errors';
 import { hasOnStart, hasOnStop } from './lifecycle';
 import { normalizeProvider } from './metadata';
 import { resolveModuleGraph } from './module-graph';
-import type { App, Constructor, CreateAppOptions, ResolvedGraph, Resolve } from './types';
+import type { App, CreateAppOptions, ModuleRef, ResolvedGraph, Resolve } from './types';
 
 function applyOverrides(
   graph: ResolvedGraph,
@@ -29,7 +29,7 @@ function applyOverrides(
  * 这样 `hc<typeof app.hono>` 能拿到完整的 RPC 类型，也不用把路径写两遍。
  */
 export function createApp<E extends Env = Env, R extends Hono<E> = Hono<E>>(
-  root: Constructor,
+  root: ModuleRef,
   options: CreateAppOptions<E, R> = {},
 ): App<R> {
   const graph = resolveModuleGraph(root);

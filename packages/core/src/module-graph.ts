@@ -1,5 +1,6 @@
 import { Container } from './container';
 import {
+  AmbiguousImportError,
   AmbiguousProviderError,
   DuplicateProviderError,
   InvalidModuleError,
@@ -7,7 +8,7 @@ import {
   UnresolvedExportError,
 } from './errors';
 import { normalizeProvider, readModule } from './metadata';
-import type { Constructor, ModuleMetadata, ModuleNode, ResolvedGraph, Token } from './types';
+import type { Constructor, DynamicModule, ModuleMetadata, ModuleNode, ModuleRef, ResolvedGraph, Token } from './types';
 
 /**
  * 把模块声明编译成一组容器。
@@ -18,31 +19,47 @@ import type { Constructor, ModuleMetadata, ModuleNode, ResolvedGraph, Token } fr
  * 这个函数负责把整张图校验干净：重复 provider、与 import 撞名、
  * export 了不存在的东西、模块成环，全部在启动前报错。
  */
-export function resolveModuleGraph(root: Constructor): ResolvedGraph {
-  const nodes = new Map<Constructor, ModuleNode>();
+/** 把「类」或「动态模块对象」统一成 { 类, 元数据 }。 */
+function describeRef(ref: ModuleRef): { module: Constructor; metadata: ModuleMetadata } {
+  if (typeof ref === 'function') {
+    const metadata = readModule(ref);
+    if (metadata === undefined) {
+      throw new InvalidModuleError(ref);
+    }
+    return { module: ref, metadata };
+  }
+  if (typeof (ref as DynamicModule).module !== 'function') {
+    throw new InvalidModuleError(ref);
+  }
+  return { module: ref.module, metadata: ref };
+}
+
+export function resolveModuleGraph(root: ModuleRef): ResolvedGraph {
+  // 按「引用」去重而不是按类：同一个类的多个 forRoot() 配置必须各自成节点
+  const nodes = new Map<ModuleRef, ModuleNode>();
   const order: ModuleNode[] = [];
 
-  const build = (target: Constructor, chain: readonly Constructor[]): ModuleNode => {
-    const cached = nodes.get(target);
+  const build = (ref: ModuleRef, chain: readonly ModuleRef[]): ModuleNode => {
+    const cached = nodes.get(ref);
     if (cached !== undefined) {
       return cached;
     }
-    if (chain.includes(target)) {
-      throw new ModuleCycleError([...chain, target]);
+    if (chain.includes(ref)) {
+      throw new ModuleCycleError([...chain, ref]);
     }
 
-    const metadata: ModuleMetadata | undefined = readModule(target);
-    if (metadata === undefined) {
-      throw new InvalidModuleError(target);
-    }
+    const { module, metadata } = describeRef(ref);
 
     const container = new Container();
     const imports: ModuleNode[] = [];
 
     for (const imported of metadata.imports ?? []) {
-      const node = build(imported, [...chain, target]);
+      const node = build(imported, [...chain, ref]);
       imports.push(node);
       for (const token of node.exports) {
+        if (container.has(token)) {
+          throw new AmbiguousImportError(module, token);
+        }
         container.alias(token, node.container);
       }
     }
@@ -52,10 +69,10 @@ export function resolveModuleGraph(root: Constructor): ResolvedGraph {
     for (const entry of entries) {
       const token = normalizeProvider(entry).provide;
       if (declared.has(token)) {
-        throw new DuplicateProviderError(target, token);
+        throw new DuplicateProviderError(module, token);
       }
       if (container.has(token)) {
-        throw new AmbiguousProviderError(target, token);
+        throw new AmbiguousProviderError(module, token);
       }
       declared.add(token);
     }
@@ -64,12 +81,12 @@ export function resolveModuleGraph(root: Constructor): ResolvedGraph {
     const exported = metadata.exports ?? [];
     for (const token of exported) {
       if (!container.has(token)) {
-        throw new UnresolvedExportError(target, token);
+        throw new UnresolvedExportError(module, token);
       }
     }
 
-    const node: ModuleNode = { target, metadata, container, imports, exports: exported };
-    nodes.set(target, node);
+    const node: ModuleNode = { ref, module, metadata, container, imports, exports: exported };
+    nodes.set(ref, node);
     order.push(node);
     return node;
   };
