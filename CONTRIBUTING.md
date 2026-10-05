@@ -17,7 +17,8 @@ bun run --filter @hestjs/example dev
 
 - `packages/*` —— 框架本体与可选插件，**全部 `private`，不发布到 npm**
   - `core` 是唯一必装项
-  - `validation` / `openapi` / `cqrs` 是可选插件，只能依赖 `core`，彼此之间不要互相依赖
+  - `validation` / `openapi` / `cqrs` / `testing` 是可选包，只能依赖 `core`，彼此之间不要互相依赖
+  - 能用 Hono 官方生态件就别自己写：校验用的是 `@hono/standard-validator`
 - `apps/*` —— 可运行的示例与站点
   - 新增应用用 `bun run new <name>`，别手抄
   - 文档站在 `apps/docs`，不再有单独的 `docs/` 目录

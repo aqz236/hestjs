@@ -146,6 +146,7 @@ packages/
 ├── validation/               # Standard Schema 校验（可选）
 ├── openapi/                  # OpenAPI 3.1 + Scalar UI（可选）
 ├── cqrs/                     # 三总线，纯 TS 不碰 web（可选）
+├── testing/                  # 测试工具：启动应用、替换 provider（可选）
 ├── typescript-config/        # 共享 tsconfig
 └── eslint-config/            # 共享 ESLint 配置
 

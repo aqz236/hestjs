@@ -29,7 +29,13 @@ export default defineConfig({
         items: [
           { text: '这是什么', link: '/intro' },
           { text: '快速开始', link: '/getting-started' },
+        ],
+      },
+      {
+        text: '开发',
+        items: [
           { text: '生成一个应用', link: '/create-app' },
+          { text: '写测试', link: '/testing' },
         ],
       },
       {

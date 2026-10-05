@@ -110,6 +110,21 @@
         "hono": "^4.13.13",
       },
     },
+    "packages/testing": {
+      "name": "@hestjs/testing",
+      "version": "0.0.0",
+      "dependencies": {
+        "@hestjs/core": "workspace:*",
+      },
+      "devDependencies": {
+        "@hestjs/typescript-config": "workspace:*",
+        "@types/bun": "latest",
+        "hono": "^4.13.13",
+      },
+      "peerDependencies": {
+        "hono": "^4.13.13",
+      },
+    },
     "packages/typescript-config": {
       "name": "@hestjs/typescript-config",
       "version": "0.1.0",
@@ -119,6 +134,7 @@
       "version": "0.0.0",
       "dependencies": {
         "@hestjs/core": "workspace:*",
+        "@hono/standard-validator": "^0.4.0",
         "@standard-schema/spec": "^1.1.0",
       },
       "devDependencies": {
@@ -262,9 +278,13 @@
 
     "@hestjs/openapi": ["@hestjs/openapi@workspace:packages/openapi"],
 
+    "@hestjs/testing": ["@hestjs/testing@workspace:packages/testing"],
+
     "@hestjs/typescript-config": ["@hestjs/typescript-config@workspace:packages/typescript-config"],
 
     "@hestjs/validation": ["@hestjs/validation@workspace:packages/validation"],
+
+    "@hono/standard-validator": ["@hono/standard-validator@0.4.0", "", { "peerDependencies": { "@standard-schema/spec": "^1.0.0", "hono": ">=4.11.2" } }, "sha512-MxOm1asDh9j7c1D0KiWwppSbFgAQxTRO4YEhjMrJn3lF1BIcXenPdgjSGKDRfQmZdaTaMA8slQLETgVOKyJxFw=="],
 
     "@humanfs/core": ["@humanfs/core@0.19.2", "", { "dependencies": { "@humanfs/types": "^0.15.0" } }, "sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA=="],
 
