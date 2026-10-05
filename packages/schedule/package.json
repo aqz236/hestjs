@@ -1,0 +1,23 @@
+{
+  "name": "@hestjs/schedule",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "声明式定时任务：cron / interval / timeout",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "test": "bun test",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@hestjs/core": "workspace:*",
+    "croner": "^10.0.1"
+  },
+  "devDependencies": {
+    "@hestjs/typescript-config": "workspace:*",
+    "@types/bun": "latest"
+  }
+}
