@@ -345,6 +345,40 @@ export class UsersService {
 }
 ```
 
+### 🧩 中间件
+
+`@UseMiddleware()` 把 Hono 中间件声明式地挂到控制器或方法上。
+
+```typescript
+import type { MiddlewareHandler } from 'hono';
+import { Controller, Get, UseMiddleware } from '@hestjs/core';
+
+const requireAuth: MiddlewareHandler = async (c, next) => {
+  if (!c.req.header('authorization')) {
+    return c.json({ message: 'Unauthorized' }, 401);
+  }
+  await next();
+};
+
+@Controller('/users')
+@UseMiddleware(requestIdMiddleware)      // 类级：该控制器所有路由
+export class UsersController {
+  @Get('/')
+  findAll() {
+    return { users: [] };
+  }
+
+  @Delete('/:id')
+  @UseMiddleware(requireAuth)            // 方法级：仅此方法
+  remove(@Param('id') id: string) {
+    return { removed: id };
+  }
+}
+```
+
+执行顺序为 **类级中间件 → 方法级中间件 → 拦截器 → controller 方法**，
+整体是洋葱模型。详情见文档站的[中间件](https://aqz236.github.io/hestjs/docs/fundamentals/middleware)一节。
+
 ### 🔄 拦截器
 
 拦截器是**面向 controller 方法**的横切能力。它比 Hono 中间件多知道一件事：
