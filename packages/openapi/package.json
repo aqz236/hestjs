@@ -1,0 +1,28 @@
+{
+  "name": "@hestjs/openapi",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "从模块图生成 OpenAPI 3.1 文档与 Scalar UI",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "test": "bun test",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@hestjs/core": "workspace:*",
+    "@hestjs/validation": "workspace:*"
+  },
+  "peerDependencies": {
+    "hono": "^4.13.13"
+  },
+  "devDependencies": {
+    "@hestjs/typescript-config": "workspace:*",
+    "@types/bun": "latest",
+    "hono": "^4.13.13",
+    "@standard-schema/spec": "^1.1.0"
+  }
+}
