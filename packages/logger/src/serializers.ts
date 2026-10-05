@@ -61,11 +61,22 @@ export const responseSerializer = (res: any) => {
 /**
  * 用户序列化器 - 避免敏感信息泄露
  */
+/**
+ * 敏感字段名模式
+ *
+ * 早先这里只剔除固定的 `password` / `token` / `secret` 三个键名，
+ * 因此 `passwordHash`、`accessToken`、`apiKey` 等常见命名会被原样写进日志。
+ * 改为模式匹配以覆盖命名变体（大小写不敏感）。
+ */
+const SENSITIVE_KEY_PATTERN =
+  /(password|passwd|pwd|secret|token|api[-_]?key|authorization|cookie|session|credential|private[-_]?key|salt)/i;
+
 export const userSerializer = (user: any) => {
   if (!user) return user;
 
-  const { password, token, secret, ...safeUser } = user;
-  return safeUser;
+  return Object.fromEntries(
+    Object.entries(user).filter(([key]) => !SENSITIVE_KEY_PATTERN.test(key))
+  );
 };
 
 /**

@@ -1,2 +1,3 @@
-// 必须在任何装饰器被求值前加载，否则 Reflect.getMetadata 不可用
-import 'reflect-metadata';
+// logger 不使用装饰器元数据，无需 reflect-metadata。
+// 该文件仅为满足共享 vitest 配置的 setupFiles 而存在。
+export {};

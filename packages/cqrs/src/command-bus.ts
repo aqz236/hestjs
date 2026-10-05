@@ -15,7 +15,7 @@ import {
   ICommandHandler,
   ICommandPublisher,
 } from "./interfaces";
-import { ObservableBus } from "./utils";
+import { ObservableBus, resolveTypeName } from "./utils";
 
 @Injectable()
 export class CommandBus<CommandBase extends ICommand = ICommand>
@@ -109,8 +109,8 @@ export class CommandBus<CommandBase extends ICommand = ICommand>
     this._publisher = new DefaultCommandPubSub<CommandBase>();
   }
 
-  private getCommandName(command: any): string {
-    const { constructor } = Object.getPrototypeOf(command);
-    return constructor.name;
+  private getCommandName(value: any): string {
+    // 入参可能是类（注册时）或实例（执行时），必须得到同一个名字
+    return resolveTypeName(value);
   }
 }
