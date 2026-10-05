@@ -125,16 +125,16 @@ class UserController {
     @Inject(Queue) private readonly queue: Queue,
   ) {}
 
-  list(c: Context): Response {
+  list(c: Context) {
     return c.json({ data: this.users.list(), at: this.users.timestamp() });
   }
 
-  detail(c: Context<Env, '/users/:id'>): Response {
+  detail(c: Context<Env, '/users/:id'>) {
     const user = this.users.get(c.req.param('id'));
     return user === undefined ? c.json({ message: 'not found' }, 404) : c.json({ data: user });
   }
 
-  async create(c: Context): Promise<Response> {
+  async create(c: Context) {
     const input = c.req.valid('json' as never) as { name: string };
     const user = this.users.create(input.name);
 

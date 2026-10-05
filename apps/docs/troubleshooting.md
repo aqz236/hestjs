@@ -99,6 +99,58 @@ routes: (hono) => { hono.on('GET', '/users', handler); }
 
 `hc` 只能看到链式注册贡献的类型。
 
+## `hc<AppType>` 的响应是 `unknown`
+
+十有八九是给控制器方法标了返回类型：
+
+```ts
+detail(c: Context<Env, '/users/:id'>): Response {   // ← 去掉 `: Response`
+  return c.json({ id: '1' });
+}
+```
+
+`c.json()` 的类型信息被 `: Response` 擦掉了，Hono 推不出响应结构。
+**参数类型可以标，返回类型不要标。**
+
+## 全栈应用里 `document` 找不到
+
+前端和服务端要分开检查：
+
+```json title="tsconfig.json"
+{ "include": ["src/**/*"], "exclude": ["node_modules", "dist", "src/web"] }
+```
+
+```json title="tsconfig.web.json"
+{
+  "extends": "../../packages/typescript-config/base.json",
+  "compilerOptions": { "lib": ["ES2022", "DOM", "DOM.Iterable"], "types": ["bun"] }
+}
+```
+
+服务端项目的 lib 里没有 DOM，如果 `src/web` 落进去，`document` 就会找不到。
+
+前端 tsconfig 也继承了同一份预设 —— 因为它 `import type { AppType } from '../main'`
+会把服务端文件一起检查，而服务端用了 `@Inject`，需要 `experimentalDecorators`。
+
+## SPA 回退把 API 也吞了
+
+```ts
+// ❌ /api/nope 会返回一张 HTML
+app.hono.get('*', serveStatic({ root: DIST, path: '/index.html' }));
+
+// ✅ 把 /api/* 排除掉
+app.hono.get('*', async (c, next) => {
+  if (c.req.path.startsWith('/api/')) {
+    await next();
+    return;
+  }
+  return serveStatic({ root: DIST, path: '/index.html' })(c, next);
+});
+```
+
+另外 `serveStatic` 要 `root` + **相对 root** 的 `path`，绝对 `path` 不生效
+（会静默 404）。
+
 ## 文档里少了几条路由
 
 `@hestjs/openapi` 只收录真实路由。裸的 `app.hono.use()` 注册出来的通配条目

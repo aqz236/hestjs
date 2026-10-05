@@ -8,6 +8,11 @@ export default defineConfig({
   description: '把 Hono 组织起来，而不是替掉它',
   base: '/hestjs/',
   cleanUrls: true,
+
+  // 文档里会写本地开发地址（http://localhost:3000 之类），
+  // markdown-it 会把裸 URL 变成链接，死链检查就会误报。
+  // 只豁免 localhost，真实死链照旧报错。
+  ignoreDeadLinks: [/^https?:\/\/localhost/],
   head: [
     ['link', { rel: 'icon', href: '/hestjs/favicon.ico' }],
     ['meta', { name: 'theme-color', content: '#1e293b' }],

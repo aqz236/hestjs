@@ -66,6 +66,18 @@ function assertRpcTypes(): void {
   void client.users.$post;
   void client.health.$get;
 
+  // 响应类型也必须是具体的。给控制器方法标 `: Response` 会让它退化成 unknown，
+  // 所以这里断言能取到字段。
+  void (async () => {
+    const body = await (await client.users.$get()).json();
+    void body.data;
+    void body.at;
+
+    // detail 是两条分支的联合（找到 / 没找到），两个字段都要能被识别
+    const detail = await (await client.users[':id'].$get({ param: { id: '1' } })).json();
+    void ('data' in detail ? detail.data : detail.message);
+  });
+
   // @ts-expect-error 不存在的路径不该通过
   void client.nope;
 }

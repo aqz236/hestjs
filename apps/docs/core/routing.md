@@ -61,6 +61,35 @@ const user = await res.json();   // 类型自动推出来
 
 不用写任何 schema、不用生成代码。
 
+## ⚠️ 不要给控制器方法标注返回类型
+
+```ts
+// ❌ 前端 hc 会拿到 unknown
+detail(c: Context<Env, '/users/:id'>): Response {
+  return c.json({ id: '1' });
+}
+
+// ✅ 让 TS 自己推导
+detail(c: Context<Env, '/users/:id'>) {
+  return c.json({ id: '1' });
+}
+```
+
+`c.json()` 返回的是一个**带类型信息的**响应对象，`: Response` 把它擦成基础类型。
+Hono 靠这个类型推导 `hc` 的响应类型，擦掉之后前端就只能拿到 `unknown`。
+
+实测：
+
+```
+标注 : Response   →   a.message   ❌ 'a' is of type 'unknown'
+不标注            →   b.message   ✅
+```
+
+**这是从 NestJS 过来最容易踩的坑。** 在 NestJS 里给方法标 `: Response` 是好习惯，
+在这里它会静默摧毁前端的类型 —— 没有报错，只是类型悄悄退化了。
+
+参数类型该标还是要标（`Context<Env, '/users/:id'>`），只有**返回类型**不能标。
+
 ## 路径参数的类型
 
 控制器方法要拿到 `c.req.param()` 的类型，把完整路径写成类型参数：

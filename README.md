@@ -108,7 +108,8 @@ bun run --filter @hestjs/example dev
 完整可运行版本见 [`apps/example`](./apps/example)。生成新应用：
 
 ```bash
-bun run new my-app
+bun run new my-app              # 纯 API
+bun run new my-app --with-web   # API + Vite 前端，hc<AppType> 端到端类型
 bun install
 bun run --filter @hestjs/my-app dev
 ```
