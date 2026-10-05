@@ -60,7 +60,8 @@ export class CommandBus<CommandBase extends ICommand = ICommand>
     this.publishToSubject(command);
 
     try {
-      return await handler(command);
+      // 经 publisher 分发，允许使用者替换为自定义实现
+      return await this.publisher.publish(command);
     } catch (error) {
       logger.error(`Error executing command "${commandName}":`, String(error));
       throw error;
@@ -96,9 +97,12 @@ export class CommandBus<CommandBase extends ICommand = ICommand>
     // 通过 HestJS 容器解析，确保 handler 受模块作用域约束（见 issue #19）
     const handlerInstance = this.resolveType<ICommandHandler<CommandBase>>(target);
 
-    this.handlers.set(commandName, (command: CommandBase) =>
-      handlerInstance.execute(command)
-    );
+    const dispatch = (command: CommandBase) =>
+      handlerInstance.execute(command);
+
+    // 本地映射用于「是否已注册」的快速判断，实际分发交给 publisher
+    this.handlers.set(commandName, dispatch);
+    this.publisher.setHandler(commandName, dispatch);
 
     logger.info(`Registered command handler for "${commandName}"`);
   }

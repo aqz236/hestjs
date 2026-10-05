@@ -13,12 +13,20 @@ import {
 const logger = createLogger("CqrsAutoInit");
 
 /**
- * 从容器取已有实例；不存在则新建并注册进去
+ * 取已有实例；不存在则新建并注册进根容器
+ *
+ * 必须用 findContainerFor 向下查找：这些总线通常由 CqrsModule 作为 provider
+ * 注册在**模块子容器**里，而钩子拿到的是根容器。
+ * 早先只做 `container.tryResolve(token)`（仅看根容器及其祖先），
+ * 于是每次都查不到、另建一套新实例，导致：
+ *
+ *   控制器注入的是模块容器里的总线（空），auto-discovery 注册 handler 的是
+ *   根容器上那套新实例 —— 两套互不相干，控制器执行时永远报 *HandlerNotFound
  */
 function resolveOrCreate<T>(container: Container, token: new () => T): T {
-  const existing = container.tryResolve<T>(token);
-  if (existing) {
-    return existing;
+  const owner = container.findContainerFor(token);
+  if (owner) {
+    return owner.resolve<T>(token);
   }
 
   const created = new token();

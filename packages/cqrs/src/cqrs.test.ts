@@ -176,10 +176,12 @@ describe('CommandBus', () => {
     expect(pushed[0]).toBeInstanceOf(CreateUser);
   });
 
-  // 记录当前行为：publisher 有 getter/setter 与默认实现，但 execute 路径
-  // 走的是 ObservableBus 的 publishToSubject，从未调用过 publisher。
-  // 即该 API 目前是「可设置但无效」的。
-  it('publisher 目前不会被 execute 调用（已知未接线）', async () => {
+  // publisher 是分发抽象：注册阶段写入处理器，执行阶段经它分发。
+  // 早先它只有 getter/setter 与默认实现，execute 从不调用它（issue #18）。
+  it('注册时会把处理器写入 publisher', async () => {
+    const setHandler = vi.fn();
+    bus.publisher = { publish: vi.fn(), setHandler } as never;
+
     @CommandHandler(CreateUser)
     class Handler {
       async execute() {
@@ -188,12 +190,32 @@ describe('CommandBus', () => {
     }
 
     bus.register([Handler]);
-    const publish = vi.fn();
-    bus.publisher = { publish } as never;
 
-    await bus.execute(new CreateUser('Alice'));
+    expect(setHandler).toHaveBeenCalledWith('CreateUser', expect.any(Function));
+  });
 
-    expect(publish).not.toHaveBeenCalled();
+  it('execute 经 publisher 分发', async () => {
+    const received: unknown[] = [];
+    bus.publisher = {
+      publish: vi.fn(async (command: unknown) => {
+        received.push(command);
+        return 'from-publisher';
+      }),
+      setHandler: vi.fn(),
+    } as never;
+
+    @CommandHandler(CreateUser)
+    class Handler {
+      async execute() {
+        return 'ok';
+      }
+    }
+
+    bus.register([Handler]);
+
+    await expect(bus.execute(new CreateUser('Alice'))).resolves.toBe('from-publisher');
+    expect(received).toHaveLength(1);
+    expect(received[0]).toBeInstanceOf(CreateUser);
   });
 });
 
@@ -248,6 +270,45 @@ describe('EventBus', () => {
     await bus.publish(new UserCreated(42));
 
     expect(received).toEqual([42]);
+  });
+
+  it('注册时把事件处理器写入 publisher', async () => {
+    const addHandler = vi.fn();
+
+    @EventsHandler(UserCreated)
+    class Handler {
+      handle(_e: UserCreated) {}
+    }
+
+    const bus = new EventBus();
+    bus.publisher = { publish: vi.fn(), publishAll: vi.fn(), addHandler } as never;
+    bus.register([Handler]);
+
+    expect(addHandler).toHaveBeenCalledWith('UserCreated', expect.any(Function));
+  });
+
+  it('publish 经 publisher 分发', async () => {
+    const seen: unknown[] = [];
+
+    @EventsHandler(UserCreated)
+    class Handler {
+      handle(_e: UserCreated) {}
+    }
+
+    const bus = new EventBus();
+    bus.publisher = {
+      publish: vi.fn(async (event: unknown) => {
+        seen.push(event);
+      }),
+      publishAll: vi.fn(),
+      addHandler: vi.fn(),
+    } as never;
+    bus.register([Handler]);
+
+    await bus.publish(new UserCreated(9));
+
+    expect(seen).toHaveLength(1);
+    expect(seen[0]).toBeInstanceOf(UserCreated);
   });
 
   it('publishAll 按顺序分发多个事件', async () => {

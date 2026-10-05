@@ -19,6 +19,11 @@ export interface IQueryBus<QueryBase extends IQuery = IQuery> {
 
 export interface IQueryPublisher<QueryBase extends IQuery = IQuery> {
   publish<T extends QueryBase>(query: T): Promise<any>;
+  /** 注册某个查询的处理器；由 QueryBus 在注册阶段调用 */
+  setHandler(
+    queryName: string,
+    handler: (query: QueryBase) => Promise<any>
+  ): void;
 }
 
 export type QueryHandlerType<
