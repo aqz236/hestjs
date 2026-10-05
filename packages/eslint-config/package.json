@@ -91,7 +91,7 @@
   "homepage": "https://github.com/aqz236/hestjs/tree/main/packages/eslint-config#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/aqz236/hestjs.git",
+    "url": "git+https://github.com/aqz236/hestjs.git",
     "directory": "packages/eslint-config"
   },
   "bugs": {

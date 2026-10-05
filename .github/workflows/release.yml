@@ -44,7 +44,14 @@ jobs:
         uses: changesets/action@v1
         with:
           version: bun run version-packages
-          publish: bun run release
+          # 注入守卫：未配置 NPM_TOKEN 时只维护版本 PR，不做发布，
+          # 避免仓库在接入 npm 凭据前每次推送都失败。
+          publish: |
+            if [ -z "$NPM_TOKEN" ]; then
+              echo "::notice::NPM_TOKEN \u672a\u914d\u7f6e\uff0c\u8df3\u8fc7 npm \u53d1\u5e03"
+              exit 0
+            fi
+            bun run release
           commit: "chore(release): 发布新版本"
           title: "chore(release): 发布新版本"
         env:

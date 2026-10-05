@@ -60,5 +60,6 @@
     "bun",
     "hono",
     "validation"
-  ]
+  ],
+  "private": true
 }
