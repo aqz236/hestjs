@@ -69,6 +69,17 @@ bun install
 bun run --filter @hestjs/example dev
 ```
 
+生成一个新的应用：
+
+```bash
+bun run new my-app
+bun install
+bun run --filter @hestjs/my-app dev
+```
+
+生成器只吐三个源文件，不扫目录、不弹交互、不带会腐坏的模板。
+
+
 ## 模块作用域是真的
 
 `imports` 会变成指向对方容器的 alias，`exports` 是唯一能借出去的东西。

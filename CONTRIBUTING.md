@@ -18,6 +18,7 @@ bun run --filter @hestjs/example dev
   - `core` 是唯一必装项
   - `validation` / `openapi` / `cqrs` 是可选插件，只能依赖 `core`，彼此之间不要互相依赖
 - `apps/*` —— 可运行的示例与站点
+  - 新增应用用 `bun run new <name>`，别手抄
 - `docs/` —— 设计稿
 
 新插件必须建立在 core 暴露的扩展点上（目前是 `addRouteMiddleware()`），
