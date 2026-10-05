@@ -1,7 +1,7 @@
-import type { Hono } from 'hono';
+import type { Context, Env } from 'hono';
 import type { Container } from './container';
 
-/** 可被 new 的类型。参数用 any[] 是为了让容器能把解析结果原样透传。 */
+/** 能被 new 的类型。参数用 any[] 是为了让容器把解析结果原样透传。 */
 export type Constructor<T = unknown> = new (...args: any[]) => T;
 
 /**
@@ -31,22 +31,20 @@ export interface ValueProvider<T = unknown> {
 
 export interface FactoryProvider<T = unknown> {
   readonly provide: Token<T>;
+  /** 刻意不支持 async：异步会污染整条解析链。需要异步初始化请实现 OnStart。 */
   readonly useFactory: (container: Container) => T;
   readonly scope?: Scope;
 }
 
 export type Provider<T = unknown> = ClassProvider<T> | ValueProvider<T> | FactoryProvider<T>;
 
-/**
- * 模块 providers 里可以直接写类名，等价于 `{ provide: X, useClass: X }`。
- */
+/** 模块 providers 里可以直接写类名，等价于 `{ provide: X, useClass: X }`。 */
 export type ProviderEntry<T = unknown> = Provider<T> | Constructor<T>;
 
 /**
  * 用 `static inject` 声明构造参数的类。
  *
- * 刻意不用 `emitDecoratorMetadata`：那会把依赖关系藏进编译产物，
- * 换打包器（esbuild / swc / bun）就可能静默失效。
+ * 依赖是显式的、可静态阅读的，不依赖 emitDecoratorMetadata。
  */
 export type InjectableClass<T = unknown> = Constructor<T> & {
   readonly inject?: readonly Token[];
@@ -56,12 +54,18 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'OPTIONS'
 
 export type RouteMethod = HttpMethod | 'ALL';
 
-export interface App {
-  /** Hono 实例本身。永远可以直接操作它。 */
-  readonly hono: Hono;
-  readonly container: Container;
-  /** 依次执行各模块的 onStart。 */
-  start(): Promise<App>;
-  /** 逆序执行各模块的 onStop。 */
-  stop(): Promise<void>;
-}
+/**
+ * 控制器方法的签名。
+ *
+ * 动态注册拿不到 Hono 的路径推导，把完整路径写成类型参数就能把它找回来：
+ *
+ * ```ts
+ * @Get('/:id')
+ * detail(c: RouteContext<'/users/:id'>) { c.req.param('id') }  // string
+ * ```
+ */
+export type RouteContext<TPath extends string, E extends Env = Env> = Context<E, TPath>;
+
+export type RouteHandler<TPath extends string, E extends Env = Env> = (
+  context: RouteContext<TPath, E>,
+) => Response | Promise<Response>;
