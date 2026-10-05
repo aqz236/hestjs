@@ -34,10 +34,10 @@ body:
       multiple: true
       options:
         - '@hestjs/core'
-        - '@hestjs/cqrs'
         - '@hestjs/validation'
-        - '@hestjs/logger'
-        - '@hestjs/scalar'
+        - '@hestjs/openapi'
+        - '@hestjs/cqrs'
+        - 'create-hest-app'
         - '不确定'
     validations:
       required: true
@@ -46,8 +46,8 @@ body:
     id: version
     attributes:
       label: 版本
-      description: 受影响包的版本，或对应的 commit SHA。
-      placeholder: '@hestjs/core@0.2.0'
+      description: 受影响代码对应的 commit SHA。
+      placeholder: 'commit SHA 或 main'
     validations:
       required: true
 

@@ -38,10 +38,10 @@ body:
       label: 落点
       options:
         - 'packages/core'
-        - 'packages/cqrs'
         - 'packages/validation'
-        - 'packages/logger'
-        - 'packages/scalar'
+        - 'packages/openapi'
+        - 'packages/cqrs'
+        - 'packages/create-hest-app'
         - '文档'
         - '不确定'
     validations:

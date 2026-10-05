@@ -15,8 +15,7 @@
 提交前请确认：
 
 - [ ] `bun run check-types` 通过
-- [ ] `bun run build` 通过
 - [ ] `bun run test` 通过
 - [ ] 行为变更已补测试
-- [ ] 影响 `packages/*` 行为时已附带 changeset（`bun run changeset`）
+- [ ] 没有踩到 [设计红线](../../CONTRIBUTING.md#设计红线)：不藏 Hono 实例、不引反射、不加多余抽象层
 - [ ] 提交信息遵循 [Conventional Commits](https://www.conventionalcommits.org/)

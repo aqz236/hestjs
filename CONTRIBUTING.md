@@ -7,6 +7,7 @@ git clone https://github.com/aqz236/hestjs.git
 cd hestjs
 bun install
 bun run check-types
+bun run test
 bun run --filter @hestjs/example dev
 ```
 
@@ -19,7 +20,7 @@ bun run --filter @hestjs/example dev
   - `validation` / `openapi` / `cqrs` 是可选插件，只能依赖 `core`，彼此之间不要互相依赖
 - `apps/*` —— 可运行的示例与站点
   - 新增应用用 `bun run new <name>`，别手抄
-- `docs/` —— 设计稿
+  - 文档站在 `apps/docs`，不再有单独的 `docs/` 目录
 
 新插件必须建立在 core 暴露的扩展点上（目前是 `addRouteMiddleware()`），
 不要让 `core` 反过来认识插件。

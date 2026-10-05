@@ -97,8 +97,5 @@
   "bugs": {
     "url": "https://github.com/aqz236/hestjs/issues"
   },
-  "publishConfig": {
-    "access": "public"
-  },
   "sideEffects": false
 }

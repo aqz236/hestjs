@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   verify:
-    name: Lint / Typecheck / Build / Test
+    name: Check types & test
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -38,13 +38,9 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
+      # 包直接引源码，没有构建步骤，所以只有类型检查和测试
       - name: Check types
         run: bun run check-types
 
-      - name: Check changeset
-        if: github.event_name == 'pull_request'
-        run: node scripts/check-changeset.mjs
-        env:
-          CHANGESET_BASE_REF: origin/${{ github.base_ref }}
       - name: Test
         run: bun run test

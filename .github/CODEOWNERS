@@ -1,13 +1,19 @@
 # 默认评审人
 *       @aqz236
 
-# CI、发布与仓库配置
+# CI 与仓库配置
 /.github/   @aqz236
-/scripts/   @aqz236
 
-# 会发布到 npm 的包
-/packages/core/         @aqz236
-/packages/cqrs/         @aqz236
-/packages/validation/   @aqz236
-/packages/logger/       @aqz236
-/packages/scalar/       @aqz236
+# 框架本体与可选插件
+/packages/core/            @aqz236
+/packages/validation/      @aqz236
+/packages/openapi/         @aqz236
+/packages/cqrs/            @aqz236
+/packages/create-hest-app/ @aqz236
+
+# 共享配置
+/packages/typescript-config/ @aqz236
+/packages/eslint-config/     @aqz236
+
+# 示例与文档
+/apps/  @aqz236

@@ -150,10 +150,8 @@ packages/
 └── eslint-config/            # 共享 ESLint 配置
 
 apps/
-├── example/                  # 最小可运行示例
+├── example/                  # 完整示例：作用域、生命周期、校验、文档
 └── docs/                     # Docusaurus 文档站
-
-docs/                         # 框架设计稿
 ```
 
 `core` 是唯一的必装项。另外三个都是可选插件，各自独立，互不依赖
