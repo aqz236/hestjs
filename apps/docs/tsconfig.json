@@ -1,8 +1,8 @@
 {
-  // This file is not used in compilation. It is here just for a nice editor experience.
-  "extends": "@docusaurus/tsconfig",
+  "extends": "../../packages/typescript-config/base.json",
   "compilerOptions": {
-    "baseUrl": "."
+    "noEmit": true,
+    "types": ["node"]
   },
-  "exclude": [".docusaurus", "build"]
+  "include": [".vitepress/**/*.mts", ".vitepress/**/*.ts"]
 }

@@ -1,58 +1,19 @@
 {
   "name": "hestjs-docs",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "private": true,
+  "type": "module",
+  "description": "HestJS 文档站（VitePress）",
   "scripts": {
-    "docusaurus": "docusaurus",
-    "start": "docusaurus start",
-    "build": "docusaurus build",
-    "swizzle": "docusaurus swizzle",
-    "deploy": "GIT_USER=aqz236 USE_SSH=true docusaurus deploy",
-    "clear": "docusaurus clear",
-    "serve": "docusaurus serve",
-    "write-translations": "docusaurus write-translations",
-    "write-heading-ids": "docusaurus write-heading-ids",
-    "typecheck": "tsc",
-    "check-types": "tsc"
-  },
-  "dependencies": {
-    "@docusaurus/core": "3.8.1",
-    "@docusaurus/preset-classic": "3.8.1",
-    "@mdx-js/react": "^3.0.0",
-    "@radix-ui/react-accordion": "^1.2.11",
-    "@radix-ui/react-dialog": "^1.1.14",
-    "@radix-ui/react-slot": "^1.2.3",
-    "@radix-ui/react-tabs": "^1.1.12",
-    "@tailwindcss/typography": "^0.5.16",
-    "autoprefixer": "^10.4.21",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.0.0",
-    "framer-motion": "^12.23.11",
-    "lucide-react": "^0.532.0",
-    "prism-react-renderer": "^2.3.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "tailwindcss": "^3.4.0"
+    "dev": "vitepress dev",
+    "build": "vitepress build",
+    "preview": "vitepress preview",
+    "check-types": "tsc --noEmit",
+    "clean": "rm -rf .vitepress/dist .vitepress/cache"
   },
   "devDependencies": {
-    "@docusaurus/module-type-aliases": "3.8.1",
-    "@docusaurus/tsconfig": "3.8.1",
-    "@docusaurus/types": "3.8.1",
-    "typescript": "~5.6.2"
-  },
-  "browserslist": {
-    "production": [
-      ">0.5%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 3 chrome version",
-      "last 3 firefox version",
-      "last 5 safari version"
-    ]
-  },
-  "engines": {
-    "node": ">=18.0"
+    "@hestjs/typescript-config": "workspace:*",
+    "@types/node": "^24.0.0",
+    "vitepress": "^1.6.4"
   }
 }
