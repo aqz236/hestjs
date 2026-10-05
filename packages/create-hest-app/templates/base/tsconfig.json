@@ -1,0 +1,9 @@
+{
+  "extends": "__TSCONFIG_BASE__",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "noEmit": true,
+    "types": ["bun"]
+  },
+  "include": ["src/**/*"]
+}

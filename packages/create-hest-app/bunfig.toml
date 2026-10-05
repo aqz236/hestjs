@@ -1,0 +1,4 @@
+# templates/ 里是给生成出来的应用用的测试，不属于本包。
+# bun test 默认扫整个目录，这里收窄到 src。
+[test]
+root = "./src"

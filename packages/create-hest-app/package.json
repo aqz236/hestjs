@@ -1,0 +1,17 @@
+{
+  "name": "create-hest-app",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "在单仓里生成一个最小 HestJS 应用",
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "check-types": "tsc --noEmit",
+    "test": "bun test",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "@hestjs/typescript-config": "workspace:*",
+    "@types/bun": "latest"
+  }
+}
