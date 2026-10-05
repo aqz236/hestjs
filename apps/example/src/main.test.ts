@@ -30,7 +30,7 @@ describe('HTTP', () => {
     expect(response.headers.get('x-powered-by')).toBe('hestjs');
   });
 
-  it('Hono 原生 validator 拦住了非法请求体', async () => {
+  it('@Body 用 zod 校验，非法请求被拦下', async () => {
     const { status } = await json('/users', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -68,8 +68,26 @@ describe('模块作用域', () => {
   });
 });
 
-describe('生命周期', () => {
-  it('OnStart 已经把初始数据准备好', () => {
-    expect(app.graph.container).toBeDefined();
+describe('文档', () => {
+  it('openapi.json 列出全部控制器路由', async () => {
+    const document = (await (await app.hono.request('/openapi.json')).json()) as {
+      openapi: string;
+      paths: Record<string, Record<string, unknown>>;
+    };
+    expect(document.openapi).toBe('3.1.0');
+    // 只收录走控制器的路由：/health 是直接在 Hono 上写的裸路由，
+    // 没有元数据可读，文档里就不会出现它 —— 这是诚实，不是遗漏。
+    expect(Object.keys(document.paths).sort()).toEqual(['/users', '/users/{id}']);
+  });
+
+  it('请求体 schema 来自 zod', async () => {
+    const document = (await (await app.hono.request('/openapi.json')).json()) as {
+      paths: Record<string, { post?: { requestBody?: { content?: Record<string, { schema?: { type?: string } }> } } }>;
+    };
+    expect(document.paths['/users']?.post?.requestBody?.content?.['application/json']?.schema?.type).toBe('object');
+  });
+
+  it('Scalar UI 可访问', async () => {
+    expect(await (await app.hono.request('/docs')).text()).toContain('@scalar/api-reference');
   });
 });

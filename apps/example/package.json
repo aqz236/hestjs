@@ -13,7 +13,10 @@
   },
   "dependencies": {
     "@hestjs/core": "workspace:*",
-    "hono": "^4.13.13"
+    "hono": "^4.13.13",
+    "@hestjs/openapi": "workspace:*",
+    "@hestjs/validation": "workspace:*",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@hestjs/typescript-config": "workspace:*",
