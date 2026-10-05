@@ -1,0 +1,27 @@
+{
+  "name": "@hestjs/validation",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "基于 Standard Schema 的请求校验，不绑定任何校验库",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "test": "bun test",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@hestjs/core": "workspace:*",
+    "@standard-schema/spec": "^1.1.0"
+  },
+  "peerDependencies": {
+    "hono": "^4.13.13"
+  },
+  "devDependencies": {
+    "@hestjs/typescript-config": "workspace:*",
+    "@types/bun": "latest",
+    "hono": "^4.13.13"
+  }
+}
