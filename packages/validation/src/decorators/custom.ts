@@ -31,7 +31,9 @@ import {
  *   role!: 'admin' | 'user' | 'guest';
  *
  *   // 自定义数组验证
- *   @Custom(Type.Array(Type.String({ format: 'email' }), { minItems: 1, maxItems: 5 }))
+ *   // 注意：不要用 JSON Schema 的 format 关键字（如 { format: 'email' }），
+ *   // TypeBox 的 Value.Check 默认不校验 format，应改用 pattern。
+ *   @Custom(Type.Array(Type.String({ pattern: '^[^@]+@[^@]+$' }), { minItems: 1, maxItems: 5 }))
  *   emails!: string[];
  *
  *   // 自定义对象验证
@@ -43,7 +45,7 @@ import {
  *   address!: { street: string; city: string; zipCode: string };
  *
  *   // 自定义日期验证
- *   @Custom(Type.String({ format: 'date-time' }))
+ *   @Custom(Type.String({ pattern: '^\\d{4}-\\d{2}-\\d{2}$' }))
  *   createdAt!: string;
  *
  *   // 复杂的条件验证
@@ -57,7 +59,12 @@ import {
  */
 export function Custom(
   schema: any,
-  options: { message?: string; optional?: boolean } = {}
+  options: {
+    message?: string;
+    optional?: boolean;
+    /** 自定义断言，见 PropertyValidationMetadata.validate */
+    validate?: (value: unknown) => boolean;
+  } = {}
 ) {
   return function (target: any, propertyKey: string | symbol) {
     const existingMetadata: ClassValidationMetadata = Reflect.getMetadata(
@@ -70,6 +77,7 @@ export function Custom(
       schema: schema as TSchema,
       isOptional: options.optional,
       message: options.message,
+      validate: options.validate,
     };
 
     existingMetadata.properties.push(propertyMetadata);
@@ -314,9 +322,20 @@ export class CommonValidators {
    * JSON 字符串验证
    */
   static JsonString(options?: { message?: string; optional?: boolean }) {
+    // TypeBox 无法用 schema 表达「合法 JSON」，只能靠自定义断言。
+    // 早先这里只挂了 Type.String()，导致它接受任意字符串。
     return Custom(Type.String(), {
       ...options,
       message: options?.message || "Must be a valid JSON string",
+      validate: (value: unknown) => {
+        if (typeof value !== 'string') return false;
+        try {
+          JSON.parse(value);
+          return true;
+        } catch {
+          return false;
+        }
+      },
     });
   }
 
