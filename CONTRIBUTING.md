@@ -15,16 +15,30 @@ bun run build
 
 ## 仓库结构
 
-- `packages/*` —— 会发布到 npm 的库（`@hestjs/*`）
-- `apps/*` —— 不发布的演示应用与脚手架
+- `packages/*` —— 会发布到 npm 的包（库与 CLI，`@hestjs/*` 或无 scope 的包名）
+- `apps/*` —— 私有应用，一律 `private: true`，不发布
 - `docs/` —— 框架设计文档
 
-新增包时请在 `packages/` 下创建，并确保：
+判断标准只有一条：**会不会发布到 npm**。会发布的放 `packages/`，不发布的放 `apps/`。
+
+### 依赖声明规则
+
+| 场景 | 写在哪 | 版本写法 |
+| --- | --- | --- |
+| 宿主框架 `@hestjs/core`（插件/扩展包） | `peerDependencies` | `workspace:^` |
+| 同上一项，仅为本地开发与测试 | `devDependencies` | `workspace:*` |
+| 其他内部包 | `dependencies` | `workspace:*` |
+| 纯 tsconfig 预设（通过 `extends` 使用） | `devDependencies` | `workspace:*` |
+
+`@hestjs/core` 绝不能进 `dependencies`：它由使用方提供，写进 `dependencies` 会装出第二份容器实例，
+导致装饰器注册的 provider 与业务代码解析到的容器不是同一个。
+
+### 新增包检查清单
 
 - `package.json` 的 `repository` 带 `directory` 字段
 - `publishConfig.access` 为 `public`
-- 内部依赖使用 `workspace:*`
-- 插件类包把 `@hestjs/core` 放在 `peerDependencies`（`workspace:^`）而非 `dependencies`
+- `files` 字段包含实际产物（`dist` 等）与 `README.md`
+- 涉及 `apps/` 的包一律补 `private: true`
 
 ## 提交前检查
 
