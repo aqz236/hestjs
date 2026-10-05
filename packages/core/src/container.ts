@@ -1,5 +1,11 @@
-import { CircularDependencyError, ProviderNotFoundError } from './errors';
-import type { Constructor, Provider, Scope, Token } from './types';
+import {
+  AmbiguousProviderError,
+  CircularDependencyError,
+  DuplicateProviderError,
+  ProviderNotFoundError,
+} from './errors';
+import { normalizeProvider } from './metadata';
+import type { Provider, ProviderEntry, Scope, Token } from './types';
 
 interface Registration {
   readonly provider: Provider;
@@ -16,52 +22,86 @@ function toRegistration(provider: Provider): Registration {
 /**
  * 依赖容器。
  *
- * 没有反射、没有装饰器魔法：解析一条依赖就是读 `static inject` 然后 `new`。
- * 父子关系只用于覆盖，不做作用域隔离——模块边界由模块图负责，容器只负责构造。
+ * 只有两种登记方式：
+ * - `provide()` 自己造值
+ * - `alias()` 把另一个容器的 token 借进来（解析时回到源容器，所以单例共享）
+ *
+ * 没有 parent 链。谁看得见谁，全部由模块图显式写成 alias，不用猜。
  */
 export class Container {
-  readonly #registrations = new Map<Token, Registration>();
+  readonly #providers = new Map<Token, Registration>();
+  readonly #aliases = new Map<Token, Container>();
   readonly #instances = new Map<Token, unknown>();
   readonly #resolving = new Set<Token>();
 
-  readonly parent: Container | undefined;
+  provide(...entries: readonly ProviderEntry[]): this {
+    for (const entry of entries) {
+      const provider = normalizeProvider(entry);
+      const { provide: token } = provider;
 
-  constructor(parent?: Container) {
-    this.parent = parent;
-  }
-
-  register(...providers: readonly Provider[]): this {
-    for (const provider of providers) {
-      this.#registrations.set(provider.provide, toRegistration(provider));
+      if (this.#aliases.has(token)) {
+        throw new AmbiguousProviderError('container', token);
+      }
+      if (this.#providers.has(token)) {
+        throw new DuplicateProviderError('container', token);
+      }
+      this.#providers.set(token, toRegistration(provider));
     }
     return this;
   }
 
+  alias(token: Token, source: Container): this {
+    if (this.#providers.has(token)) {
+      throw new AmbiguousProviderError('container', token);
+    }
+    const existing = this.#aliases.get(token);
+    if (existing !== undefined && existing !== source) {
+      throw new DuplicateProviderError('container', token);
+    }
+    this.#aliases.set(token, source);
+    return this;
+  }
+
+  /** 本容器能解析的 token（含借来的）。 */
   has(token: Token): boolean {
-    return this.#registrations.has(token) || (this.parent?.has(token) ?? false);
+    return this.#providers.has(token) || this.#aliases.has(token);
+  }
+
+  /** 本容器自己提供的 token。 */
+  provides(token: Token): boolean {
+    return this.#providers.has(token);
+  }
+
+  aliasSource(token: Token): Container | undefined {
+    return this.#aliases.get(token);
+  }
+
+  /** 本容器自己提供的 token，按登记顺序。 */
+  tokens(): readonly Token[] {
+    return [...this.#providers.keys()];
   }
 
   resolve<T>(token: Token<T>): T {
-    const registration = this.#registrations.get(token);
-
-    if (registration === undefined) {
-      if (this.parent !== undefined) {
-        return this.parent.resolve(token);
-      }
-      throw new ProviderNotFoundError(token);
-    }
-
-    if (registration.scope === 'singleton' && this.#instances.has(token)) {
-      return this.#instances.get(token) as T;
-    }
-
     if (this.#resolving.has(token)) {
       throw new CircularDependencyError(token);
     }
-
     this.#resolving.add(token);
     try {
-      const value = this.#create(registration.provider);
+      const source = this.#aliases.get(token);
+      if (source !== undefined) {
+        return source.resolve(token);
+      }
+
+      const registration = this.#providers.get(token);
+      if (registration === undefined) {
+        throw new ProviderNotFoundError(token);
+      }
+
+      if (this.#instances.has(token)) {
+        return this.#instances.get(token) as T;
+      }
+
+      const value = this.#instantiate(registration.provider);
       if (registration.scope === 'singleton') {
         this.#instances.set(token, value);
       }
@@ -71,27 +111,23 @@ export class Container {
     }
   }
 
-  resolveAll(tokens: readonly Token[]): unknown[] {
-    return tokens.map((token) => this.resolve(token));
+  /**
+   * 按登记顺序把本容器所有 provider 都建出来。
+   *
+   * 启动时调用：单例的构造错误会在启动阶段就炸出来，而不是等到某个请求打进来。
+   */
+  instantiateAll(): readonly unknown[] {
+    return this.tokens().map((token) => this.resolve(token));
   }
 
-  createChild(): Container {
-    return new Container(this);
-  }
-
-  #create(provider: Provider): unknown {
+  #instantiate(provider: Provider): unknown {
     if ('useValue' in provider) {
       return provider.useValue;
     }
     if ('useFactory' in provider) {
       return provider.useFactory(this);
     }
-    const { useClass } = provider;
-    const dependencies = useClass.inject ?? [];
-    return new useClass(...this.resolveAll(dependencies));
+    const dependencies = provider.useClass.inject ?? [];
+    return new provider.useClass(...dependencies.map((token) => this.resolve(token)));
   }
-}
-
-export function isConstructor(token: Token): token is Constructor {
-  return typeof token === 'function';
 }
