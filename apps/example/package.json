@@ -1,0 +1,22 @@
+{
+  "name": "@hestjs/example",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "HestJS 最小可运行示例",
+  "scripts": {
+    "dev": "bun run --watch src/main.ts",
+    "start": "bun run src/main.ts",
+    "check-types": "tsc --noEmit",
+    "test": "bun test",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@hestjs/core": "workspace:*",
+    "hono": "^4.13.13"
+  },
+  "devDependencies": {
+    "@hestjs/typescript-config": "workspace:*",
+    "@types/bun": "latest"
+  }
+}
