@@ -10,11 +10,33 @@ export class HttpException extends BaseException {
     status: ContentfulStatusCode,
     options?: { cause?: Error; description?: string }
   ) {
-    const message = typeof response === 'string' ? response : response.message || 'Http Exception';
-    const error = typeof response === 'string' ? HttpException.getDefaultMessage(status) : response.error;
-    
-    super(message, status, error);
-    
+    const isObject = typeof response !== 'string';
+
+    const message = isObject
+      ? response.message || 'Http Exception'
+      : response;
+    const error = isObject
+      ? response.error || HttpException.getDefaultMessage(status)
+      : HttpException.getDefaultMessage(status);
+
+    // 结构化对象中除 message / error 之外的字段全部保留为 details，
+    // 否则调用方传入的字段级错误信息（如 { field, reason }）会被静默丢弃。
+    const details = isObject
+      ? Object.fromEntries(
+          Object.entries(response).filter(
+            ([key]) => key !== 'message' && key !== 'error'
+          )
+        )
+      : undefined;
+
+    super(
+      message,
+      status,
+      error,
+      details && Object.keys(details).length > 0 ? details : undefined,
+      options?.description
+    );
+
     if (options?.cause) {
       this.cause = options.cause;
     }

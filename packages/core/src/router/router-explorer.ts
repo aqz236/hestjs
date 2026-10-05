@@ -30,6 +30,35 @@ import { ParamType } from "../utils/constants";
 const logger = createLogger("Router");
 
 /**
+ * 路由优先级比较：同层级中静态段优先于参数段。
+ *
+ * Hono 的路由是按**注册顺序**决定胜负的，它不会自动让静态路径优先。
+ * 因此如果 `/:id` 先于 `/static` 注册，`GET /static` 会被 `/:id` 捕获
+ * （并且静默返回 200，而不是 404）。注册前必须按本函数排序。
+ *
+ * 比较规则：逐段比较，静态段（0）排在参数段（1）之前；
+ * 完全相同时返回 0，由 Array#sort 的稳定性保持声明顺序。
+ */
+export function compareRouteSpecificity(
+  a: Pick<RouteMetadata, "path">,
+  b: Pick<RouteMetadata, "path">
+): number {
+  const segmentsA = a.path.split("/").filter(Boolean);
+  const segmentsB = b.path.split("/").filter(Boolean);
+  const shared = Math.min(segmentsA.length, segmentsB.length);
+
+  for (let i = 0; i < shared; i++) {
+    const rankA = segmentsA[i].startsWith(":") ? 1 : 0;
+    const rankB = segmentsB[i].startsWith(":") ? 1 : 0;
+    if (rankA !== rankB) {
+      return rankA - rankB;
+    }
+  }
+
+  return 0;
+}
+
+/**
  * 路由资源管理器
  */
 export class RouterExplorer {
@@ -78,7 +107,9 @@ export class RouterExplorer {
       );
     }
 
-    const routes: RouteMetadata[] = MetadataScanner.scanRoutes(controllerClass);
+    const routes: RouteMetadata[] = MetadataScanner.scanRoutes(controllerClass)
+      .slice()
+      .sort(compareRouteSpecificity);
     const controllerInstance: ControllerInstance =
       this.container.resolve(controllerClass);
 
