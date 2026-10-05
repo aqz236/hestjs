@@ -6,39 +6,13 @@ import {
   ModuleCycleError,
   UnresolvedExportError,
 } from './errors';
-import { normalizeProvider, readController, readInjectableScope, readModule } from './metadata';
-import type { ModuleMetadata } from './metadata';
-import type { Constructor, Token } from './types';
-
-export interface ModuleNode {
-  readonly target: Constructor;
-  readonly metadata: ModuleMetadata;
-  /** 本模块自己的容器：自己的 provider + 从 imports 借来的 token。 */
-  readonly container: Container;
-  readonly imports: readonly ModuleNode[];
-  /** 本模块允许别人看到的东西。 */
-  readonly exports: readonly Token[];
-}
-
-export interface ControllerBinding {
-  readonly controller: Constructor;
-  readonly module: ModuleNode;
-  readonly basePath: string;
-}
-
-export interface ResolvedGraph {
-  readonly root: ModuleNode;
-  /** 依赖在前、根模块在后。 */
-  readonly modules: readonly ModuleNode[];
-  readonly controllers: readonly ControllerBinding[];
-  /** 根模块的容器。子模块的东西要通过 export + import 才看得见。 */
-  readonly container: Container;
-}
+import { normalizeProvider, readModule } from './metadata';
+import type { Constructor, ModuleMetadata, ModuleNode, ResolvedGraph, Token } from './types';
 
 /**
  * 把模块声明编译成一组容器。
  *
- * 每个模块一个容器，`imports` 会变成指向对方容器的 alias——
+ * 每个模块一个容器，`imports` 会变成指向对方容器的 alias ——
  * 所以被导入模块的单例在两个模块里是同一个实例，而不是各造一份。
  *
  * 这个函数负责把整张图校验干净：重复 provider、与 import 撞名、
@@ -57,7 +31,7 @@ export function resolveModuleGraph(root: Constructor): ResolvedGraph {
       throw new ModuleCycleError([...chain, target]);
     }
 
-    const metadata = readModule(target);
+    const metadata: ModuleMetadata | undefined = readModule(target);
     if (metadata === undefined) {
       throw new InvalidModuleError(target);
     }
@@ -87,18 +61,6 @@ export function resolveModuleGraph(root: Constructor): ResolvedGraph {
     }
     container.provide(...entries);
 
-    for (const controller of metadata.controllers ?? []) {
-      const token = controller as Token;
-      if (declared.has(token) || container.has(token)) {
-        throw new DuplicateProviderError(target, token);
-      }
-      container.provide({
-        provide: controller,
-        useClass: controller,
-        scope: readInjectableScope(controller) ?? 'singleton',
-      });
-    }
-
     const exported = metadata.exports ?? [];
     for (const token of exported) {
       if (!container.has(token)) {
@@ -113,17 +75,8 @@ export function resolveModuleGraph(root: Constructor): ResolvedGraph {
   };
 
   const rootNode = build(root, []);
-
-  const controllers: ControllerBinding[] = [];
-  for (const node of order) {
-    for (const controller of node.metadata.controllers ?? []) {
-      controllers.push({
-        controller,
-        module: node,
-        basePath: readController(controller)?.path ?? '',
-      });
-    }
-  }
-
-  return { root: rootNode, modules: order, controllers, container: rootNode.container };
+  return { root: rootNode, modules: order, container: rootNode.container };
 }
+
+export type { ResolvedGraph } from './types';
+export { Container } from './container';

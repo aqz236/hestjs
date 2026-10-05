@@ -7,18 +7,10 @@ export interface InjectableOptions {
 }
 
 /**
- * 标记一个类可以被容器构造。
+ * 声明一个类的作用域。不写就是 singleton。
  *
- * 装饰器本身只写入元数据，注册与否由模块的 providers 决定。
- * 依赖用 `static inject` 声明，不依赖 emitDecoratorMetadata。
- *
- * ```ts
- * @Injectable()
- * class UserService {
- *   static readonly inject = [Database] as const;
- *   constructor(private readonly db: Database) {}
- * }
- * ```
+ * 作用域只有这一个来源 —— provider 对象里没有 scope 字段，
+ * 免得同一个东西有两个地方可以改。
  */
 export function Injectable(options: InjectableOptions = {}): ClassDecorator {
   return (target) => {

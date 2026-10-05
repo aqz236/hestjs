@@ -1,88 +1,57 @@
 import type { Env, Hono } from 'hono';
 import { Hono as HonoApp } from 'hono';
-import type { Container } from './container';
-import { hasOnStart, hasOnStop } from './lifecycle';
 import { UnknownOverrideError } from './errors';
+import { hasOnStart, hasOnStop } from './lifecycle';
 import { normalizeProvider } from './metadata';
 import { resolveModuleGraph } from './module-graph';
-import type { ResolvedGraph } from './module-graph';
-import { mountControllers } from './router';
-import type { Constructor, ProviderEntry } from './types';
+import type { App, Constructor, CreateAppOptions, ResolvedGraph, Resolve } from './types';
 
-export interface CreateAppOptions<E extends Env> {
-  /** 复用已有的 Hono 实例，例如把 HestJS 挂进一个已经存在的应用。 */
-  readonly hono?: Hono<E>;
-  /**
-   * 在控制器挂载之前调用，拿到的是 Hono 实例本身。
-   * 中间件要包住控制器路由，就写在这里。
-   */
-  readonly configure?: (hono: Hono<E>, container: Container) => void;
-  /** 给所有控制器再加一层前缀。 */
-  readonly prefix?: string;
-  /** 关掉自动挂载，自己决定什么时候挂。 */
-  readonly mountControllers?: boolean;
-  /**
-   * 替换已有的 provider。主要给测试用。
-   *
-   * 只能替换本来注册过的 token：写错一个名字会立刻报错，
-   * 而不是让测试在「其实没换掉」的情况下假装通过。
-   */
-  readonly overrides?: readonly ProviderEntry[];
-}
-
-export interface App<E extends Env = Env> {
-  /** Hono 实例本身。没有包装、没有代理。 */
-  readonly hono: Hono<E>;
-  /** 根模块的容器。 */
-  readonly container: Container;
-  /** 编译好的模块图，可以直接查。 */
-  readonly graph: ResolvedGraph;
-  /**
-   * 构造全部单例，然后按依赖顺序执行 OnStart。
-   * 构造错误会在这一步集中暴露，而不是等某个请求打进来。
-   */
-  start(): Promise<App<E>>;
-  /** 逆序执行 OnStop。 */
-  stop(): Promise<void>;
-}
-
-/**
- * 组装一个 HestJS 应用。
- *
- * 返回的不是黑盒：`app.hono` 是 Hono 实例，`app.container` 是依赖容器，
- * `app.graph` 是模块图。三个都随你查、随你改。
- */
-export function createApp<E extends Env = Env>(
-  root: Constructor,
-  options: CreateAppOptions<E> = {},
-): App<E> {
-  const graph = resolveModuleGraph(root);
-
-  for (const entry of options.overrides ?? []) {
+function applyOverrides(
+  graph: ResolvedGraph,
+  overrides: CreateAppOptions<Env, Hono>['overrides'],
+): void {
+  for (const entry of overrides ?? []) {
     const token = normalizeProvider(entry).provide;
     const replaced = graph.modules.some((node) => node.container.override(entry));
     if (!replaced) {
       throw new UnknownOverrideError(token);
     }
   }
+}
 
-  const hono = options.hono ?? (new HonoApp() as Hono<E>);
+/**
+ * 组装一个 HestJS 应用。
+ *
+ * 返回的不是黑盒：`app.hono` 是链式注册之后的 Hono 实例，
+ * `app.container` 是依赖容器，`app.graph` 是模块图。三个都随你查。
+ *
+ * 框架**不替你决定路由长什么样** —— 路由就是 Hono 的路由。
+ * 这样 `hc<typeof app.hono>` 能拿到完整的 RPC 类型，也不用把路径写两遍。
+ */
+export function createApp<E extends Env = Env, R extends Hono<E> = Hono<E>>(
+  root: Constructor,
+  options: CreateAppOptions<E, R> = {},
+): App<R> {
+  const graph = resolveModuleGraph(root);
+  applyOverrides(graph, options.overrides as CreateAppOptions<Env, Hono>['overrides']);
 
-  options.configure?.(hono, graph.container);
-
-  if (options.mountControllers ?? true) {
-    mountControllers(hono, graph, { prefix: options.prefix ?? '' });
+  const hono: Hono<E> = options.hono ?? new HonoApp<E>();
+  for (const middleware of options.middleware ?? []) {
+    hono.use(middleware);
   }
+
+  const resolve: Resolve = (token) => graph.container.resolve(token);
+  const routed: R = options.routes === undefined ? (hono as unknown as R) : options.routes(hono, resolve);
 
   let started = false;
   let instances: readonly unknown[] = [];
 
-  const app: App<E> = {
-    hono,
+  const app: App<R> = {
+    hono: routed,
     container: graph.container,
     graph,
 
-    async start(): Promise<App<E>> {
+    async start(): Promise<App<R>> {
       if (started) {
         return app;
       }

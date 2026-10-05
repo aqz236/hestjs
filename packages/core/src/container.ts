@@ -2,9 +2,10 @@ import {
   AmbiguousProviderError,
   CircularDependencyError,
   DuplicateProviderError,
+  MissingInjectError,
   ProviderNotFoundError,
 } from './errors';
-import { normalizeProvider } from './metadata';
+import { normalizeProvider, readInjectableScope, readInjectParams } from './metadata';
 import type { Provider, ProviderEntry, Scope, Token } from './types';
 
 interface Registration {
@@ -16,7 +17,10 @@ function toRegistration(provider: Provider): Registration {
   if ('useValue' in provider) {
     return { provider, scope: 'singleton' };
   }
-  return { provider, scope: provider.scope ?? 'singleton' };
+  if ('useFactory' in provider) {
+    return { provider, scope: provider.scope ?? 'singleton' };
+  }
+  return { provider, scope: readInjectableScope(provider.useClass) ?? 'singleton' };
 }
 
 /**
@@ -137,6 +141,16 @@ export class Container {
     return this.tokens().map((token) => this.resolve(token));
   }
 
+  /**
+   * 构造一个实例。
+   *
+   * 参数个数取 `Math.max(ctor.length, 已标注的最大下标 + 1)`：
+   * `Function.length` 不算带默认值的参数，两边取大才能既覆盖
+   * 可选参数、又不会漏掉中间没标注的那一个。
+   *
+   * 少标一个直接抛错 —— 刻意把「注入关系写错」变成启动期错误，
+   * 而不是等到某个方法被调用时才发现拿到的是 undefined。
+   */
   #instantiate(provider: Provider): unknown {
     if ('useValue' in provider) {
       return provider.useValue;
@@ -144,7 +158,25 @@ export class Container {
     if ('useFactory' in provider) {
       return provider.useFactory(this);
     }
-    const dependencies = provider.useClass.inject ?? [];
-    return new provider.useClass(...dependencies.map((token) => this.resolve(token)));
+
+    const { useClass } = provider;
+    const params = readInjectParams(useClass);
+    const highest = params.size === 0 ? -1 : Math.max(...params.keys());
+    const arity = Math.max(useClass.length, highest + 1);
+
+    const dependencies: unknown[] = [];
+    for (let index = 0; index < arity; index += 1) {
+      const token = params.get(index);
+      if (token === undefined) {
+        throw new MissingInjectError(
+          useClass,
+          index,
+          '给该参数加上 @Inject(Token)，或者给它一个默认值让它变成可选。',
+        );
+      }
+      dependencies.push(this.resolve(token));
+    }
+
+    return new useClass(...dependencies);
   }
 }

@@ -76,28 +76,8 @@ export class InvalidModuleError extends HestError {
   }
 }
 
-export class MissingRouteHandlerError extends HestError {
-  constructor(controller: string, propertyKey: string | symbol) {
-    super(`${controller}.${String(propertyKey)} 被路由装饰器标记，但实例上没有这个方法。`);
-  }
-}
 
-export class DuplicateRouteError extends HestError {
-  constructor(method: string, path: string) {
-    super(`${method} ${path} 被注册了两次。检查两个控制器是否有同样的前缀与相对路径。`);
-  }
-}
 
-export class NoRoutesRegisteredError extends HestError {
-  constructor(controllers: readonly string[]) {
-    super(
-      `检测到 ${controllers.length} 个控制器（${controllers.join(', ')}），但一条路由都没注册。\n` +
-        `最常见的原因：tsconfig 缺 "experimentalDecorators": true，导致 @Get/@Post 被当成\n` +
-        `stage-3 标准装饰器处理，签名不同、元数据写到别处去了。\n` +
-        `注意 Bun 的转译器不解析包名形式的 extends，请用相对路径指向 tsconfig 预设。`,
-    );
-  }
-}
 
 export class UnknownOverrideError extends HestError {
   constructor(token: Token) {
@@ -108,3 +88,13 @@ export class UnknownOverrideError extends HestError {
     );
   }
 }
+
+export class MissingInjectError extends HestError {
+  constructor(target: unknown, index: number, hint: string) {
+    super(
+      `${nameOf(target)} 的第 ${index} 个构造参数没有 @Inject()。\n` +
+        `依赖是显式声明的，容器不会去猜类型 —— ${hint}`,
+    );
+  }
+}
+

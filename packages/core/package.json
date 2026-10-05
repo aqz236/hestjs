@@ -5,7 +5,8 @@
   "type": "module",
   "description": "HestJS 核心：模块声明、零反射依赖注入、Hono 接线",
   "exports": {
-    ".": "./src/index.ts"
+    ".": "./src/index.ts",
+    "./internal": "./src/internal.ts"
   },
   "scripts": {
     "check-types": "tsc --noEmit",

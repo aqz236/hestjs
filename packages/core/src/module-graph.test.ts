@@ -6,18 +6,15 @@ import {
   ProviderNotFoundError,
   UnresolvedExportError,
 } from './errors';
-import { Injectable } from './decorators/injectable';
+import { Inject } from './decorators/inject';
 import { Module } from './decorators/module';
 import { resolveModuleGraph } from './module-graph';
 import type { Constructor } from './types';
 
-@Injectable()
 class Repository {}
 
-@Injectable()
 class Service {
-  static readonly inject = [Repository] as const;
-  constructor(readonly repository: Repository) {}
+  constructor(@Inject(Repository) readonly repository: Repository) {}
 }
 
 describe('resolveModuleGraph', () => {
@@ -30,8 +27,7 @@ describe('resolveModuleGraph', () => {
 
     const graph = resolveModuleGraph(FeatureModule);
     const repository = graph.container.resolve(Repository);
-    const dataNode = graph.root.imports[0]!;
-    expect(dataNode.container.resolve(Repository)).toBe(repository);
+    expect(graph.root.imports[0]!.container.resolve(Repository)).toBe(repository);
   });
 
   it('没有 export 的东西别人看不见', () => {
@@ -41,8 +37,9 @@ describe('resolveModuleGraph', () => {
     @Module({ imports: [ClosedModule], providers: [Service] })
     class FeatureModule {}
 
-    const graph = resolveModuleGraph(FeatureModule);
-    expect(() => graph.container.resolve(Repository)).toThrow(ProviderNotFoundError);
+    expect(() => resolveModuleGraph(FeatureModule).container.resolve(Repository)).toThrow(
+      ProviderNotFoundError,
+    );
   });
 
   it('模块顺序是依赖在前、根在后', () => {
@@ -52,8 +49,10 @@ describe('resolveModuleGraph', () => {
     @Module({ imports: [DataModule], providers: [Service] })
     class FeatureModule {}
 
-    const graph = resolveModuleGraph(FeatureModule);
-    expect(graph.modules.map((node) => node.target)).toEqual([DataModule, FeatureModule]);
+    expect(resolveModuleGraph(FeatureModule).modules.map((node) => node.target)).toEqual([
+      DataModule,
+      FeatureModule,
+    ]);
   });
 
   it('重复 provider 报错', () => {
@@ -81,8 +80,6 @@ describe('resolveModuleGraph', () => {
   });
 
   it('模块 import 成环报错', () => {
-    // 用可变数组打破「必须先声明另一个类」的限制：
-    // 装饰器持有的是同一个数组引用，后面再往里塞就成环了。
     const aImports: Constructor[] = [];
 
     @Module({ imports: aImports })
